@@ -20,17 +20,14 @@ concurrency:
 jobs:
   samples:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - name: install text-to-speech
-        run: |
-          pip install --quiet edge-tts
-          sudo apt-get update -q > /dev/null
-          sudo apt-get install -y -q ffmpeg espeak-ng > /dev/null
+        run: pip install --quiet edge-tts imageio-ffmpeg
       - name: synthesise samples
         run: python3 .github/speech/make_samples.py .github/speech/samples.tsv samples
       - uses: actions/upload-artifact@v7
