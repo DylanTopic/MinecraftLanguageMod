@@ -1,0 +1,15 @@
+{
+	"schemaVersion": 1,
+	"id": "langmod-gametest",
+	"version": "1.0.0",
+	"name": "LangMod game tests",
+	"environment": "*",
+	"entrypoints": {
+		"fabric-client-gametest": [
+			"io.github.dylantopic.langmod.test.LangModClientGameTest"
+		]
+	},
+	"depends": {
+		"langmod": "*"
+	}
+}

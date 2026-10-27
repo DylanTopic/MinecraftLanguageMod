@@ -1,0 +1,30 @@
+{
+	"schemaVersion": 1,
+	"id": "langmod",
+	"version": "${version}",
+	"name": "LangMod: Mandarin",
+	"description": "Learn Mandarin Chinese through exposure: say an item's Chinese name out loud the first time you pick it up. Speech recognition runs locally with whisper.cpp.",
+	"authors": [
+		"DylanTopic"
+	],
+	"contact": {
+		"sources": "https://github.com/DylanTopic/MinecraftLanguageMod"
+	},
+	"license": "All-Rights-Reserved",
+	"icon": "assets/langmod/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"io.github.dylantopic.langmod.LangMod"
+		],
+		"client": [
+			"io.github.dylantopic.langmod.client.LangModClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.20.1",
+		"minecraft": "~26.1.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
