@@ -9,6 +9,13 @@ base {
 
 repositories {
 	// Loom adds the Fabric, Mojang and Maven Central repositories automatically.
+	maven {
+		name = "Terraformers (Mod Menu)"
+		url = "https://maven.terraformersmc.com/"
+		content {
+			includeGroup "com.terraformersmc"
+		}
+	}
 }
 
 loom {
@@ -43,6 +50,11 @@ dependencies {
 	// shipped inside the mod jar.
 	implementation "io.github.givimad:whisper-jni:${project.whisper_jni_version}"
 	include "io.github.givimad:whisper-jni:${project.whisper_jni_version}"
+
+	// Mod Menu is optional: compile against its API, and put it in the development client so
+	// the settings screen can be opened from the mods list. It is not bundled.
+	compileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
+	localRuntime "com.terraformersmc:modmenu:${project.modmenu_version}"
 
 	testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
 }

@@ -212,6 +212,7 @@ public final class ChallengeManager {
 
 	public void tick(MinecraftServer server) {
 		tick++;
+		boolean enabled = LangModConfig.get().enabled;
 		Iterator<Map.Entry<UUID, PlayerState>> it = players.entrySet().iterator();
 
 		while (it.hasNext()) {
@@ -223,6 +224,11 @@ public final class ChallengeManager {
 			}
 
 			PlayerState state = entry.getValue();
+
+			if (!enabled && (state.active != null || !state.queue.isEmpty())) {
+				returnEverything(player, state, "LangMod was turned off, so your items were given back.");
+				continue;
+			}
 
 			if (state.cooldown > 0) {
 				state.cooldown--;

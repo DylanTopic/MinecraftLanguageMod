@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.BooleanSupplier;
 
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+
+import net.minecraft.client.OptionInstance;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -16,13 +19,16 @@ import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
 import net.fabricmc.fabric.api.client.gametest.v1.world.TestWorldSave;
+import net.fabricmc.loader.api.FabricLoader;
 
 import io.github.dylantopic.langmod.LangMod;
 import io.github.dylantopic.langmod.LangModConfig;
 import io.github.dylantopic.langmod.challenge.ChallengeManager;
+import io.github.dylantopic.langmod.command.LangModCommands;
 import io.github.dylantopic.langmod.client.ChallengeController;
 import io.github.dylantopic.langmod.client.ClientChallenge;
 import io.github.dylantopic.langmod.client.MicTest;
+import io.github.dylantopic.langmod.client.config.LangModConfigScreen;
 import io.github.dylantopic.langmod.client.speech.SpeechService;
 import io.github.dylantopic.langmod.core.Matcher;
 import io.github.dylantopic.langmod.data.PlayerLangData;
@@ -129,9 +135,65 @@ public class LangModClientGameTest implements FabricClientGameTest {
 			check(data.isLearned("minecraft:apple") && !data.isLearned("minecraft:torch"), "learned items were saved");
 			check(data.failures().getOrDefault("minecraft:dirt", 0) == 1 && data.pending().isEmpty(), "failures saved, nothing pending");
 			context.takeScreenshot("langmod-08-reloaded");
+
+			// 6. Turning the mod off mid-challenge gives the item back.
+			drop(singleplayer, uuid, new ItemStack(Items.TORCH, 2));
+			waitForChallenge(context, "火把");
+			LangModConfig.update(c -> c.enabled = false);
+			context.waitFor(minecraft -> ClientChallenge.get().active() == null, 100);
+			check(ClientChallenge.get().endOutcome() == ChallengeEndPayload.Outcome.CANCELLED, "turning the mod off cancels the challenge");
+			waitUntil(context, "the torches to come back", () -> count(singleplayer, uuid, Items.TORCH) == 9);
+			drop(singleplayer, uuid, new ItemStack(Items.STICK));
+			waitUntil(context, "a vanilla pickup while the mod is off", () -> count(singleplayer, uuid, Items.STICK) == 1);
+			LangModConfig.update(c -> c.enabled = true);
+
+			// 7. Commands.
+			String apple = singleplayer.getServer().computeOnServer(server -> LangModCommands.describe("minecraft:apple").getString());
+			check(apple.equals("苹果 píng guǒ (Apple)"), "/langmod list line for apple (got " + apple + ")");
+			check(command(singleplayer, uuid, "langmod list") == 1, "/langmod list shows one learned item");
+			check(command(singleplayer, uuid, "langmod review") == 2, "/langmod review lists dirt and stick (cancelled torches don't count)");
+			check(command(singleplayer, uuid, "langmod reset") == 1, "/langmod reset forgets one item");
+			data = data(singleplayer, uuid);
+			check(data.learned().isEmpty() && data.failures().getOrDefault("minecraft:dirt", 0) == 1, "reset keeps the mistake history");
+			command(singleplayer, uuid, "langmod reset everything");
+			check(data(singleplayer, uuid).failures().isEmpty(), "reset everything clears the mistake history");
+
+			// 8. Settings screen, opened with /langmod config (Mod Menu opens the same screen).
+			check(FabricLoader.getInstance().getEntrypointContainers("modmenu", Object.class).stream()
+					.anyMatch(entrypoint -> entrypoint.getProvider().getMetadata().getId().equals(LangMod.MOD_ID)), "Mod Menu entrypoint registered");
+			command(singleplayer, uuid, "langmod config");
+			context.waitFor(minecraft -> minecraft.screen instanceof LangModConfigScreen, 100);
+			context.takeScreenshot("langmod-09-config-screen");
+			boolean english = LangModConfig.get().showEnglish;
+			context.runOnClient(minecraft -> toggle(((LangModConfigScreen) minecraft.screen).option("showEnglish")));
+			check(LangModConfig.get().showEnglish != english, "the settings screen changes the config");
+			context.setScreen(() -> null);
+			LangModConfig.update(c -> c.showEnglish = english);
+
+			check(command(singleplayer, uuid, "langmod reload") == 1, "/langmod reload");
+			waitUntilReady(context, singleplayer, uuid);
 		}
 
 		LangMod.LOGGER.info("LANGMOD-GAMETEST: all checks passed");
+	}
+
+	@SuppressWarnings("unchecked")
+	private static void toggle(OptionInstance<?> option) {
+		OptionInstance<Boolean> toggle = (OptionInstance<Boolean>) option;
+		toggle.set(!toggle.get());
+	}
+
+	/** Runs a command as the player and returns its result. */
+	private static int command(TestSingleplayerContext singleplayer, UUID uuid, String command) {
+		return singleplayer.getServer().computeOnServer(server -> {
+			ServerPlayer player = server.getPlayerList().getPlayer(uuid);
+
+			try {
+				return server.getCommands().getDispatcher().execute(command, player.createCommandSourceStack());
+			} catch (CommandSyntaxException e) {
+				throw new AssertionError("/" + command + " failed: " + e.getMessage(), e);
+			}
+		});
 	}
 
 	/** Submits a clip whose transcription will be {@code text} and waits for the server's verdict. */

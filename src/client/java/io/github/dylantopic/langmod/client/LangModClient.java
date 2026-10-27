@@ -2,6 +2,10 @@ package io.github.dylantopic.langmod.client;
 
 import java.util.List;
 
+import com.mojang.blaze3d.platform.InputConstants;
+import org.lwjgl.glfw.GLFW;
+
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.toasts.SystemToast;
 import net.minecraft.network.chat.Component;
@@ -9,6 +13,7 @@ import net.minecraft.network.chat.Component;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
@@ -17,6 +22,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import io.github.dylantopic.langmod.LangMod;
 import io.github.dylantopic.langmod.LangModConfig;
 import io.github.dylantopic.langmod.client.audio.MicCapture;
+import io.github.dylantopic.langmod.client.config.LangModConfigScreen;
 import io.github.dylantopic.langmod.client.hud.ChallengeHud;
 import io.github.dylantopic.langmod.client.speech.SpeechService;
 import io.github.dylantopic.langmod.net.AttemptResultPayload;
@@ -30,6 +36,9 @@ import io.github.dylantopic.langmod.net.ClientHelloPayload;
  * Client entrypoint: microphone, speech recognition and the challenge popup.
  */
 public class LangModClient implements ClientModInitializer {
+	private static final KeyMapping.Category KEY_CATEGORY = KeyMapping.Category.register(LangMod.id("main"));
+	private static final KeyMapping TOGGLE_DEBUG_KEY = new KeyMapping("key.langmod.toggle_debug", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_F9, KEY_CATEGORY);
+	private static final KeyMapping OPEN_CONFIG_KEY = new KeyMapping("key.langmod.open_config", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, KEY_CATEGORY);
 	private static SpeechService.Status lastNotifiedStatus;
 
 	@Override
@@ -52,10 +61,20 @@ public class LangModClient implements ClientModInitializer {
 			}
 		});
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> challenge.reset());
+		KeyMappingHelper.registerKeyMapping(TOGGLE_DEBUG_KEY);
+		KeyMappingHelper.registerKeyMapping(OPEN_CONFIG_KEY);
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			challenge.tick();
 			ChallengeController.get().tick(client);
 			MicTest.tick();
+
+			while (TOGGLE_DEBUG_KEY.consumeClick()) {
+				runAction(ClientActionPayload.Action.TOGGLE_DEBUG);
+			}
+
+			while (OPEN_CONFIG_KEY.consumeClick()) {
+				runAction(ClientActionPayload.Action.OPEN_CONFIG);
+			}
 		});
 
 		// Load the Whisper model in the background as soon as the game has started.
@@ -115,7 +134,13 @@ public class LangModClient implements ClientModInitializer {
 				boolean on = LangModConfig.update(config -> config.debugOverlay = !config.debugOverlay).debugOverlay;
 				ClientMessages.info("Debug overlay " + (on ? "on" : "off") + ".");
 			}
-			case RELOAD -> ClientMessages.info("Not available yet.");
+			case RELOAD -> {
+				// The integrated server already re-read langmod.json. This reloads the model if speech settings
+				// changed (a chat message follows when it is ready) and retries a microphone that failed.
+				SpeechService.get().reload();
+				ChallengeController.get().clearMicError();
+			}
+			case OPEN_CONFIG -> Minecraft.getInstance().setScreen(new LangModConfigScreen(null));
 		}
 	}
 }

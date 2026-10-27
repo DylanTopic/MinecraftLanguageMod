@@ -19,6 +19,9 @@
 		],
 		"client": [
 			"io.github.dylantopic.langmod.client.LangModClient"
+		],
+		"modmenu": [
+			"io.github.dylantopic.langmod.client.compat.ModMenuIntegration"
 		]
 	},
 	"mixins": [
@@ -29,5 +32,8 @@
 		"minecraft": "~26.1.2",
 		"java": ">=25",
 		"fabric-api": "*"
+	},
+	"suggests": {
+		"modmenu": "*"
 	}
 }

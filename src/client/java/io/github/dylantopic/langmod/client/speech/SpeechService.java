@@ -37,6 +37,7 @@ public final class SpeechService {
 	}
 
 	private static final SpeechService INSTANCE = new SpeechService();
+	private static final String TEST_ENGINE = "test";
 
 	private final ExecutorService executor = Executors.newSingleThreadExecutor(runnable -> {
 		Thread thread = new Thread(runnable, "LangMod-Speech");
@@ -73,12 +74,12 @@ public final class SpeechService {
 		start();
 	}
 
-	/** Uses a given engine instead of Whisper (game tests). */
+	/** Uses a given engine instead of Whisper (game tests). It stays in use until the game closes. */
 	public void useEngineForTesting(SpeechEngine testEngine) {
 		executor.execute(() -> {
 			closeEngine();
 			engine = testEngine;
-			engineSettings = "test";
+			engineSettings = TEST_ENGINE;
 
 			try {
 				testEngine.load();
@@ -151,6 +152,10 @@ public final class SpeechService {
 	}
 
 	private void loadIfNeeded() {
+		if (TEST_ENGINE.equals(engineSettings)) {
+			return;
+		}
+
 		LangModConfig config = LangModConfig.get();
 		int threads = config.whisperThreads > 0 ? config.whisperThreads : WhisperModels.autoThreads();
 		Path model = WhisperModels.modelFile(modelsDirectory(), config.modelSize);

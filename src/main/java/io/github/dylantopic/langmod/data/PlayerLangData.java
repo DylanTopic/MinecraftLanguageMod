@@ -75,6 +75,11 @@ public record PlayerLangData(Set<String> learned, Map<String, Integer> failures,
 		return new PlayerLangData(Set.of(), failures, wrongAttempts, pending);
 	}
 
+	/** Learned items and mistake counts cleared; held items are kept. */
+	public PlayerLangData withProgressCleared() {
+		return new PlayerLangData(Set.of(), Map.of(), Map.of(), pending);
+	}
+
 	public PlayerLangData withFailure(String itemId) {
 		Map<String, Integer> map = new HashMap<>(failures);
 		map.merge(itemId, 1, Integer::sum);

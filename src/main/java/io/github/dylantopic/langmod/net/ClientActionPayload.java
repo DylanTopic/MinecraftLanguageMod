@@ -23,7 +23,9 @@ public record ClientActionPayload(Action action) implements CustomPacketPayload 
 		/** /langmod debug: toggle the debug overlay. */
 		TOGGLE_DEBUG,
 		/** /langmod reload: reload the client side of the config (speech model, colours). */
-		RELOAD
+		RELOAD,
+		/** /langmod config: open the settings screen (also reachable through Mod Menu). */
+		OPEN_CONFIG
 	}
 
 	private ClientActionPayload(RegistryFriendlyByteBuf buf) {
