@@ -15,6 +15,8 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
 import io.github.dylantopic.langmod.core.ItemDictionary;
+import io.github.dylantopic.langmod.core.MatchMode;
+import io.github.dylantopic.langmod.core.Matcher;
 import io.github.dylantopic.langmod.core.PinyinEntry;
 import io.github.dylantopic.langmod.core.speech.SpeechEngine;
 import io.github.dylantopic.langmod.core.speech.WhisperJniEngine;
@@ -59,6 +61,9 @@ public final class SpeechCheck {
 		System.out.printf(Locale.ROOT, "java %s on %s %s, %d cores%n", System.getProperty("java.version"),
 				System.getProperty("os.name"), System.getProperty("os.arch"), Runtime.getRuntime().availableProcessors());
 		long start = System.nanoTime();
+		int asExpected = 0;
+		int total = 0;
+		List<String> surprises = new ArrayList<>();
 
 		try (SpeechEngine engine = new WhisperJniEngine(model, threads, true, line -> { })) {
 			engine.load();
@@ -73,12 +78,32 @@ public final class SpeechCheck {
 					String raw = engine.transcribe(audio, new SpeechEngine.Request("zh", bias ? expected.hanzi() : null));
 					long ms = (System.nanoTime() - t0) / 1_000_000;
 					String simplified = normalizer.normalize(raw);
-					System.out.printf(Locale.ROOT, "%-14s %-7s expected %s (%s) | said %s | heard \"%s\" -> %s [%s] | %d ms%n",
-							sample.file(), bias ? "biased" : "plain", expected.hanzi(), expected.marks(), sample.spoken(), raw,
-							simplified.isEmpty() ? "(nothing)" : simplified, pinyin(readings, simplified), ms);
+					Matcher.Result strict = Matcher.match(expected, simplified, readings, MatchMode.STRICT, false);
+					Matcher.Result toneless = Matcher.match(expected, simplified, readings, MatchMode.TONELESS, false);
+					boolean ok = switch (sample.expect()) {
+						case "pass" -> strict.pass();
+						case "fail" -> !toneless.pass();
+						case "fail-strict" -> !strict.pass();
+						default -> throw new IllegalStateException("bad expectation " + sample.expect());
+					};
+					total++;
+					asExpected += ok ? 1 : 0;
+					String line = String.format(Locale.ROOT,
+							"%-13s %-6s want %s %-14s said %-6s heard %-10s -> %-8s %-18s strict=%-4s toneless=%-4s %s %5d ms",
+							sample.file(), bias ? "biased" : "plain", expected.hanzi(), expected.marks(), sample.spoken(),
+							'"' + raw + '"', simplified.isEmpty() ? "(nothing)" : simplified, strict.heardPinyin(),
+							strict.pass() ? "PASS" : "fail", toneless.pass() ? "PASS" : "fail", ok ? "as expected" : "UNEXPECTED", ms);
+					System.out.println(line);
+
+					if (!ok) {
+						surprises.add(line);
+					}
 				}
 			}
 		}
+
+		System.out.printf(Locale.ROOT, "%n%d of %d results as expected.%n", asExpected, total);
+		surprises.forEach(line -> System.out.println("  " + line));
 	}
 
 	static List<Sample> readManifest(Path file) throws IOException {

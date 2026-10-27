@@ -10,15 +10,20 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.ARGB;
 
 import io.github.dylantopic.langmod.LangModConfig;
+import io.github.dylantopic.langmod.client.ChallengeController;
 import io.github.dylantopic.langmod.client.ClientChallenge;
 import io.github.dylantopic.langmod.client.MicTest;
+import io.github.dylantopic.langmod.client.audio.MicCapture;
+import io.github.dylantopic.langmod.core.Matcher;
 import io.github.dylantopic.langmod.core.Pinyin;
 import io.github.dylantopic.langmod.core.PinyinEntry;
+import io.github.dylantopic.langmod.net.AttemptResultPayload;
 import io.github.dylantopic.langmod.net.ChallengeEndPayload;
 
 /**
  * The challenge popup: item icon, the Chinese name in large characters, tone-coloured pinyin,
- * the English name, microphone state and the countdown.
+ * the English name, microphone state, the countdown and, after an answer, what Whisper heard
+ * with every syllable marked right or wrong.
  */
 public final class ChallengeHud {
 	private static final int PAD = 6;
@@ -27,6 +32,7 @@ public final class ChallengeHud {
 	private static final int BORDER = 0xFF5A5A78;
 	private static final int TEXT = 0xFFFFFFFF;
 	private static final int DIM = 0xFFA0A0A8;
+	private static final int NOTE = 0xFFFFDD66;
 
 	private ChallengeHud() {
 	}
@@ -41,13 +47,29 @@ public final class ChallengeHud {
 		} else if (challenge.ended() != null) {
 			drawResult(graphics, challenge, challenge.ended());
 		}
+
+		if (LangModConfig.get().debugOverlay) {
+			DebugHud.draw(graphics);
+		}
+	}
+
+	/** Colour for how a syllable compared. */
+	public static int statusColor(Matcher.Status status) {
+		return switch (status) {
+			case MATCH -> 0xFF66DD66;
+			case TONE -> 0xFFFFAA33;
+			case WRONG, MISSING -> 0xFFFF5555;
+			case EXTRA -> 0xFFCC8888;
+		};
 	}
 
 	private static void drawChallenge(GuiGraphicsExtractor graphics, ClientChallenge challenge, ClientChallenge.Active active) {
 		Minecraft minecraft = Minecraft.getInstance();
 		Font font = minecraft.font;
 		LangModConfig config = LangModConfig.get();
+		ChallengeController controller = ChallengeController.get();
 		PinyinEntry entry = active.entry();
+		AttemptResultPayload result = challenge.lastResult();
 
 		float hanziScale = config.hanziScale;
 		float pinyinScale = config.pinyinScale;
@@ -58,19 +80,24 @@ public final class ChallengeHud {
 		int englishWidth = english == null ? 0 : font.width(english);
 		int textWidth = Math.max(hanziWidth, Math.max(pinyinWidth, englishWidth));
 
-		String status = statusLine();
+		String status = statusLine(controller);
 		String timer = (challenge.remainingTicks() + 19) / 20 + "s";
 		String attempts = "Attempt " + Math.min(challenge.attemptsUsed() + 1, active.maxAttempts()) + "/" + active.maxAttempts()
 				+ (active.longName() ? "  (long name: one slip allowed)" : "")
 				+ (challenge.queued() > 0 ? "  +" + challenge.queued() + " queued" : "");
 		int footerWidth = Math.max(12 + font.width(status) + 8 + font.width(timer), font.width(attempts));
 
-		int width = Math.max(ICON + PAD + textWidth, Math.max(footerWidth, 170)) + 2 * PAD;
+		boolean showHeard = result != null && !result.heardTokens().isEmpty() && result.verdict() == AttemptResultPayload.Verdict.WRONG;
+		String note = result == null ? "" : result.note();
+		int heardWidth = showHeard ? heardWidth(font, result) : 0;
+
+		int width = Math.max(ICON + PAD + textWidth, Math.max(Math.max(footerWidth, heardWidth), Math.max(font.width(note), 170))) + 2 * PAD;
 		int hanziHeight = Math.round(font.lineHeight * hanziScale);
 		int pinyinHeight = Math.round(font.lineHeight * pinyinScale);
 		int textHeight = hanziHeight + 3 + pinyinHeight + (english == null ? 0 : 3 + font.lineHeight);
 		int headerHeight = Math.max(ICON, textHeight);
-		int height = PAD + headerHeight + 6 + font.lineHeight + 4 + 3 + 4 + font.lineHeight + PAD;
+		int resultHeight = (showHeard ? font.lineHeight + 3 : 0) + (note.isEmpty() ? 0 : font.lineHeight + 3);
+		int height = PAD + headerHeight + 6 + font.lineHeight + 4 + 3 + 4 + font.lineHeight + (resultHeight > 0 ? 4 + resultHeight : 0) + PAD;
 
 		int x = (graphics.guiWidth() - width) / 2;
 		int y = 6;
@@ -85,12 +112,12 @@ public final class ChallengeHud {
 		graphics.item(active.stack(), 0, 0);
 		graphics.pose().popMatrix();
 
-		// Name: characters, pinyin coloured by tone, English.
+		// Name: characters, pinyin coloured by tone (underlined where the last answer was off), English.
 		int textX = x + PAD + ICON + PAD;
 		int textY = y + PAD + (headerHeight - textHeight) / 2;
 		drawScaled(graphics, font, entry.hanzi(), textX, textY, hanziScale, TEXT);
 		textY += hanziHeight + 3;
-		drawPinyin(graphics, font, entry.syllables(), textX, textY, pinyinScale, config);
+		drawPinyin(graphics, font, entry.syllables(), result == null ? List.of() : result.expectedStatus(), textX, textY, pinyinScale, config);
 		textY += pinyinHeight + 3;
 
 		if (english != null) {
@@ -99,18 +126,36 @@ public final class ChallengeHud {
 
 		// Microphone indicator, status text and countdown.
 		int rowY = y + PAD + headerHeight + 6;
-		drawMicIndicator(graphics, x + PAD, rowY);
+		MicCapture mic = controller.mic();
+		boolean listening = mic != null && !controller.checking();
+		MicIndicator.drawDot(graphics, x + PAD, rowY, listening, mic != null && mic.inSpeech());
 		graphics.text(font, status, x + PAD + 12, rowY, TEXT, true);
 		graphics.text(font, timer, x + width - PAD - font.width(timer), rowY, challenge.timerRunning() ? TEXT : DIM, true);
 
-		// Time bar: green -> red as the time runs out.
+		// Time bar (green -> red) with the microphone level just above it.
 		int barY = rowY + font.lineHeight + 4;
 		int barWidth = width - 2 * PAD;
-		float fraction = active.timeLimitTicks() <= 0 ? 0 : Math.max(0, Math.min(1, challenge.remainingTicks() / (float) active.timeLimitTicks()));
-		graphics.fill(x + PAD, barY, x + PAD + barWidth, barY + 3, 0xFF303038);
-		graphics.fill(x + PAD, barY, x + PAD + Math.round(barWidth * fraction), barY + 3, ARGB.linearLerp(fraction, 0xFFE53935, 0xFF43A047));
 
-		graphics.text(font, attempts, x + PAD, barY + 3 + 4, DIM, true);
+		if (mic != null) {
+			MicIndicator.drawMeter(graphics, x + PAD + 12, barY - 4, Math.min(80, barWidth - 12), mic);
+		}
+
+		float fraction = active.timeLimitTicks() <= 0 ? 0 : Math.max(0, Math.min(1, challenge.remainingTicks() / (float) active.timeLimitTicks()));
+		graphics.fill(x + PAD, barY + 1, x + PAD + barWidth, barY + 3, 0xFF303038);
+		graphics.fill(x + PAD, barY + 1, x + PAD + Math.round(barWidth * fraction), barY + 3, ARGB.linearLerp(fraction, 0xFFE53935, 0xFF43A047));
+
+		int lineY = barY + 3 + 4;
+		graphics.text(font, attempts, x + PAD, lineY, DIM, true);
+		lineY += font.lineHeight + 4;
+
+		if (showHeard) {
+			drawHeard(graphics, font, result, x + PAD, lineY);
+			lineY += font.lineHeight + 3;
+		}
+
+		if (!note.isEmpty()) {
+			graphics.text(font, note, x + PAD, lineY, NOTE, true);
+		}
 	}
 
 	private static void drawResult(GuiGraphicsExtractor graphics, ClientChallenge challenge, ClientChallenge.Active ended) {
@@ -118,7 +163,7 @@ public final class ChallengeHud {
 		ChallengeEndPayload.Outcome outcome = challenge.endOutcome();
 		String hanzi = ended.entry().hanzi();
 		String title = switch (outcome) {
-			case SUCCESS -> "Correct! " + hanzi + " learned";
+			case SUCCESS -> "正确! " + hanzi + " learned";
 			case FAILED -> hanzi + " vanished";
 			case CANCELLED -> "Challenge stopped";
 		};
@@ -148,12 +193,56 @@ public final class ChallengeHud {
 		}
 	}
 
-	private static String statusLine() {
-		return "Say it out loud! (microphone: coming in stage 3)";
+	private static String statusLine(ChallengeController controller) {
+		if (!controller.micAvailable()) {
+			return "Microphone unavailable";
+		}
+
+		if (controller.checking()) {
+			return "Checking...";
+		}
+
+		MicCapture mic = controller.mic();
+
+		if (mic == null) {
+			return "Opening microphone...";
+		}
+
+		return mic.inSpeech() ? "Listening..." : "Say it out loud!";
 	}
 
-	private static void drawMicIndicator(GuiGraphicsExtractor graphics, int x, int y) {
-		graphics.fill(x + 1, y, x + 8, y + 8, 0xFF606068);
+	private static int heardWidth(Font font, AttemptResultPayload result) {
+		int width = font.width("Heard: ");
+
+		for (AttemptResultPayload.Token token : result.heardTokens()) {
+			width += font.width(token.text()) + 1;
+		}
+
+		width += font.width("  ");
+
+		for (AttemptResultPayload.Token token : result.heardTokens()) {
+			width += font.width(token.pinyin() + " ");
+		}
+
+		return width;
+	}
+
+	/** "Heard: 平国  píng guó" with every character and syllable coloured by how it compared. */
+	private static void drawHeard(GuiGraphicsExtractor graphics, Font font, AttemptResultPayload result, int x, int y) {
+		graphics.text(font, "Heard: ", x, y, DIM, true);
+		int cursor = x + font.width("Heard: ");
+
+		for (AttemptResultPayload.Token token : result.heardTokens()) {
+			graphics.text(font, token.text(), cursor, y, statusColor(token.status()), true);
+			cursor += font.width(token.text()) + 1;
+		}
+
+		cursor += font.width("  ");
+
+		for (AttemptResultPayload.Token token : result.heardTokens()) {
+			graphics.text(font, token.pinyin(), cursor, y, statusColor(token.status()), true);
+			cursor += font.width(token.pinyin() + " ");
+		}
 	}
 
 	private static int pinyinWidth(Font font, List<Pinyin.Syllable> syllables) {
@@ -166,18 +255,25 @@ public final class ChallengeHud {
 		return width;
 	}
 
-	/** Draws each syllable in the colour of its tone. */
-	private static void drawPinyin(GuiGraphicsExtractor graphics, Font font, List<Pinyin.Syllable> syllables, float x, float y,
-			float scale, LangModConfig config) {
+	/** Draws each syllable in the colour of its tone, underlined in red/orange if the last answer got it wrong. */
+	private static void drawPinyin(GuiGraphicsExtractor graphics, Font font, List<Pinyin.Syllable> syllables, List<Matcher.Status> statuses,
+			float x, float y, float scale, LangModConfig config) {
 		graphics.pose().pushMatrix();
 		graphics.pose().translate(x, y);
 		graphics.pose().scale(scale);
 		int cursor = 0;
 
-		for (Pinyin.Syllable syllable : syllables) {
+		for (int i = 0; i < syllables.size(); i++) {
+			Pinyin.Syllable syllable = syllables.get(i);
 			String text = syllable.marked();
+			int textWidth = font.width(text);
 			graphics.text(font, text, cursor, 0, config.toneColor(syllable.tone()), true);
-			cursor += font.width(text) + font.width(" ");
+
+			if (i < statuses.size() && statuses.get(i) != Matcher.Status.MATCH) {
+				graphics.fill(cursor, font.lineHeight, cursor + textWidth, font.lineHeight + 1, statusColor(statuses.get(i)));
+			}
+
+			cursor += textWidth + font.width(" ");
 		}
 
 		graphics.pose().popMatrix();

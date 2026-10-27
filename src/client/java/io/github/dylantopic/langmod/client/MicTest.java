@@ -69,6 +69,7 @@ public final class MicTest {
 		}
 
 		current = test;
+		ChallengeController.get().clearMicError();
 		ClientMessages.info("Microphone on (" + test.mic.deviceName() + "). Say something in Chinese...");
 	}
 

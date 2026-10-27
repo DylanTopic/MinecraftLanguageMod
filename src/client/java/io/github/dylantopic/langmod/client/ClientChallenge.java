@@ -5,6 +5,7 @@ import net.minecraft.world.item.ItemStack;
 import io.github.dylantopic.langmod.LangMod;
 import io.github.dylantopic.langmod.core.Pinyin;
 import io.github.dylantopic.langmod.core.PinyinEntry;
+import io.github.dylantopic.langmod.net.AttemptResultPayload;
 import io.github.dylantopic.langmod.net.ChallengeEndPayload;
 import io.github.dylantopic.langmod.net.ChallengeStartPayload;
 import io.github.dylantopic.langmod.net.ChallengeStatePayload;
@@ -29,11 +30,18 @@ public final class ClientChallenge {
 	private int ticksSinceSync;
 	private int attemptsUsed;
 	private int queued;
+	/** Verdict on the latest answer for the active challenge, or null. */
+	private AttemptResultPayload lastResult;
 
 	private Active ended;
 	private ChallengeEndPayload.Outcome endOutcome;
 	private String endDetail = "";
 	private int endTicks;
+
+	/** Kept after the challenge ends, for the debug overlay. */
+	private AttemptResultPayload debugResult;
+	private PinyinEntry debugExpected;
+	private int debugAudioMs;
 
 	private ClientChallenge() {
 	}
@@ -59,7 +67,10 @@ public final class ClientChallenge {
 		ticksSinceSync = 0;
 		attemptsUsed = 0;
 		queued = payload.queued();
+		lastResult = null;
 		endTicks = 0;
+		debugExpected = entry;
+		ChallengeController.get().onChallengeStart(active);
 	}
 
 	public void onState(ChallengeStatePayload payload) {
@@ -72,6 +83,19 @@ public final class ClientChallenge {
 		}
 	}
 
+	public void onChecking(int audioMs) {
+		debugAudioMs = audioMs;
+	}
+
+	public void onAttemptResult(AttemptResultPayload payload) {
+		if (active != null && active.id() == payload.challengeId()) {
+			lastResult = payload;
+			attemptsUsed = payload.attemptsUsed();
+			debugResult = payload;
+			ChallengeController.get().onAttemptResult(payload);
+		}
+	}
+
 	public void onEnd(ChallengeEndPayload payload) {
 		if (active != null && active.id() == payload.challengeId()) {
 			ended = active;
@@ -79,6 +103,7 @@ public final class ClientChallenge {
 			endDetail = payload.detail();
 			endTicks = END_DISPLAY_TICKS;
 			active = null;
+			ChallengeController.get().onChallengeEnd();
 		}
 	}
 
@@ -100,6 +125,8 @@ public final class ClientChallenge {
 		active = null;
 		ended = null;
 		endTicks = 0;
+		lastResult = null;
+		ChallengeController.get().onChallengeEnd();
 	}
 
 	public Active active() {
@@ -122,6 +149,10 @@ public final class ClientChallenge {
 		return queued;
 	}
 
+	public AttemptResultPayload lastResult() {
+		return lastResult;
+	}
+
 	public Active ended() {
 		return endTicks > 0 ? ended : null;
 	}
@@ -136,5 +167,17 @@ public final class ClientChallenge {
 
 	public int endTicks() {
 		return endTicks;
+	}
+
+	public AttemptResultPayload debugResult() {
+		return debugResult;
+	}
+
+	public PinyinEntry debugExpected() {
+		return debugExpected;
+	}
+
+	public int debugAudioMs() {
+		return debugAudioMs;
 	}
 }

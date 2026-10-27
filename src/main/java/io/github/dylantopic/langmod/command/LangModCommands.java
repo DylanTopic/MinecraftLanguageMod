@@ -26,6 +26,7 @@ public final class LangModCommands {
 				Commands.literal("langmod")
 						.then(Commands.literal("test").executes(context -> clientAction(context, ClientActionPayload.Action.MIC_TEST)))
 						.then(Commands.literal("mics").executes(context -> clientAction(context, ClientActionPayload.Action.LIST_MICS)))
+						.then(Commands.literal("debug").executes(context -> clientAction(context, ClientActionPayload.Action.TOGGLE_DEBUG)))
 		));
 	}
 

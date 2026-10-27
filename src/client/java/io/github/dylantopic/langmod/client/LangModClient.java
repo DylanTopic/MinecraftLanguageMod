@@ -15,9 +15,11 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 
 import io.github.dylantopic.langmod.LangMod;
+import io.github.dylantopic.langmod.LangModConfig;
 import io.github.dylantopic.langmod.client.audio.MicCapture;
 import io.github.dylantopic.langmod.client.hud.ChallengeHud;
 import io.github.dylantopic.langmod.client.speech.SpeechService;
+import io.github.dylantopic.langmod.net.AttemptResultPayload;
 import io.github.dylantopic.langmod.net.ChallengeEndPayload;
 import io.github.dylantopic.langmod.net.ChallengeStartPayload;
 import io.github.dylantopic.langmod.net.ChallengeStatePayload;
@@ -40,6 +42,7 @@ public class LangModClient implements ClientModInitializer {
 		ClientPlayNetworking.registerGlobalReceiver(ChallengeStatePayload.TYPE, (payload, context) -> challenge.onState(payload));
 		ClientPlayNetworking.registerGlobalReceiver(ChallengeEndPayload.TYPE, (payload, context) -> challenge.onEnd(payload));
 		ClientPlayNetworking.registerGlobalReceiver(ClientActionPayload.TYPE, (payload, context) -> runAction(payload.action()));
+		ClientPlayNetworking.registerGlobalReceiver(AttemptResultPayload.TYPE, (payload, context) -> challenge.onAttemptResult(payload));
 
 		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
 			sendHello();
@@ -51,6 +54,7 @@ public class LangModClient implements ClientModInitializer {
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> challenge.reset());
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			challenge.tick();
+			ChallengeController.get().tick(client);
 			MicTest.tick();
 		});
 
@@ -66,8 +70,11 @@ public class LangModClient implements ClientModInitializer {
 	public static void sendHello() {
 		if (Minecraft.getInstance().getConnection() != null && ClientPlayNetworking.canSend(ClientHelloPayload.TYPE)) {
 			SpeechService speech = SpeechService.get();
-			String info = speech.ready() ? speech.description() : speech.status() + ": " + speech.statusMessage();
-			ClientPlayNetworking.send(new ClientHelloPayload(ClientHelloPayload.PROTOCOL_VERSION, speech.ready(), info));
+			ChallengeController controller = ChallengeController.get();
+			boolean ready = speech.ready() && controller.micAvailable();
+			String info = !speech.ready() ? speech.status() + ": " + speech.statusMessage()
+					: controller.micAvailable() ? speech.description() : controller.micError();
+			ClientPlayNetworking.send(new ClientHelloPayload(ClientHelloPayload.PROTOCOL_VERSION, ready, info));
 		}
 	}
 
@@ -104,7 +111,11 @@ public class LangModClient implements ClientModInitializer {
 					ClientMessages.info(" - " + name);
 				}
 			}
-			case TOGGLE_DEBUG, RELOAD -> ClientMessages.info("Not available yet.");
+			case TOGGLE_DEBUG -> {
+				boolean on = LangModConfig.update(config -> config.debugOverlay = !config.debugOverlay).debugOverlay;
+				ClientMessages.info("Debug overlay " + (on ? "on" : "off") + ".");
+			}
+			case RELOAD -> ClientMessages.info("Not available yet.");
 		}
 	}
 }
