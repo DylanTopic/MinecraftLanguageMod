@@ -57,10 +57,7 @@ public final class LangModCommands {
 								.executes(context -> reset(context, false))
 								.then(Commands.literal("everything").executes(context -> reset(context, true))))
 						.then(Commands.literal("review").executes(LangModCommands::review))
-						.then(Commands.literal("reload")
-								.requires(source -> !source.getServer().isDedicatedServer()
-										|| source.permissions().hasPermission(Permissions.COMMANDS_MODERATOR))
-								.executes(LangModCommands::reload))
+						.then(Commands.literal("reload").executes(LangModCommands::reload))
 		));
 	}
 
@@ -128,6 +125,12 @@ public final class LangModCommands {
 	}
 
 	private static int reload(CommandContext<CommandSourceStack> context) {
+		// Checked here rather than in requires(): the command tree is also built for sources without a server.
+		if (context.getSource().getServer().isDedicatedServer() && !context.getSource().permissions().hasPermission(Permissions.COMMANDS_MODERATOR)) {
+			context.getSource().sendFailure(Component.literal("Only operators can reload LangMod's settings."));
+			return 0;
+		}
+
 		LangModConfig.load();
 		ChallengeManager.get().setDictionary(ModResources.loadItemDictionary());
 		context.getSource().sendSuccess(() -> Component.literal("Reloaded config/langmod/langmod.json and pinyin_overrides.json ("
