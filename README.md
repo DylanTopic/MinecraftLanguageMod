@@ -155,7 +155,7 @@ screen. The file can also be edited by hand (then run `/langmod reload`).
 | Whisper model (`modelSize`) | small | `tiny`, `base`, `small`, `medium`, `large-v3-turbo`: loads `ggml-<size>.bin`. |
 | Speech engine (`speechEngine`) | jni | `jni` (built in, CPU) or `server` (separate whisper.cpp program, GPU). |
 | Use GPU (`useGpu`) | on | Only used by the `server` engine. |
-| Whisper window (`audioContext`) | 0 = 30 s | Audio Whisper processes per answer: `0` = its full 30 s window, `-1` = just the clip (fastest, less accurate), or a number of 20 ms frames (`512` = 10 s). |
+| Whisper window (`audioContext`) | 512 = 10 s | Audio Whisper processes per answer, in 20 ms frames: `0` = its full 30 s window, `-1` = just the clip (fastest, much less accurate). See the measurements below. |
 | CPU threads (`whisperThreads`) | 0 = auto | Auto uses half your cores (at most 8), so the game keeps running smoothly. |
 | Microphone (`micDevice`) | system default | Part of a device name from `/langmod mics`. |
 | Speech threshold (`vadThresholdDb`) | 12 | How much louder than background noise (dB) counts as speech. |
@@ -170,6 +170,7 @@ Only in the file:
 | `vadSilenceMs` | 800 | Silence that ends a recording. |
 | `vadMaxClipMs` | 5000 | Longest recording. |
 | `vadMinSpeechMs` | 200 | Shorter sounds (clicks, bumps) are ignored. |
+| `whisperPrompt` | `我的世界物品：` | Generic hint for Whisper ("Minecraft items:") used when prompt biasing is off. It never contains the answer. `""` = no prompt. |
 | `transcriptionTimeoutSeconds` | 10 | Slower transcriptions are abandoned (not counted as an attempt). |
 | `whisperServerPath` / `whisperServerPort` | "" / 8178 | For the `server` engine, see below. |
 | `pinyinScale` | 1.5 | Size of the pinyin in the popup. |
@@ -222,11 +223,21 @@ popup shows when it is. Audio is recorded as 16 kHz mono and split into utteranc
 voice activity detector (it adapts to background noise; 0.8 s of silence ends a recording, 5 s
 maximum).
 
-**Prompt biasing** (off by default) passes the expected word to Whisper as its "initial prompt".
-Whisper then hears that word much more readily. In the tests below this fixed most false failures
-(暂时 for 钻石, 念包 for 面包) without making the wrong-word and wrong-tone samples pass, but with
-real learners it will also accept some answers that were not quite right. Turn it on if correct
-answers are too often rejected.
+Whisper gets two hints by default, chosen from the measurements below:
+
+- A generic **initial prompt**, `我的世界物品：` ("Minecraft items:"). It does not contain the
+  answer, but nudges Whisper towards item names: it got one or two more names right with every
+  window size (for example 火把 "torch" instead of 活吧 with the 30 s window, and 铁定 tiě dìng, which
+  sounds like 铁锭, instead of 贴定 tiē dìng with the 10 s one). Set `whisperPrompt` to `""` to turn
+  it off.
+- A **10 second window** instead of Whisper's usual 30 seconds (it always processes a fixed window,
+  even for a one-second word). This is about 4 times faster and was as accurate.
+
+**Prompt biasing** (off by default) replaces the generic prompt with the expected word itself.
+Whisper then hears that word much more readily: it fixed most false failures (暂时 for 钻石, 念包 for
+面包). The price is that it also "hears" the word when you said something close to it: with the 10 s
+window it accepted the wrong-tone sample (你吐 for 泥土). With the full 30 s window it did not, so if
+you turn biasing on, also set "Whisper window" to 30 s.
 
 ### Measured accuracy and speed
 
@@ -234,17 +245,27 @@ answers are too often rejected.
 neural voices, plus a wrong word, a similar word and a wrong tone) and runs them through the mod's
 real pipeline with the `small` model on GitHub's 2-core runners:
 
-| How Whisper is called | Correct names accepted (strict) | Wrong answers rejected | Time per answer |
-|---|---|---|---|
-| Default: no prompt, 30 s window | 7 of 13 (9 of 13 toneless) | 3 of 3 | 13 s (1 thread), 12.6 s (2 threads) |
-| Prompt biasing (expected word as prompt) | 12 of 13 | 3 of 3 | 13 s (1 thread) |
-| No prompt, window cut to the clip | 2 of 4 (first 4 samples) | not measured | 1.0 s (2 threads) |
+| Prompt | Window | Correct names accepted (strict) | Wrong answers rejected | Time per answer (2 threads) |
+|---|---|---|---|---|
+| none | 30 s | 7 of 13 | 3 of 3 | 12.3 s |
+| none | 15 s | 7 of 13 | 3 of 3 | 4.8 s |
+| none | 10 s | 7 of 13 | 3 of 3 | 3.5 s |
+| none | clip only | 4 of 13 | 3 of 3 | 1.3 s |
+| "Minecraft items:" | 30 s | 9 of 13 | 3 of 3 | 12.4 s |
+| "Minecraft items:" | 15 s | 8 of 13 | 3 of 3 | 4.9 s |
+| **"Minecraft items:" (default)** | **10 s** | **8 of 13** | **3 of 3** | **3.1 s** |
+| "Mandarin sentences:" (以下是普通话的句子。) | 10 s | 8 of 13 | 3 of 3 | 3.1 s |
+| expected word (biasing) | 30 s | 12 of 13 | 3 of 3 | 12.4 s |
+| expected word (biasing) | 10 s | 10 of 13 | 2 of 3 | 3.0 s |
 
-The misses without biasing are words Whisper turned into a more common word that sounds almost the
-same: 钻石 zuàn shí became 暂时 zàn shí, 面包 miàn bāo became 念包, 火把 huǒ bǎ became 活吧 huó ba,
-闪长岩 became 闪长眼 (yǎn instead of yán), and the one-syllable 弓 became the English "GO!" (also with
-biasing). Homophones are still accepted through the pinyin comparison: 目棍 for 木棍 and 铁钉 for 铁锭
-passed.
+On Windows (also 2 threads) the default took 3.8 s per answer instead of 12.6 s with the full
+window, with the same transcriptions as on Linux.
+
+The misses are words Whisper turned into a more common word that sounds almost the same: 钻石
+zuàn shí became 暂时 zàn shí, 面包 miàn bāo became 念包, and the one-syllable 弓 became the English
+"GO!" (even with biasing). Homophones are accepted through the pinyin comparison: 目棍 for 木棍 and
+铁钉 for 铁锭 passed. The test can be rerun with other settings from the Actions tab (workflow
+"speech", see the variants in `src/test/java/.../speech/SpeechCheck.java`).
 
 Synthesised speech is cleaner than a real microphone and a learner's accent, so expect somewhat
 worse results in the game. A desktop CPU is much faster than these 2-core runners: Whisper's time
@@ -326,10 +347,11 @@ in GitHub Actions (`.github/workflows/build.yml`), which also uploads the built 
   must allow desktop apps to use the microphone (Settings > Privacy (& security) > Microphone >
   "Let desktop apps access your microphone").
 - **Recordings start but are cut off**: raise `vadSilenceMs`.
-- **"Transcription took longer than 10 s"** (not counted as an attempt): set "Whisper window" to
-  10 s or "Clip only", use a smaller model (`base`), give Whisper more threads, or use the `server`
-  engine with a GPU.
-- **Correct answers are rejected too often**: turn on prompt biasing, or use `toneless` matching.
+- **"Transcription took longer than 10 s"** (not counted as an attempt): use a smaller model
+  (`base`), give Whisper more threads, use the `server` engine with a GPU, or as a last resort set
+  "Whisper window" to "Clip only".
+- **Correct answers are rejected too often**: turn on prompt biasing (with the 30 s window), or use
+  `toneless` matching.
 - **A wrong reading in the popup**: add the item to `config/langmod/pinyin_overrides.json`.
 - Logs: `run\logs\latest.log` (development client) or `.minecraft\logs\latest.log`.
 

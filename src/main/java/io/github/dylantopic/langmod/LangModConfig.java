@@ -58,10 +58,16 @@ public final class LangModConfig {
 	/** Pass the expected word to Whisper as its initial prompt. Makes it "hear" the right word more easily. */
 	public boolean promptBiasing = false;
 	/**
-	 * How much audio Whisper encodes per answer: 0 = its full 30 s window (slowest), -1 = just the
-	 * clip plus a margin (fastest, less accurate), or a number of 20 ms frames (512 = 10 s).
+	 * Initial prompt when prompt biasing is off. It never contains the answer: "我的世界物品：" ("Minecraft
+	 * items:") makes Whisper prefer item names over everyday words that sound alike. Empty = no prompt.
 	 */
-	public int audioContext = 0;
+	public String whisperPrompt = "我的世界物品：";
+	/**
+	 * How much audio Whisper encodes per answer: 0 = its full 30 s window, -1 = just the clip plus a
+	 * margin (fastest, much less accurate), or a number of 20 ms frames. 512 (10 s) was as accurate as
+	 * the full window in tests and about 4x faster.
+	 */
+	public int audioContext = 512;
 	/** A transcription that takes longer than this is abandoned and does not count as an attempt. */
 	public int transcriptionTimeoutSeconds = 10;
 	/** Full path to whisper-server(.exe), only used when speechEngine is "server". */
@@ -220,6 +226,10 @@ public final class LangModConfig {
 
 		if (whisperServerPath == null) {
 			whisperServerPath = "";
+		}
+
+		if (whisperPrompt == null) {
+			whisperPrompt = "";
 		}
 
 		Map<String, String> colors = defaultToneColors();

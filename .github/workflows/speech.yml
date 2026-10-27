@@ -17,7 +17,7 @@ on:
     inputs:
       variants:
         description: 'SpeechCheck variants to run on Linux (comma-separated)'
-        default: 'plain,biased,fit,fit-biased'
+        default: 'mc512,biased512'
 
 concurrency:
   group: speech-${{ github.ref }}
@@ -47,8 +47,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # The mod's defaults (generic prompt, 10 s window) and the same with prompt biasing on.
+          # Other variants (see SpeechCheck.VARIANTS) can be run from the Actions tab.
           - os: ubuntu-24.04
-            variants: mc512,hint512,ctx768,mc768,biased512
+            variants: mc512,biased512
             samples: 100
           - os: windows-2025
             variants: mc512

@@ -95,7 +95,8 @@ public final class SpeechService {
 	 * Transcribes a clip in the background. Fails (instead of hanging) if the engine is not ready,
 	 * throws, or takes longer than the configured timeout.
 	 *
-	 * @param expectedHanzi used as Whisper's initial prompt if prompt biasing is enabled; may be null
+	 * @param expectedHanzi used as Whisper's initial prompt if prompt biasing is enabled (otherwise the
+	 *     generic {@code whisperPrompt} is used); may be null
 	 */
 	public CompletableFuture<Transcript> transcribe(float[] samples, String expectedHanzi) {
 		if (status != Status.READY) {
@@ -103,7 +104,8 @@ public final class SpeechService {
 		}
 
 		LangModConfig config = LangModConfig.get();
-		String prompt = config.promptBiasing && expectedHanzi != null ? expectedHanzi : null;
+		String prompt = config.promptBiasing && expectedHanzi != null ? expectedHanzi
+				: config.whisperPrompt.isBlank() ? null : config.whisperPrompt;
 		SpeechEngine.Request request = new SpeechEngine.Request("zh", prompt, WhisperModels.audioContext(samples.length, config.audioContext));
 		CompletableFuture<Transcript> result = new CompletableFuture<>();
 
