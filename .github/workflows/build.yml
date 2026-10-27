@@ -4,6 +4,9 @@
 name: build
 on:
   push:
+    paths-ignore:
+      - '.github/speech/**'
+      - '.github/workflows/speech.yml'
   pull_request:
   workflow_dispatch:
 
@@ -60,7 +63,19 @@ jobs:
         with:
           name: Artifacts
           path: build/libs/
+
+  # Short, separate log with just the game test outcome (easier to read than the build log).
+  report:
+    needs: build
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: client-game-test
+          path: gametest
+        continue-on-error: true
       - name: game test summary
-        if: always()
         run: |
-          grep -h -E "LANGMOD-|Exception|AssertionError|ERROR\]" build/run/clientGameTest/logs/latest.log 2>/dev/null | grep -v "GL ERROR\|X11:\|@ Render" | tail -40 || true
+          grep -h -E "LANGMOD-|Exception|AssertionError|Error:|/ERROR\]" gametest/logs/latest.log 2>/dev/null | grep -v "GL ERROR\|X11:\|@ Render" | cut -c1-400 | tail -60 || echo "no game test log"
+          ls gametest/crash-reports 2>/dev/null && head -60 gametest/crash-reports/* || true
