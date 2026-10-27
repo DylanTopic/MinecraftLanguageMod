@@ -21,6 +21,9 @@
 			"io.github.dylantopic.langmod.client.LangModClient"
 		]
 	},
+	"mixins": [
+		"langmod.mixins.json"
+	],
 	"depends": {
 		"fabricloader": ">=0.20.1",
 		"minecraft": "~26.1.2",

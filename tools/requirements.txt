@@ -1,0 +1,2 @@
+# Build-time dependency of tools/generate_pinyin.py (not needed to build or run the mod).
+pypinyin==0.55.0

@@ -6,6 +6,13 @@ import org.slf4j.LoggerFactory;
 import net.minecraft.resources.Identifier;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+
+import io.github.dylantopic.langmod.challenge.ChallengeManager;
+import io.github.dylantopic.langmod.data.PlayerLangData;
+import io.github.dylantopic.langmod.net.LangModNetworking;
 
 /**
  * Common (server-side) entrypoint. All game logic lives on the logical server so that the
@@ -17,7 +24,17 @@ public class LangMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		LOGGER.info("LangMod initialised");
+		LangModConfig.load();
+		PlayerLangData.init();
+		LangModNetworking.register();
+
+		ChallengeManager challenges = ChallengeManager.get();
+		challenges.setDictionary(ModResources.loadItemDictionary());
+
+		ServerPlayerEvents.JOIN.register(challenges::onJoin);
+		ServerPlayerEvents.LEAVE.register(challenges::onLeave);
+		ServerTickEvents.END_SERVER_TICK.register(challenges::tick);
+		ServerLifecycleEvents.SERVER_STOPPING.register(challenges::onServerStopping);
 	}
 
 	public static Identifier id(String path) {

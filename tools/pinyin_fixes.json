@@ -1,0 +1,18 @@
+{
+	"_comment": "Hand corrections applied every time generate_pinyin.py runs, so regenerating never loses them. 'phrases' teaches pypinyin the reading of a word wherever it appears; 'keys' overrides the reading of one translation key. Readings use tone numbers separated by spaces (5 = neutral tone, v = ü), e.g. \"lv4 se4\".",
+	"phrases": {
+		"木栅栏": "mu4 zha4 lan2",
+		"闪长岩": "shan3 chang2 yan2",
+		"空地图": "kong1 di4 tu2",
+		"校频": "jiao4 pin2",
+		"云杉": "yun2 shan1",
+		"云杉木": "yun2 shan1 mu4",
+		"切制": "qie1 zhi4",
+		"切石机": "qie1 shi2 ji1",
+		"干海带": "gan1 hai3 dai4",
+		"框架": "kuang4 jia4",
+		"展示框": "zhan3 shi4 kuang4"
+	},
+	"keys": {
+	}
+}
