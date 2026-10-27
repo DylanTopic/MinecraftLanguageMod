@@ -76,6 +76,7 @@ public final class WhisperJniEngine implements SpeechEngine {
 		params.printSpecial = false;
 		params.temperature = 0f;
 		params.initialPrompt = request.initialPrompt();
+		params.audioCtx = request.audioContext();
 
 		int result = whisper.full(context, params, samples, samples.length);
 

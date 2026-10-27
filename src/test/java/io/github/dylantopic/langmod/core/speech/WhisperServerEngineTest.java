@@ -32,7 +32,7 @@ class WhisperServerEngineTest {
 				server.getAddress().getPort(), 4, true, Path.of("unused.log"), line -> { })) {
 			// No executable configured: it must connect to the server that is already running.
 			engine.load();
-			String text = engine.transcribe(new float[1600], new SpeechEngine.Request("zh", "苹果"));
+			String text = engine.transcribe(new float[1600], new SpeechEngine.Request("zh", "苹果", 192));
 			assertEquals("蘋果。", text);
 		} finally {
 			server.stop(0);
@@ -42,6 +42,7 @@ class WhisperServerEngineTest {
 		assertTrue(request.contains("name=\"language\"\r\n\r\nzh\r\n"), request);
 		assertTrue(request.contains("name=\"response_format\"\r\n\r\njson\r\n"));
 		assertTrue(request.contains("name=\"prompt\"\r\n\r\n" + new String("苹果".getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1)));
+		assertTrue(request.contains("name=\"audio_ctx\"\r\n\r\n192\r\n"), request);
 		assertTrue(request.contains("filename=\"clip.wav\"") && request.contains("RIFF") && request.contains("WAVE"));
 	}
 

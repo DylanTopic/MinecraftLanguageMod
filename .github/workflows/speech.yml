@@ -1,17 +1,23 @@
 # Checks the real speech pipeline (whisper-jni + Whisper "small" model + OpenCC + pinyin) on
-# synthesised Mandarin samples, on Linux and Windows. Runs when speech-related code changes.
+# synthesised Mandarin samples. Linux compares several ways of calling Whisper (accuracy and
+# speed); Windows checks that the bundled native library loads and runs. Runs when speech code
+# changes, or by hand from the Actions tab.
 
 name: speech
 on:
   push:
     paths:
-      - 'src/main/java/io/github/dylantopic/langmod/core/**'
+      - 'src/main/java/io/github/dylantopic/langmod/core/speech/**'
+      - 'src/main/java/io/github/dylantopic/langmod/core/text/**'
       - 'src/test/java/io/github/dylantopic/langmod/speech/**'
       - 'src/main/resources/assets/langmod/opencc/**'
-      - 'src/main/resources/assets/langmod/pinyin/**'
       - '.github/speech/**'
       - '.github/workflows/speech.yml'
   workflow_dispatch:
+    inputs:
+      variants:
+        description: 'SpeechCheck variants to run on Linux (comma-separated)'
+        default: 'plain,biased,fit,fit-biased'
 
 concurrency:
   group: speech-${{ github.ref }}
@@ -40,7 +46,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2025]
+        include:
+          - os: ubuntu-24.04
+            variants: plain,hint,mc,biased,fit,fit-hint,fit-mc,fit-biased,ctx512
+            samples: 100
+          - os: windows-2025
+            variants: plain,fit
+            samples: 4
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     defaults:
@@ -82,9 +94,11 @@ jobs:
           echo src/test/java/io/github/dylantopic/langmod/speech/SpeechCheck.java >> sources.txt
           javac -encoding UTF-8 --release 25 -cp "libs/whisper-jni.jar${SEP}libs/gson.jar" -d out @sources.txt
       - name: transcribe samples
+        env:
+          VARIANTS: ${{ github.event.inputs.variants != '' && matrix.os == 'ubuntu-24.04' && github.event.inputs.variants || matrix.variants }}
         run: |
           SEP=':'; [ "$RUNNER_OS" = "Windows" ] && SEP=';'
           cat samples/engines.txt
           java -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 --enable-native-access=ALL-UNNAMED \
             -cp "out${SEP}libs/whisper-jni.jar${SEP}libs/gson.jar" \
-            io.github.dylantopic.langmod.speech.SpeechCheck models/ggml-$MODEL.bin samples
+            io.github.dylantopic.langmod.speech.SpeechCheck models/ggml-$MODEL.bin samples 2 "$VARIANTS" ${{ matrix.samples }}

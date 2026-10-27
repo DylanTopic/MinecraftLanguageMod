@@ -125,6 +125,10 @@ public final class WhisperServerEngine implements SpeechEngine {
 			field(body, boundary, "prompt", request.initialPrompt());
 		}
 
+		if (request.audioContext() > 0) {
+			field(body, boundary, "audio_ctx", Integer.toString(request.audioContext()));
+		}
+
 		body.write(("--" + boundary + "\r\nContent-Disposition: form-data; name=\"file\"; filename=\"clip.wav\"\r\n"
 				+ "Content-Type: audio/wav\r\n\r\n").getBytes(StandardCharsets.UTF_8));
 		body.write(Wav.encode(samples, 16_000));

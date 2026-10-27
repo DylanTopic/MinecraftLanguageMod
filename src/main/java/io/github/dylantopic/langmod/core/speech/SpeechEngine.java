@@ -28,7 +28,12 @@ public interface SpeechEngine extends AutoCloseable {
 	/**
 	 * @param language ISO code; always "zh" here (auto-detection misfires on single words)
 	 * @param initialPrompt text to prime Whisper with, or null for none
+	 * @param audioContext whisper.cpp's audio_ctx: encoder frames to process (50 per second of audio),
+	 *     or 0 for the model's full 30 second window. See {@link WhisperModels#audioContext}.
 	 */
-	record Request(String language, String initialPrompt) {
+	record Request(String language, String initialPrompt, int audioContext) {
+		public Request(String language, String initialPrompt) {
+			this(language, initialPrompt, 0);
+		}
 	}
 }
