@@ -48,10 +48,10 @@ jobs:
       matrix:
         include:
           - os: ubuntu-24.04
-            variants: plain,hint,mc,biased,fit,fit-hint,fit-mc,fit-biased,ctx512
+            variants: mc512,hint512,ctx768,mc768,biased512
             samples: 100
           - os: windows-2025
-            variants: plain,fit
+            variants: mc512
             samples: 4
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30

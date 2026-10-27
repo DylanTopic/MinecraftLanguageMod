@@ -48,7 +48,12 @@ public final class SpeechCheck {
 			new Variant("fit-hint", false, MANDARIN_HINT, -1),
 			new Variant("fit-mc", false, MINECRAFT_HINT, -1),
 			new Variant("fit-biased", true, null, -1),
-			new Variant("ctx512", false, null, 512));
+			new Variant("ctx512", false, null, 512),
+			new Variant("ctx768", false, null, 768),
+			new Variant("hint512", false, MANDARIN_HINT, 512),
+			new Variant("mc512", false, MINECRAFT_HINT, 512),
+			new Variant("mc768", false, MINECRAFT_HINT, 768),
+			new Variant("biased512", true, null, 512));
 
 	private SpeechCheck() {
 	}
