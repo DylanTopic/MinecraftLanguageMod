@@ -1,0 +1,18 @@
+# Speech samples for the speech CI check (.github/workflows/speech.yml).
+# file	translation key the player is challenged with	text the TTS voice actually says	voice	what should happen
+apple	item.minecraft.apple	苹果	zh-CN-XiaoxiaoNeural	pass
+diamond	item.minecraft.diamond	钻石	zh-CN-YunxiNeural	pass
+dirt	block.minecraft.dirt	泥土	zh-CN-XiaoxiaoNeural	pass
+stick	item.minecraft.stick	木棍	zh-CN-YunxiNeural	pass
+bread	item.minecraft.bread	面包	zh-CN-XiaoxiaoNeural	pass
+torch	block.minecraft.torch	火把	zh-CN-YunxiNeural	pass
+iron_ingot	item.minecraft.iron_ingot	铁锭	zh-CN-XiaoxiaoNeural	pass
+pumpkin	block.minecraft.pumpkin	南瓜	zh-CN-YunxiNeural	pass
+diamond_sword	item.minecraft.diamond_sword	钻石剑	zh-CN-XiaoxiaoNeural	pass
+green_wool	block.minecraft.green_wool	绿色羊毛	zh-CN-YunxiNeural	pass
+diorite	block.minecraft.diorite	闪长岩	zh-CN-XiaoxiaoNeural	pass
+golden_apple	item.minecraft.enchanted_golden_apple	附魔金苹果	zh-CN-YunxiNeural	pass
+bow	item.minecraft.bow	弓	zh-CN-XiaoxiaoNeural	pass
+wrong_word	item.minecraft.apple	香蕉	zh-CN-YunxiNeural	fail
+similar_word	block.minecraft.pumpkin	西瓜	zh-CN-XiaoxiaoNeural	fail
+wrong_tone	block.minecraft.dirt	你吐	zh-CN-YunxiNeural	fail-strict

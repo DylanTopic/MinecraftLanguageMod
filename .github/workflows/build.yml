@@ -27,6 +27,8 @@ jobs:
           distribution: 'microsoft'
       - name: setup gradle (with dependency cache)
         uses: gradle/actions/setup-gradle@v6
+        with:
+          add-job-summary: never
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
       - name: build
@@ -58,3 +60,7 @@ jobs:
         with:
           name: Artifacts
           path: build/libs/
+      - name: game test summary
+        if: always()
+        run: |
+          grep -h -E "LANGMOD-|Exception|AssertionError|ERROR\]" build/run/clientGameTest/logs/latest.log 2>/dev/null | grep -v "GL ERROR\|X11:\|@ Render" | tail -40 || true

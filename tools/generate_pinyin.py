@@ -135,12 +135,17 @@ def numbers_to_marks(numbers: str) -> str:
     return " ".join(to_tone(syllable.replace("u:", "v")) for syllable in numbers.split())
 
 
+SYLLABLE = re.compile(r"^[a-z]+[1-5]$")
+
+
 def readings(ch: str) -> list[str]:
-    """All readings of one character, tone numbers, most common first."""
+    """All readings of one character, tone numbers, most common first.
+
+    Readings outside plain pinyin (the interjection "ê" of 欸/誒) are dropped."""
     result = pinyin(ch, style=Style.TONE3, heteronym=True, neutral_tone_with_five=True)
     seen: list[str] = []
     for r in result[0] if result else []:
-        if r not in seen and r != ch:
+        if r not in seen and SYLLABLE.match(r):
             seen.append(r)
     return seen
 

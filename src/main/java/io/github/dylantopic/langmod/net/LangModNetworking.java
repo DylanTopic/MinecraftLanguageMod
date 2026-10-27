@@ -17,6 +17,7 @@ public final class LangModNetworking {
 		PayloadTypeRegistry.clientboundPlay().register(ChallengeStartPayload.TYPE, ChallengeStartPayload.CODEC);
 		PayloadTypeRegistry.clientboundPlay().register(ChallengeStatePayload.TYPE, ChallengeStatePayload.CODEC);
 		PayloadTypeRegistry.clientboundPlay().register(ChallengeEndPayload.TYPE, ChallengeEndPayload.CODEC);
+		PayloadTypeRegistry.clientboundPlay().register(ClientActionPayload.TYPE, ClientActionPayload.CODEC);
 		PayloadTypeRegistry.serverboundPlay().register(ClientHelloPayload.TYPE, ClientHelloPayload.CODEC);
 
 		// Fabric runs these handlers on the server thread.

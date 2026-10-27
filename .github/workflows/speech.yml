@@ -1,0 +1,92 @@
+# Checks the real speech pipeline (whisper-jni + Whisper "small" model + OpenCC + pinyin) on
+# synthesised Mandarin samples, on Linux and Windows. Runs when speech-related code changes.
+
+name: speech
+on:
+  push:
+    paths:
+      - 'src/main/java/io/github/dylantopic/langmod/core/**'
+      - 'src/test/java/io/github/dylantopic/langmod/speech/**'
+      - 'src/main/resources/assets/langmod/opencc/**'
+      - 'src/main/resources/assets/langmod/pinyin/**'
+      - '.github/speech/**'
+      - '.github/workflows/speech.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: speech-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  samples:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: install text-to-speech
+        run: |
+          pip install --quiet edge-tts
+          sudo apt-get install -y -q espeak-ng > /dev/null
+      - name: synthesise samples
+        run: python3 .github/speech/make_samples.py .github/speech/samples.tsv samples
+      - uses: actions/upload-artifact@v7
+        with:
+          name: speech-samples
+          path: samples/
+
+  check:
+    needs: samples
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    env:
+      MODEL: small
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
+      - uses: actions/download-artifact@v7
+        with:
+          name: speech-samples
+          path: samples
+      - name: cache whisper model
+        uses: actions/cache@v6
+        with:
+          path: models
+          key: whisper-ggml-${{ env.MODEL }}-v1
+      - name: download whisper model
+        run: |
+          mkdir -p models libs
+          if [ ! -f models/ggml-$MODEL.bin ]; then
+            curl -sSfL -o models/ggml-$MODEL.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-$MODEL.bin
+          fi
+          ls -la models
+      - name: download libraries
+        run: |
+          M=https://repo1.maven.org/maven2
+          curl -sSfL -o libs/whisper-jni.jar $M/io/github/givimad/whisper-jni/1.7.1/whisper-jni-1.7.1.jar
+          curl -sSfL -o libs/gson.jar $M/com/google/code/gson/gson/2.13.1/gson-2.13.1.jar
+      - name: compile
+        run: |
+          SEP=':'; [ "$RUNNER_OS" = "Windows" ] && SEP=';'
+          find src/main/java/io/github/dylantopic/langmod/core -name '*.java' > sources.txt
+          echo src/test/java/io/github/dylantopic/langmod/speech/SpeechCheck.java >> sources.txt
+          javac -encoding UTF-8 --release 25 -cp "libs/whisper-jni.jar${SEP}libs/gson.jar" -d out @sources.txt
+      - name: transcribe samples
+        run: |
+          SEP=':'; [ "$RUNNER_OS" = "Windows" ] && SEP=';'
+          cat samples/engines.txt
+          java -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 --enable-native-access=ALL-UNNAMED \
+            -cp "out${SEP}libs/whisper-jni.jar${SEP}libs/gson.jar" \
+            io.github.dylantopic.langmod.speech.SpeechCheck models/ggml-$MODEL.bin samples

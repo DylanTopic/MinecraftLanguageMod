@@ -39,6 +39,11 @@ dependencies {
 	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
+	// whisper.cpp JNI bindings with bundled native libraries (Windows x64, Linux, macOS),
+	// shipped inside the mod jar.
+	implementation "io.github.givimad:whisper-jni:${project.whisper_jni_version}"
+	include "io.github.givimad:whisper-jni:${project.whisper_jni_version}"
+
 	testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
 }
 

@@ -11,6 +11,7 @@ import net.minecraft.util.ARGB;
 
 import io.github.dylantopic.langmod.LangModConfig;
 import io.github.dylantopic.langmod.client.ClientChallenge;
+import io.github.dylantopic.langmod.client.MicTest;
 import io.github.dylantopic.langmod.core.Pinyin;
 import io.github.dylantopic.langmod.core.PinyinEntry;
 import io.github.dylantopic.langmod.net.ChallengeEndPayload;
@@ -33,7 +34,9 @@ public final class ChallengeHud {
 	public static void extract(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
 		ClientChallenge challenge = ClientChallenge.get();
 
-		if (challenge.active() != null) {
+		if (MicTest.current() != null) {
+			MicIndicator.drawMicTest(graphics, MicTest.current());
+		} else if (challenge.active() != null) {
 			drawChallenge(graphics, challenge, challenge.active());
 		} else if (challenge.ended() != null) {
 			drawResult(graphics, challenge, challenge.ended());

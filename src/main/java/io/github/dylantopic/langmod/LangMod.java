@@ -11,6 +11,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 
 import io.github.dylantopic.langmod.challenge.ChallengeManager;
+import io.github.dylantopic.langmod.command.LangModCommands;
 import io.github.dylantopic.langmod.data.PlayerLangData;
 import io.github.dylantopic.langmod.net.LangModNetworking;
 
@@ -27,6 +28,8 @@ public class LangMod implements ModInitializer {
 		LangModConfig.load();
 		PlayerLangData.init();
 		LangModNetworking.register();
+		LangModCommands.register();
+		TextData.get();
 
 		ChallengeManager challenges = ChallengeManager.get();
 		challenges.setDictionary(ModResources.loadItemDictionary());
