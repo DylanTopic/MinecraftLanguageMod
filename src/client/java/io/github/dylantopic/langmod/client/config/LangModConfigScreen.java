@@ -66,6 +66,8 @@ public class LangModConfigScreen extends OptionsSubScreen {
 		choice("speechEngine", List.of("jni", "server"), config.speechEngine, Codec.STRING,
 				v -> Component.translatable(PREFIX + "speechEngine." + v), (c, v) -> c.speechEngine = v);
 		toggle("useGpu", config.useGpu, (c, v) -> c.useGpu = v);
+		choice("audioContext", List.of(0, 768, 512, -1), config.audioContext, Codec.INT, LangModConfigScreen::audioContextName,
+				(c, v) -> c.audioContext = v);
 		choice("whisperThreads", List.of(0, 1, 2, 3, 4, 6, 8, 12, 16), config.whisperThreads, Codec.INT,
 				v -> v == 0 ? Component.translatable(PREFIX + "whisperThreads.auto", WhisperModels.autoThreads()) : Component.literal(Integer.toString(v)),
 				(c, v) -> c.whisperThreads = v);
@@ -130,6 +132,14 @@ public class LangModConfigScreen extends OptionsSubScreen {
 				new OptionInstance.Enum<>(all, codec),
 				current,
 				value -> LangModConfig.update(config -> apply.accept(config, value))));
+	}
+
+	private static Component audioContextName(int frames) {
+		return switch (frames) {
+			case 0 -> Component.translatable(PREFIX + "audioContext.full");
+			case -1 -> Component.translatable(PREFIX + "audioContext.fit");
+			default -> Component.translatable(PREFIX + "audioContext.seconds", frames / 50);
+		};
 	}
 
 	/** "Red", "Blue", ... (or the hex code) drawn in that colour. */

@@ -57,6 +57,11 @@ public final class LangModConfig {
 	public int whisperThreads = 0;
 	/** Pass the expected word to Whisper as its initial prompt. Makes it "hear" the right word more easily. */
 	public boolean promptBiasing = false;
+	/**
+	 * How much audio Whisper encodes per answer: 0 = its full 30 s window (slowest), -1 = just the
+	 * clip plus a margin (fastest, less accurate), or a number of 20 ms frames (512 = 10 s).
+	 */
+	public int audioContext = 0;
 	/** A transcription that takes longer than this is abandoned and does not count as an attempt. */
 	public int transcriptionTimeoutSeconds = 10;
 	/** Full path to whisper-server(.exe), only used when speechEngine is "server". */
@@ -174,6 +179,7 @@ public final class LangModConfig {
 		timerSeconds = clamp(timerSeconds, 3, 600, "timerSeconds");
 		maxNameLength = clamp(maxNameLength, 1, 32, "maxNameLength");
 		whisperThreads = clamp(whisperThreads, 0, 64, "whisperThreads");
+		audioContext = clamp(audioContext, -1, 1500, "audioContext");
 		transcriptionTimeoutSeconds = clamp(transcriptionTimeoutSeconds, 1, 120, "transcriptionTimeoutSeconds");
 		whisperServerPort = clamp(whisperServerPort, 1, 65535, "whisperServerPort");
 		vadSilenceMs = clamp(vadSilenceMs, 100, 5000, "vadSilenceMs");

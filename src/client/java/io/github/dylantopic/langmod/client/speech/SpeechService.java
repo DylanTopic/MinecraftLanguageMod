@@ -104,6 +104,7 @@ public final class SpeechService {
 
 		LangModConfig config = LangModConfig.get();
 		String prompt = config.promptBiasing && expectedHanzi != null ? expectedHanzi : null;
+		SpeechEngine.Request request = new SpeechEngine.Request("zh", prompt, WhisperModels.audioContext(samples.length, config.audioContext));
 		CompletableFuture<Transcript> result = new CompletableFuture<>();
 
 		executor.execute(() -> {
@@ -114,7 +115,7 @@ public final class SpeechService {
 			long start = System.nanoTime();
 
 			try {
-				String text = engine.transcribe(samples, new SpeechEngine.Request("zh", prompt));
+				String text = engine.transcribe(samples, request);
 				result.complete(new Transcript(text, (System.nanoTime() - start) / 1_000_000, description));
 			} catch (Throwable t) {
 				LangMod.LOGGER.warn("Transcription failed", t);
