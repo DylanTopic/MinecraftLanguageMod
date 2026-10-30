@@ -7,6 +7,8 @@ import java.util.function.BooleanSupplier;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import net.minecraft.client.OptionInstance;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -213,12 +215,31 @@ public class LangModClientGameTest implements FabricClientGameTest {
 			check(ClientChallenge.get().endOutcome() == ChallengeEndPayload.Outcome.CANCELLED, "switching language cancels the challenge");
 			waitUntil(context, "the dirt to come back", () -> count(singleplayer, uuid, Items.DIRT) == 5);
 
-			// The language menu.
+			// The language menu: one button per language plus Done, all on screen.
 			command(singleplayer, uuid, "langmod language");
 			context.waitFor(minecraft -> minecraft.screen instanceof LanguageScreen, 100);
 			context.takeScreenshot("langmod-12-language-menu");
+			check(context.computeOnClient(minecraft -> {
+				List<Button> buttons = minecraft.screen.children().stream().filter(Button.class::isInstance).map(Button.class::cast).toList();
+				return buttons.size() == Language.values().length + 1 && buttons.stream().allMatch(button -> button.getX() >= 0 && button.getY() >= 0
+						&& button.getX() + button.getWidth() <= minecraft.screen.width && button.getY() + button.getHeight() <= minecraft.screen.height);
+			}), "the language menu shows every language and fits the screen");
 			context.setScreen(() -> null);
-			selectLanguage(context, singleplayer, uuid, Language.MANDARIN);
+
+			// The "Learning" option of the settings screen switches language and reopens the screen for it.
+			command(singleplayer, uuid, "langmod config");
+			context.waitFor(minecraft -> minecraft.screen instanceof LangModConfigScreen, 100);
+			check(context.computeOnClient(minecraft -> ((LangModConfigScreen) minecraft.screen).option("toneColor1") == null),
+					"no tone colors while learning French");
+			Screen settings = context.computeOnClient(minecraft -> minecraft.screen);
+			context.runOnClient(minecraft -> select(((LangModConfigScreen) minecraft.screen).option("language"), Language.MANDARIN));
+			context.waitFor(minecraft -> minecraft.screen instanceof LangModConfigScreen screen && screen != settings, 100);
+			waitUntil(context, "the server to switch to Mandarin",
+					() -> singleplayer.getServer().computeOnServer(server -> ChallengeManager.get().language(uuid) == Language.MANDARIN));
+			check(LangModConfig.get().languageEnum() == Language.MANDARIN, "the settings screen changes the language");
+			check(context.computeOnClient(minecraft -> ((LangModConfigScreen) minecraft.screen).option("toneColor1") != null),
+					"tone colors while learning Mandarin");
+			context.setScreen(() -> null);
 
 			check(command(singleplayer, uuid, "langmod reload") == 1, "/langmod reload");
 			waitUntilReady(context, singleplayer, uuid);
@@ -231,6 +252,11 @@ public class LangModClientGameTest implements FabricClientGameTest {
 	private static void toggle(OptionInstance<?> option) {
 		OptionInstance<Boolean> toggle = (OptionInstance<Boolean>) option;
 		toggle.set(!toggle.get());
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <T> void select(OptionInstance<?> option, T value) {
+		((OptionInstance<T>) option).set(value);
 	}
 
 	/** Runs a command as the player and returns its result. */

@@ -2,8 +2,8 @@
 	"schemaVersion": 1,
 	"id": "langmod",
 	"version": "${version}",
-	"name": "LangMod: Mandarin",
-	"description": "Learn Mandarin Chinese through exposure: say an item's Chinese name out loud the first time you pick it up. Speech recognition runs locally with whisper.cpp.",
+	"name": "LangMod",
+	"description": "Learn Mandarin Chinese, Spanish, French or Korean through exposure: say an item's name out loud in that language the first time you pick it up. Speech recognition runs locally with whisper.cpp.",
 	"authors": [
 		"DylanTopic"
 	],

@@ -101,7 +101,7 @@ public final class ModResources {
 			LangMod.LOGGER.info("Loaded {} Chinese item names ({} from {})", dictionary.size(), dictionary.overrideCount(), overrides.getFileName());
 			return dictionary;
 		} catch (IOException | RuntimeException e) {
-			LangMod.LOGGER.error("Could not load the pinyin dictionary; challenges are disabled", e);
+			LangMod.LOGGER.error("Could not load the pinyin dictionary; challenges in Mandarin are disabled", e);
 			return ItemDictionary.empty();
 		}
 	}

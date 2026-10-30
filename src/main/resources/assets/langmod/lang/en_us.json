@@ -1,5 +1,5 @@
 {
-	"key.category.langmod.main": "LangMod: Mandarin",
+	"key.category.langmod.main": "LangMod",
 	"key.langmod.toggle_debug": "Toggle debug overlay",
 	"key.langmod.open_config": "Open LangMod settings",
 	"key.langmod.choose_language": "Choose the language to learn",
@@ -7,7 +7,7 @@
 	"langmod.language.title": "Choose a language to learn",
 	"langmod.language.hint": "Each language keeps its own progress. Switching gives back the item you are being asked about.",
 
-	"langmod.config.title": "LangMod: Mandarin Settings",
+	"langmod.config.title": "LangMod Settings",
 	"langmod.config.characters": "%s characters",
 	"langmod.config.words": "%s words",
 
@@ -17,18 +17,18 @@
 	"langmod.config.enabled": "Challenges",
 	"langmod.config.enabled.tooltip": "Master switch. When off, picking things up works like vanilla and held items are given back.",
 	"langmod.config.showEnglish": "English name",
-	"langmod.config.showEnglish.tooltip": "Show the English name under the Chinese one in the challenge popup.",
+	"langmod.config.showEnglish.tooltip": "Show the English name under the name you are learning in the challenge popup.",
 	"langmod.config.maxAttempts": "Attempts",
 	"langmod.config.maxAttempts.tooltip": "Wrong answers allowed before the item disappears. Silence and recognition errors never count.",
 	"langmod.config.timerSeconds": "Time limit",
 	"langmod.config.timerSeconds.tooltip": "Time to say the word. The countdown pauses while you speak and while Whisper is checking.",
 	"langmod.config.matchMode": "Matching",
 	"langmod.config.matchMode.strict": "Strict",
-	"langmod.config.matchMode.strict.tooltip": "Every syllable and its tone must match (neutral tones are always accepted).",
+	"langmod.config.matchMode.strict.tooltip": "Every syllable or word must match, and in Mandarin its tone (neutral tones are always accepted).",
 	"langmod.config.matchMode.toneless": "Toneless",
-	"langmod.config.matchMode.toneless.tooltip": "Syllables must match, tones are ignored.",
+	"langmod.config.matchMode.toneless.tooltip": "Syllables must match, tones are ignored. Only differs from Strict in Mandarin.",
 	"langmod.config.matchMode.lenient": "Lenient",
-	"langmod.config.matchMode.lenient.tooltip": "Like strict, but names of 4 or more syllables may have one wrong syllable.",
+	"langmod.config.matchMode.lenient.tooltip": "Like strict, but names of 4 or more syllables (Spanish and French: words) may have one wrong syllable or word.",
 	"langmod.config.maxNameLength": "Long names from",
 	"langmod.config.maxNameLength.tooltip": "For the language you are learning: names longer than this (characters in Mandarin, words otherwise) count as long, and are handled as set in \"Long names\".",
 	"langmod.config.longNameMode": "Long names",
@@ -38,7 +38,7 @@
 	"langmod.config.promptBiasing": "Prompt biasing",
 	"langmod.config.promptBiasing.tooltip": "Give Whisper the expected word as a hint. Easier to pass, but it may also \"hear\" the word when you said something close to it. Works best with the 30 s Whisper window.",
 	"langmod.config.modelSize": "Whisper model",
-	"langmod.config.modelSize.tooltip": "Bigger models recognise Mandarin better but are slower. Small is a good default. File: %s. %s",
+	"langmod.config.modelSize.tooltip": "Bigger models recognise speech better but are slower. Small is a good default. File: %s. %s",
 	"langmod.config.modelSize.found": "Installed.",
 	"langmod.config.modelSize.missing": "Not downloaded yet: get it from %2$s and put it in %1$s",
 	"langmod.config.speechEngine": "Speech engine",
@@ -73,5 +73,5 @@
 	"langmod.config.hanziScale": "Name size",
 	"langmod.config.hanziScale.tooltip": "Size of the name in the challenge popup (long names are shrunk to fit the screen).",
 	"langmod.config.debugOverlay": "Debug overlay",
-	"langmod.config.debugOverlay.tooltip": "Show what Whisper heard, its pinyin, the match result and timings (also F9 or /langmod debug)."
+	"langmod.config.debugOverlay.tooltip": "Show what Whisper heard, its pinyin or romanization, the match result and timings (also F9 or /langmod debug)."
 }

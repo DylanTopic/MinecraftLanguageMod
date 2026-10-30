@@ -1,23 +1,28 @@
-# LangMod: Mandarin
+# LangMod
 
-A Fabric mod for Minecraft 26.1.2 that teaches Mandarin Chinese (Simplified) through exposure.
-The first time you pick up an item type, you have to **say its Chinese name out loud** before you
+A Fabric mod for Minecraft 26.1.2 that teaches a language through exposure: **Mandarin Chinese**
+(Simplified), **Spanish** (Mexico), **French** (Canada) or **Korean**. The first time you pick up
+an item type, you have to **say its name out loud** in the language you are learning before you
 get it. Speech recognition runs entirely on your computer with
 [whisper.cpp](https://github.com/ggml-org/whisper.cpp). Nothing is sent anywhere.
+
+Item names are Minecraft's own translations (the ones you see when you switch the game to that
+language), so nothing is translated by hand.
 
 ## How it works
 
 1. You pick up an item you have never picked up before (say, an apple). The mod holds it back and
-   shows a popup with the item, its Chinese name in large characters (苹果), the pinyin with tone
-   marks colored by tone (píng guǒ), the English name, a countdown and a red microphone dot.
+   shows a popup with the item, its name in large letters (苹果, Manzana, Pomme or 사과), the
+   pronunciation where it helps (pinyin with tone marks colored by tone, píng guǒ, or the Korean
+   romanization, sagwa), the English name, a countdown and a red microphone dot.
 2. Say the word. When you stop talking (about 0.8 s of silence) the clip goes to Whisper, which
-   turns it into Chinese characters. The popup shows "Checking...". The countdown pauses while
-   you speak and while Whisper works.
+   writes down what you said. The popup shows "Checking...". The countdown pauses while you speak
+   and while Whisper works.
 3. **Correct:** you get the item (dropped at your feet if your inventory is full), with a sound, a
    green flash and a few particles. That item type is now *learned* and is picked up normally from
    then on.
-4. **Wrong:** the popup shows what Whisper heard, in characters and pinyin, next to the expected
-   answer. Syllables that don't match are underlined in red, wrong tones in orange. Try again.
+4. **Wrong:** the popup shows what Whisper heard next to the expected answer. The words or
+   syllables that don't match are underlined in red (in Mandarin, wrong tones in orange). Try again.
 5. After 3 wrong answers, or when the 20 s run out, the item **disappears** with a puff of smoke.
    It stays unlearned, so the next one you find is a new chance.
 
@@ -32,8 +37,25 @@ Other rules:
   player data, so even a game crash cannot lose them.
 - Only picking items up from the ground counts. Crafting, chests and the creative inventory are
   not affected.
-- Items without a Chinese name in the game files (e.g. most modded items) are picked up normally.
-- Progress is stored per player and per world (in the world's player data).
+- Items without a name in the game files (e.g. most modded items) are picked up normally.
+- Progress is stored per player, per world and per language (in the world's player data).
+
+## Choosing a language
+
+Open the language menu with `/langmod language` (or a key you can set under Options > Controls >
+Key Binds > LangMod), or change "Learning" at the top of the settings screen. You learn one
+language at a time:
+
+- Each language keeps its own progress: an apple learned in Spanish is still new in Korean.
+- Switching while a challenge is running gives the held items back; nothing counts as a failure.
+- Mandarin is the default. Progress from before languages were added counts as Mandarin progress.
+
+| Language | Names from | Long names, by default | Shown under the name |
+|---|---|---|---|
+| Mandarin Chinese | `zh_cn` | more than 4 characters: one wrong syllable allowed | pinyin colored by tone |
+| Spanish (Mexico) | `es_mx` | more than 3 words: not challenged | - |
+| French (Canada) | `fr_ca` | more than 3 words: not challenged | - |
+| Korean | `ko_kr` | more than 2 words: not challenged | Revised Romanization |
 
 Singleplayer only for now. All game logic runs on the (integrated) server and the microphone and
 speech recognition on the client; they talk over Fabric networking, so multiplayer can be added
@@ -107,8 +129,9 @@ the `.en` ones are English only.
 
 ### 4. Check the microphone
 
-In a world, run `/langmod test`, then say something in Chinese. Chat shows what Whisper heard, its
-pinyin and how long it took. If nothing is detected, `/langmod mics` lists the microphones Java can
+In a world, run `/langmod test`, then say something in the language you are learning (Mandarin
+until you choose another one). Chat shows what Whisper heard, its pinyin or romanization and how
+long it took. If nothing is detected, `/langmod mics` lists the microphones Java can
 see; pick one in the settings ("Microphone").
 
 ### Using it in your normal Minecraft
@@ -122,35 +145,38 @@ default launcher: `%APPDATA%\.minecraft\config\langmod\models`).
 
 | Command | What it does |
 |---|---|
-| `/langmod test` | Records one utterance and prints what Whisper heard (characters, pinyin, timing). |
+| `/langmod test` | Records one utterance and prints what Whisper heard (text, pinyin or romanization, timing). |
 | `/langmod mics` | Lists the microphones. |
-| `/langmod list [page]` | Learned items with their Chinese name, pinyin and English name. |
-| `/langmod review` | The items you failed most often, with failure and wrong-answer counts. |
-| `/langmod reset` | Forgets all learned items, so every item is challenged again. |
-| `/langmod reset everything` | Also forgets the mistake history used by `/langmod review`. |
+| `/langmod language` | Opens the menu for choosing the language to learn. |
+| `/langmod list [page]` | Learned items in the current language, with their name, pronunciation and English name. |
+| `/langmod review` | The items you failed most often in the current language, with failure and wrong-answer counts. |
+| `/langmod reset` | Forgets the learned items of the current language, so they are challenged again. |
+| `/langmod reset everything` | Also forgets that language's mistake history used by `/langmod review`. |
 | `/langmod config` | Opens the settings screen. |
 | `/langmod debug` | Toggles the debug overlay (also **F9**). |
-| `/langmod reload` | Re-reads `langmod.json` and `pinyin_overrides.json`, reloads the speech model if its settings changed. |
+| `/langmod reload` | Re-reads `langmod.json` and the name override files, reloads the speech model if its settings changed. |
 
-The debug overlay shows the raw Whisper output, the simplified text, its pinyin, the expected
-pinyin, the match result (errors, allowed errors, mode) and the audio and transcription times.
+The debug overlay shows the raw Whisper output, the cleaned-up text with its pinyin or
+romanization, the words or syllables that were compared, the expected name, the match result
+(errors, allowed errors, mode) and the audio and transcription times.
 
 ## Settings
 
 Open the settings with Mod Menu's "Configure" button, `/langmod config`, or a key (unbound by
-default; set it under Options > Controls > Key Binds > LangMod: Mandarin). Every change is saved
+default; set it under Options > Controls > Key Binds > LangMod). Every change is saved
 immediately to `config/langmod/langmod.json`. Speech settings take effect when you close the
 screen. The file can also be edited by hand (then run `/langmod reload`).
 
 | Setting (`langmod.json` key) | Default | Meaning |
 |---|---|---|
+| Learning (`language`) | `zh_cn` | `zh_cn`, `es_mx`, `fr_ca` or `ko_kr`, see [Choosing a language](#choosing-a-language). |
 | Challenges (`enabled`) | on | Master switch. Turning it off gives held items back. |
 | English name (`showEnglish`) | on | Show the English name in the popup. |
 | Attempts (`maxAttempts`) | 3 | Wrong answers before the item vanishes. |
 | Time limit (`timerSeconds`) | 20 | Seconds to answer (paused while speaking and checking). |
 | Matching (`matchMode`) | strict | `strict`, `toneless` or `lenient`, see below. |
-| Long names from (`maxNameLength`) | 4 | Names with more characters than this are "long". |
-| Long names (`longNameMode`) | lenient | `lenient` (one wrong syllable allowed) or `skip` (never challenged). |
+| Long names from (`nameLengthLimits`) | per language, see above | For the current language: names longer than this (characters in Mandarin, words otherwise) are "long". |
+| Long names (`longNameModes`) | per language, see above | For the current language: `lenient` (one wrong syllable or word allowed) or `skip` (never challenged). |
 | Prompt biasing (`promptBiasing`) | off | Give Whisper the expected word as a hint (see below). |
 | Whisper model (`modelSize`) | small | `tiny`, `base`, `small`, `medium`, `large-v3-turbo`: loads `ggml-<size>.bin`. |
 | Speech engine (`speechEngine`) | jni | `jni` (built in, CPU) or `server` (separate whisper.cpp program, GPU). |
@@ -159,8 +185,8 @@ screen. The file can also be edited by hand (then run `/langmod reload`).
 | CPU threads (`whisperThreads`) | 0 = auto | Auto uses half your cores (at most 8), so the game keeps running smoothly. |
 | Microphone (`micDevice`) | system default | Part of a device name from `/langmod mics`. |
 | Speech threshold (`vadThresholdDb`) | 12 | How much louder than background noise (dB) counts as speech. |
-| Tone colors (`toneColors`) | red, green, blue, purple, grey | Tones 1-4 and neutral, as `#RRGGBB`. |
-| Character size (`hanziScale`) | 3 | Size of the characters in the popup. |
+| Tone colors (`toneColors`) | red, green, blue, purple, grey | Mandarin tones 1-4 and neutral, as `#RRGGBB` (shown in the settings when learning Mandarin). |
+| Name size (`hanziScale`) | 3 | Size of the name in the popup; long names are shrunk to fit. |
 | Debug overlay (`debugOverlay`) | off | See above. |
 
 Only in the file:
@@ -170,12 +196,19 @@ Only in the file:
 | `vadSilenceMs` | 800 | Silence that ends a recording. |
 | `vadMaxClipMs` | 5000 | Longest recording. |
 | `vadMinSpeechMs` | 200 | Shorter sounds (clicks, bumps) are ignored. |
-| `whisperPrompt` | `我的世界物品：` | Generic hint for Whisper ("Minecraft items:") used when prompt biasing is off. It never contains the answer. `""` = no prompt. |
+| `whisperPrompts` | "Minecraft items:" in each language | Generic hint for Whisper per language (`我的世界物品：`, ...), used when prompt biasing is off. It never contains the answer. `""` = no prompt. |
 | `transcriptionTimeoutSeconds` | 10 | Slower transcriptions are abandoned (not counted as an attempt). |
 | `whisperServerPath` / `whisperServerPort` | "" / 8178 | For the `server` engine, see below. |
-| `pinyinScale` | 1.5 | Size of the pinyin in the popup. |
+| `pinyinScale` | 1.5 | Size of the pinyin or romanization in the popup. |
 
 ## How answers are checked
+
+Whisper is told which language you are learning, so it writes down what you said in that language
+(it never translates). Phrases Whisper invents for silence or noise, such as subtitle credits
+("Subtítulos por la comunidad de Amara.org", "시청해 주셔서 감사합니다"), count as nothing heard.
+Then the text is compared with the item's name:
+
+### Mandarin
 
 1. Whisper's output is cleaned up: punctuation and spaces are removed, Traditional characters are
    converted to Simplified (with OpenCC's dictionaries), digits become Chinese numerals.
@@ -197,6 +230,41 @@ slightly-off pronunciations to the word it expects from context, and sometimes w
 same-sounding word with other tones even when you said it right. Tone checking is therefore
 helpful but imperfect. If it gets in the way, use `toneless` matching.
 
+### Spanish and French
+
+Names are compared word by word, and these differences are ignored:
+
+- Capital letters, punctuation and accents: "azucar" counts for Azúcar, "baton" for Bâton.
+- An article in front of the name: "la manzana" or "una manzana" for Manzana, "une pomme",
+  "l'arc" or "de la laine verte" for Pomme, Arc and Laine verte. Saying the name without one is
+  fine too.
+- Words spelled differently but pronounced the same. Whisper writes words, and when several
+  spellings sound alike it picks one, so the mod compares how words sound:
+  - in Spanish (as spoken in Mexico): b/v, s/z/soft c, ll/y, and a silent h ("mansana" counts);
+  - in French: silent endings, é/è/ê/ai and the like ("vert" or "vers" for Verre, "pomme doré"
+    for Pomme dorée).
+
+A missing, extra or different word is wrong: "manzanas" for Manzana, or "laine vert" for Laine
+verte (the t of verte is pronounced). The popup underlines the words of the name you did not say
+correctly. Matching modes: `strict` and `toneless` are the same here; with `lenient`, names of 4 or
+more words may have one wrong word. Names of more than 3 words are skipped by default (see "Long
+names").
+
+### Korean
+
+Names are compared syllable by syllable (one Hangul block at a time), ignoring spaces and
+punctuation, so "초록색양털" counts for 초록색 양털. Syllables that sound the same count as the same,
+because Whisper has to pick one spelling: the vowels ㅐ/ㅔ, ㅒ/ㅖ and ㅙ/ㅚ/ㅞ, and final consonants
+that are pronounced alike (낫, 낮, 낯 and 낟 all end in the same t sound). A missing, extra or
+different syllable is wrong: "빵이요" ("bread, please") does not count for 빵, and "사가" does not
+count for 사과. The popup underlines the syllables you did not say correctly, and what Whisper heard
+is shown with its romanization.
+
+The romanization under the name is the official Revised Romanization, written the way the name is
+pronounced: 사과 sagwa, 독립 dongnip, 같이 gachi, 마법이 부여된 책 mabeobi buyeodoen chaek. Matching
+modes work as in Spanish and French, counting syllables. Names of more than 2 words are skipped by
+default.
+
 ## Speech recognition
 
 The mod talks to Whisper through a small `SpeechEngine` interface with two implementations:
@@ -217,7 +285,8 @@ The mod talks to Whisper through a small `SpeechEngine` interface with two imple
   `config/langmod/whisper-server.log`.
 
 The model loads once, in the background, when the game starts. All transcriptions run on a
-background thread, so the game never waits for Whisper. The language is always forced to Chinese.
+background thread, so the game never waits for Whisper. Whisper is always told the language you are
+learning, so it never has to guess it from a one-word clip.
 The microphone is only open while a challenge (or `/langmod test`) is listening; the red dot in the
 popup shows when it is. Audio is recorded as 16 kHz mono and split into utterances by a simple
 voice activity detector (it adapts to background noise; 0.8 s of silence ends a recording, 5 s
@@ -271,10 +340,44 @@ Synthesised speech is cleaner than a real microphone and a learner's accent, so 
 worse results in the game. A desktop CPU is much faster than these 2-core runners: Whisper's time
 scales with the threads it gets (`whisperThreads`, auto = half your cores).
 
-## Pinyin data
+## Names and pinyin data
 
-Chinese names are not translated by hand: they come from Minecraft's own `zh_cn.json`, looked up by
-translation key (`item.minecraft.apple` → 苹果). `tools/generate_pinyin.py` turns them into
+No name is translated by hand: they are Minecraft's own translations from its language files
+(`zh_cn.json`, `es_mx.json`, `fr_ca.json` and `ko_kr.json`), looked up by translation key
+(`item.minecraft.apple` → 苹果, Manzana, Pomme, 사과). All 1715 item and block names of 26.1.2 exist
+in all four languages.
+
+### Spanish, French and Korean
+
+`tools/generate_names.py` copies the item and block names into
+`src/main/resources/assets/langmod/names/<language>.json`, one per line:
+
+```json
+"item.minecraft.apple": "Manzana",
+```
+
+Your own fixes go in `config/langmod/names_es_mx.json`, `names_fr_ca.json` or `names_ko_kr.json`
+(created on first start, same format); run `/langmod reload` after editing. The Korean romanization
+is worked out by the mod itself, so it needs no data.
+
+To regenerate (Python 3.10+, nothing to install):
+
+```powershell
+python tools/generate_names.py
+```
+
+By default the script downloads the language files for 26.1.2 from Mojang's servers (cached in
+`tools/.cache`); `--lang-dir` reads local copies instead. The bundled files were generated from the
+copies mirrored in
+[InventivetalentDev/minecraft-assets](https://github.com/InventivetalentDev/minecraft-assets/tree/26.1.2)
+(sha1 `ec1286e287ca210b507bf986875f49b4ac479d43` for `es_mx.json`,
+`6995ef81185678d50236ed38574bd82d0d0da83b` for `fr_ca.json`,
+`96a4223c3a3b05b6692a89a11b585480a821aa5b` for `ko_kr.json`), for the same reason as the pinyin
+below.
+
+### Mandarin pinyin
+
+`tools/generate_pinyin.py` turns the names from `zh_cn.json` into
 `src/main/resources/assets/langmod/pinyin/items.json` at build time using
 [pypinyin](https://github.com/mozillazg/python-pinyin), which knows multi-character words
 (长 in 闪长岩 is cháng, not zhǎng):
@@ -311,7 +414,7 @@ file.
 The mod was built in five stages. To check them by hand, start `.\gradlew.bat runClient`, create a
 **Creative** world (so you can drop items with Q from the creative inventory and pick them up again):
 
-1. **Setup:** the game reaches the title screen; Mods (Mod Menu) lists "LangMod: Mandarin".
+1. **Setup:** the game reaches the title screen; Mods (Mod Menu) lists "LangMod".
 2. **Pickup + popup:** drop an item you have not learned (e.g. an apple) and walk over it. It is not
    added to your inventory; the popup appears with the icon, 苹果, tone-colored pinyin, "Apple" and
    a countdown. Pick up something else meanwhile: it queues.
@@ -324,11 +427,16 @@ The mod was built in five stages. To check them by hand, start `.\gradlew.bat ru
 5. **Persistence, settings, commands:** quit and rejoin: learned items are still learned
    (`/langmod list`). Try `/langmod review`, `/langmod reset`, F9 (debug overlay) and the settings
    screen (Mods > LangMod > Configure, or `/langmod config`).
+6. **Languages** (added afterwards): `/langmod language` opens the language menu; choose Español
+   (México) and pick up an apple. The popup shows "Manzana"; say "la manzana": correct, and
+   `/langmod list` now lists only what you learned in Spanish. Choose 한국어 and pick up bread: the
+   popup shows 빵 with "ppang" under it. Pick up something new and switch language before
+   answering: the item is given back.
 
 Automated tests:
 
 ```powershell
-.\gradlew.bat test               # unit tests: pinyin, matching, text conversion, audio, whisper-server protocol
+.\gradlew.bat test               # unit tests: names, matching in every language, pinyin, romanization, text conversion, audio, whisper-server protocol
 .\gradlew.bat runClientGameTest  # starts the real game with a scripted speech engine, plays through all of the above
 ```
 
@@ -352,7 +460,10 @@ in GitHub Actions (`.github/workflows/build.yml`), which also uploads the built 
   "Whisper window" to "Clip only".
 - **Correct answers are rejected too often**: turn on prompt biasing (with the 30 s window), or use
   `toneless` matching.
-- **A wrong reading in the popup**: add the item to `config/langmod/pinyin_overrides.json`.
+- **A wrong name or reading in the popup**: add the item to `config/langmod/pinyin_overrides.json`
+  (Mandarin) or `config/langmod/names_<language>.json` (Spanish, French, Korean).
+- **"You switched to ..., so your items were given back"**: changing the language during a
+  challenge cancels it without counting a failure; pick the item up again.
 - Logs: `run\logs\latest.log` (development client) or `.minecraft\logs\latest.log`.
 
 ## Project layout
@@ -363,13 +474,14 @@ src/main/java/.../langmod/
   challenge/                            pickup interception and the challenge rules (server)
   command/                              /langmod
   core/                                 plain Java, unit tested: pinyin, matching, audio, text, speech engines
+  core/lang/                            the languages: names, answer checking, Korean romanization
   data/                                 per-player saved data (Fabric data attachment)
   mixin/                                ItemEntity pickup hook, player death hook
   net/                                  packets between server and client
 src/client/java/.../langmod/client/     microphone, speech service, popup and overlays, settings screen
 src/gametest/                           client game test (runClientGameTest)
 src/test/                               unit tests and the SpeechCheck tool used by CI
-tools/                                  pinyin generator, fixes and review list
+tools/                                  name and pinyin generators, pinyin fixes and review list
 ```
 
 ## Versions

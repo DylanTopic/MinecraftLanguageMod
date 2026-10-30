@@ -72,7 +72,8 @@ public final class MicTest {
 
 		current = test;
 		ChallengeController.get().clearMicError();
-		ClientMessages.info("Microphone on (" + test.mic.deviceName() + "). Say something in Chinese...");
+		ClientMessages.info("Microphone on (" + test.mic.deviceName() + "). Say something in "
+				+ LangModConfig.get().languageEnum().englishName() + "...");
 	}
 
 	/** Runs the test on a given clip instead of the microphone (game tests). */
