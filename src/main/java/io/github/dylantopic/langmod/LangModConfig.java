@@ -61,12 +61,14 @@ public final class LangModConfig {
 	public boolean useGpu = true;
 	/** CPU threads for Whisper; 0 = automatic (leaves cores free for Minecraft). */
 	public int whisperThreads = 0;
-	/** Pass the expected word to Whisper as its initial prompt. Makes it "hear" the right word more easily. */
-	public boolean promptBiasing = false;
+	/** Per language: pass the expected name to Whisper as its initial prompt, so it "hears" the right word more easily. */
+	public Map<String, Boolean> promptBiasingByLanguage = defaultPromptBiasing();
+	/** Replaced by {@link #promptBiasingByLanguage} (it was the Mandarin setting); read from old files, then moved there. */
+	public Boolean promptBiasing;
 	/**
-	 * Per language: the initial prompt when prompt biasing is off. It never contains the answer;
-	 * "Minecraft items:" in the language makes Whisper prefer item names over everyday words that
-	 * sound alike. Empty = no prompt.
+	 * Per language: the initial prompt when prompt biasing is off. It never contains the answer:
+	 * "Minecraft items:" in the language, which made Whisper prefer item names over everyday words
+	 * that sound alike in Mandarin (it made no difference in the other languages). Empty = no prompt.
 	 */
 	public Map<String, String> whisperPrompts = defaultWhisperPrompts();
 	/** Replaced by {@link #whisperPrompts} (it was the Mandarin prompt); read from old files, then moved there. */
@@ -186,6 +188,10 @@ public final class LangModConfig {
 		return "skip".equals(longNameModes.getOrDefault(language.id(), language.defaultLongNameMode()));
 	}
 
+	public boolean promptBiasing(Language language) {
+		return promptBiasingByLanguage.getOrDefault(language.id(), language.defaultPromptBiasing());
+	}
+
 	/** The generic prompt for a language, or null for none. */
 	public String whisperPrompt(Language language) {
 		String prompt = whisperPrompts.getOrDefault(language.id(), language.defaultPrompt());
@@ -216,6 +222,7 @@ public final class LangModConfig {
 		Map<String, Integer> limits = defaultNameLengthLimits();
 		Map<String, String> modes = defaultLongNameModes();
 		Map<String, String> prompts = defaultWhisperPrompts();
+		Map<String, Boolean> biasing = defaultPromptBiasing();
 
 		for (Language l : Language.values()) {
 			if (nameLengthLimits != null && nameLengthLimits.get(l.id()) != null) {
@@ -229,11 +236,16 @@ public final class LangModConfig {
 			if (whisperPrompts != null && whisperPrompts.get(l.id()) != null) {
 				prompts.put(l.id(), whisperPrompts.get(l.id()));
 			}
+
+			if (promptBiasingByLanguage != null && promptBiasingByLanguage.get(l.id()) != null) {
+				biasing.put(l.id(), promptBiasingByLanguage.get(l.id()));
+			}
 		}
 
 		nameLengthLimits = limits;
 		longNameModes = modes;
 		whisperPrompts = prompts;
+		promptBiasingByLanguage = biasing;
 		whisperThreads = clamp(whisperThreads, 0, 64, "whisperThreads");
 		audioContext = clamp(audioContext, -1, 1500, "audioContext");
 		transcriptionTimeoutSeconds = clamp(transcriptionTimeoutSeconds, 1, 120, "transcriptionTimeoutSeconds");
@@ -314,6 +326,12 @@ public final class LangModConfig {
 			whisperPrompts.put(mandarin, whisperPrompt);
 			whisperPrompt = null;
 		}
+
+		if (promptBiasing != null) {
+			promptBiasingByLanguage = new LinkedHashMap<>(promptBiasingByLanguage == null ? Map.of() : promptBiasingByLanguage);
+			promptBiasingByLanguage.put(mandarin, promptBiasing);
+			promptBiasing = null;
+		}
 	}
 
 	private static Map<String, Integer> defaultNameLengthLimits() {
@@ -344,6 +362,16 @@ public final class LangModConfig {
 		}
 
 		return prompts;
+	}
+
+	private static Map<String, Boolean> defaultPromptBiasing() {
+		Map<String, Boolean> biasing = new LinkedHashMap<>();
+
+		for (Language language : Language.values()) {
+			biasing.put(language.id(), language.defaultPromptBiasing());
+		}
+
+		return biasing;
 	}
 
 	private static Map<String, String> defaultToneColors() {

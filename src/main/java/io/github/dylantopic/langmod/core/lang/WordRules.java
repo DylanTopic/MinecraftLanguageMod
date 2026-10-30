@@ -14,9 +14,10 @@ public enum WordRules {
 			List.of("amara", "subtítulos", "suscríbete", "gracias por ver")) {
 		@Override
 		public String soundKey(String word) {
-			// Latin American Spanish: b/v, s/z/soft c and ll/y sound the same; h is silent.
+			// Latin American Spanish: b/v, s/z/soft c and ll/y sound the same; h is silent. The soft d
+			// between vowels (vidrio) is the English "th", which Whisper sometimes writes ("bithrio").
 			String s = stripAccents(word.replace("ñ", "ny"));
-			s = s.replace("ch", "C").replace("ll", "y").replace("qu", "k");
+			s = s.replace("ch", "C").replace("th", "d").replace("ll", "y").replace("qu", "k");
 			s = s.replaceAll("gu(?=[ei])", "G").replaceAll("g(?=[ei])", "j").replace("G", "g");
 			s = s.replaceAll("c(?=[ei])", "s").replace("z", "s").replace("c", "k");
 			s = s.replace("h", "").replace("v", "b").replace("w", "u").replaceAll("y$", "i").replace("C", "ch");
@@ -31,6 +32,9 @@ public enum WordRules {
 			// so verre/vert/vers or doré/dorée/dorés get the same key, while vert/verte do not.
 			String s = word.replace("œ", "e").replace("æ", "e").replaceAll("[éèêë]", "E").replaceAll("[àâä]", "a")
 					.replaceAll("[îï]", "i").replaceAll("[ôö]", "o").replaceAll("[ùûü]", "u").replace("ç", "s");
+			// An n or m after a vowel and not before another vowel makes the vowel nasal ("N"): pain,
+			// diamant, pomp, unlike pomme or laine.
+			s = s.replaceAll("(?<=[aeiouyE])[nm](?![aeiouyEnmh])", "N");
 
 			for (int k = 0; k < 2 && s.length() > 2 && "sxztdp".indexOf(s.charAt(s.length() - 1)) >= 0; k++) {
 				s = s.substring(0, s.length() - 1);

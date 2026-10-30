@@ -28,9 +28,15 @@ public final class KoreanPack implements LanguagePack {
 		return Language.KOREAN;
 	}
 
+	/**
+	 * Names with Latin letters (only TNT) are left out, as in Mandarin: there is no Korean word to learn,
+	 * and Whisper may write the letters either way (TNT or 티엔티).
+	 */
 	@Override
 	public Optional<NameEntry> name(String translationKey) {
-		return names.get(translationKey).map(text -> new NameEntry(translationKey, text, KoreanRomanizer.romanize(text)));
+		return names.get(translationKey)
+				.filter(text -> text.chars().noneMatch(c -> c < 0x80 && Character.isLetter(c)))
+				.map(text -> new NameEntry(translationKey, text, KoreanRomanizer.romanize(text)));
 	}
 
 	@Override

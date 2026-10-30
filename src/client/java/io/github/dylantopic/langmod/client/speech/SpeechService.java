@@ -97,8 +97,8 @@ public final class SpeechService {
 	 * throws, or takes longer than the configured timeout.
 	 *
 	 * @param language the language Whisper is told to expect
-	 * @param expectedName used as Whisper's initial prompt if prompt biasing is enabled (otherwise the
-	 *     language's generic prompt is used); may be null
+	 * @param expectedName used as Whisper's initial prompt if prompt biasing is on for the language
+	 *     (otherwise the language's generic prompt is used); may be null
 	 */
 	public CompletableFuture<Transcript> transcribe(float[] samples, Language language, String expectedName) {
 		if (status != Status.READY) {
@@ -106,7 +106,7 @@ public final class SpeechService {
 		}
 
 		LangModConfig config = LangModConfig.get();
-		String prompt = config.promptBiasing && expectedName != null ? expectedName : config.whisperPrompt(language);
+		String prompt = config.promptBiasing(language) && expectedName != null ? expectedName : config.whisperPrompt(language);
 		SpeechEngine.Request request = new SpeechEngine.Request(language.whisperCode(), prompt,
 				WhisperModels.audioContext(samples.length, config.audioContext));
 		CompletableFuture<Transcript> result = new CompletableFuture<>();

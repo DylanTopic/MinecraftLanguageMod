@@ -76,7 +76,7 @@ public class LangModConfigScreen extends OptionsSubScreen {
 				v -> Component.translatable(PREFIX + language.lengthUnit(), v), (c, v) -> c.nameLengthLimits.put(language.id(), v));
 		choice("longNameMode", List.of("lenient", "skip"), config.skipLongNames(language) ? "skip" : "lenient", Codec.STRING,
 				v -> Component.translatable(PREFIX + "longNameMode." + v), (c, v) -> c.longNameModes.put(language.id(), v));
-		toggle("promptBiasing", config.promptBiasing, (c, v) -> c.promptBiasing = v);
+		toggle("promptBiasing", config.promptBiasing(language), (c, v) -> c.promptBiasingByLanguage.put(language.id(), v));
 		choice("modelSize", MODELS, config.modelSize, Codec.STRING, Component::literal, LangModConfigScreen::modelTooltip,
 				(c, v) -> c.modelSize = v);
 		choice("speechEngine", List.of("jni", "server"), config.speechEngine, Codec.STRING,

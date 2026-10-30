@@ -37,7 +37,8 @@ Other rules:
   player data, so even a game crash cannot lose them.
 - Only picking items up from the ground counts. Crafting, chests and the creative inventory are
   not affected.
-- Items without a name in the game files (e.g. most modded items) are picked up normally.
+- Items without a name in the game files (e.g. most modded items) are picked up normally, and so is
+  TNT in Mandarin and Korean, where its name is just the letters "TNT".
 - Progress is stored per player, per world and per language (in the world's player data).
 
 ## Choosing a language
@@ -177,7 +178,7 @@ screen. The file can also be edited by hand (then run `/langmod reload`).
 | Matching (`matchMode`) | strict | `strict`, `toneless` or `lenient`, see below. |
 | Long names from (`nameLengthLimits`) | per language, see above | For the current language: names longer than this (characters in Mandarin, words otherwise) are "long". |
 | Long names (`longNameModes`) | per language, see above | For the current language: `lenient` (one wrong syllable or word allowed) or `skip` (never challenged). |
-| Prompt biasing (`promptBiasing`) | off | Give Whisper the expected word as a hint (see below). |
+| Prompt biasing (`promptBiasingByLanguage`) | on, except in Mandarin | For the current language: give Whisper the expected word as a hint (see below). |
 | Whisper model (`modelSize`) | small | `tiny`, `base`, `small`, `medium`, `large-v3-turbo`: loads `ggml-<size>.bin`. |
 | Speech engine (`speechEngine`) | jni | `jni` (built in, CPU) or `server` (separate whisper.cpp program, GPU). |
 | Use GPU (`useGpu`) | on | Only used by the `server` engine. |

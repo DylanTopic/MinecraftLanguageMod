@@ -60,6 +60,9 @@ class LanguagePacksTest {
 		NameEntry apple = korean().name("item.minecraft.apple").orElseThrow();
 		assertEquals("사과", apple.text());
 		assertEquals("sagwa", apple.pronunciation());
+		assertTrue(korean().name("block.minecraft.tnt").isEmpty()); // "TNT", picked up normally as in Mandarin
+		assertTrue(korean().name("item.minecraft.tnt_minecart").isEmpty());
+		assertEquals("TNT", spanish().name("block.minecraft.tnt").orElseThrow().text());
 	}
 
 	@Test
@@ -79,6 +82,7 @@ class LanguagePacksTest {
 		assertTrue(check(pack, "item.minecraft.apple", "¡La manzana!").pass(), "article in front");
 		assertTrue(check(pack, "item.minecraft.apple", "una manzana").pass());
 		assertTrue(check(pack, "item.minecraft.apple", "mansana").pass(), "s and z sound the same");
+		assertTrue(check(pack, "block.minecraft.glass", "Bithrio").pass(), "the soft d written as th");
 		assertFalse(check(pack, "item.minecraft.apple", "manzanas").pass(), "plural is a different word");
 		assertFalse(check(pack, "item.minecraft.apple", "plátano").pass());
 		assertTrue(check(pack, "item.minecraft.diamond_pickaxe", "pico de diamante").pass());
@@ -106,6 +110,11 @@ class LanguagePacksTest {
 		assertTrue(check(pack, "block.minecraft.gold_block", "bloc d'or").pass());
 		assertTrue(check(pack, "block.minecraft.gold_block", "bloc dor").pass(), "apostrophes do not matter");
 		assertFalse(check(pack, "item.minecraft.apple", "poire").pass());
+		assertFalse(check(pack, "item.minecraft.apple", "pomp").pass(), "a nasal vowel is not pomme");
+		assertFalse(check(pack, "item.minecraft.apple", "pompe").pass());
+		assertTrue(check(pack, "item.minecraft.apple", "pommes").pass(), "silent plural s");
+		assertFalse(check(pack, "item.minecraft.bread", "pan").pass(), "pain and pan have different nasal vowels");
+		assertTrue(check(pack, "item.minecraft.diamond_pickaxe", "pioche en diamand").pass(), "silent final consonant after a nasal vowel");
 		assertTrue(pack.isNoise(pack.normalize("Sous-titres réalisés para la communauté d'Amara.org"), pack.name("item.minecraft.apple").orElseThrow()));
 	}
 

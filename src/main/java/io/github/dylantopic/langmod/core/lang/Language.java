@@ -10,10 +10,10 @@ import java.util.Optional;
  * {@link #id()}; Whisper is told to expect {@link #whisperCode()}.
  */
 public enum Language {
-	MANDARIN("zh_cn", "zh", "Mandarin Chinese", "中文", 4, "lenient", "我的世界物品："),
-	SPANISH("es_mx", "es", "Spanish (Mexico)", "Español (México)", 3, "skip", "Objetos de Minecraft:"),
-	FRENCH("fr_ca", "fr", "French (Canada)", "Français (Canada)", 3, "skip", "Objets de Minecraft :"),
-	KOREAN("ko_kr", "ko", "Korean", "한국어", 2, "skip", "마인크래프트 아이템:");
+	MANDARIN("zh_cn", "zh", "Mandarin Chinese", "中文", 4, "lenient", "我的世界物品：", false),
+	SPANISH("es_mx", "es", "Spanish (Mexico)", "Español (México)", 3, "skip", "Objetos de Minecraft:", true),
+	FRENCH("fr_ca", "fr", "French (Canada)", "Français (Canada)", 3, "skip", "Objets de Minecraft :", true),
+	KOREAN("ko_kr", "ko", "Korean", "한국어", 2, "skip", "마인크래프트 아이템:", true);
 
 	private final String id;
 	private final String whisperCode;
@@ -22,9 +22,10 @@ public enum Language {
 	private final int defaultMaxLength;
 	private final String defaultLongNameMode;
 	private final String defaultPrompt;
+	private final boolean defaultPromptBiasing;
 
 	Language(String id, String whisperCode, String englishName, String nativeName, int defaultMaxLength, String defaultLongNameMode,
-			String defaultPrompt) {
+			String defaultPrompt, boolean defaultPromptBiasing) {
 		this.id = id;
 		this.whisperCode = whisperCode;
 		this.englishName = englishName;
@@ -32,6 +33,7 @@ public enum Language {
 		this.defaultMaxLength = defaultMaxLength;
 		this.defaultLongNameMode = defaultLongNameMode;
 		this.defaultPrompt = defaultPrompt;
+		this.defaultPromptBiasing = defaultPromptBiasing;
 	}
 
 	public static Optional<Language> byId(String id) {
@@ -75,6 +77,15 @@ public enum Language {
 	/** Generic initial prompt for Whisper (never contains the answer). */
 	public String defaultPrompt() {
 		return defaultPrompt;
+	}
+
+	/**
+	 * Whether Whisper gets the expected name as its prompt unless the config says otherwise. On where
+	 * Whisper missed many correct answers without it in tests (Spanish, French, Korean); off for
+	 * Mandarin, where it let a wrong tone pass.
+	 */
+	public boolean defaultPromptBiasing() {
+		return defaultPromptBiasing;
 	}
 
 	/** Mandarin has tones (checked, and shown in colour); the others do not. */

@@ -36,7 +36,7 @@
 	"langmod.config.longNameMode.lenient": "Lenient",
 	"langmod.config.longNameMode.skip": "Skip",
 	"langmod.config.promptBiasing": "Prompt biasing",
-	"langmod.config.promptBiasing.tooltip": "Give Whisper the expected word as a hint. Easier to pass, but it may also \"hear\" the word when you said something close to it. Works best with the 30 s Whisper window.",
+	"langmod.config.promptBiasing.tooltip": "For the language you are learning: give Whisper the expected word as a hint. Easier to pass, but it may also \"hear\" the word when you said something close to it. On by default for Spanish, French and Korean, where Whisper missed many correct answers without it.",
 	"langmod.config.modelSize": "Whisper model",
 	"langmod.config.modelSize.tooltip": "Bigger models recognise speech better but are slower. Small is a good default. File: %s. %s",
 	"langmod.config.modelSize.found": "Installed.",
