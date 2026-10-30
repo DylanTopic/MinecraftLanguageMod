@@ -9,17 +9,19 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 import io.github.dylantopic.langmod.LangMod;
 import io.github.dylantopic.langmod.core.Matcher;
+import io.github.dylantopic.langmod.core.lang.CheckResult;
 
 /**
- * Server -> client: the verdict on one answer, with what was heard and which syllables matched.
+ * Server -> client: the verdict on one answer, with what was heard and which parts matched.
  *
  * @param raw Whisper's raw output
- * @param heard the normalized (simplified) transcription
- * @param heardTokens heard characters with their pinyin and status
- * @param expectedStatus status of each expected syllable
+ * @param heard the normalized transcription
+ * @param heardPronunciation pinyin or romanization of what was heard (empty if the language has none)
+ * @param heardTokens heard characters, syllables or words with their pronunciation and status
+ * @param expectedStatus status of each unit of the expected name
  * @param note extra explanation (e.g. why an answer was not counted)
  */
-public record AttemptResultPayload(int challengeId, Verdict verdict, String raw, String heard, List<Token> heardTokens,
+public record AttemptResultPayload(int challengeId, Verdict verdict, String raw, String heard, String heardPronunciation, List<Token> heardTokens,
 		List<Matcher.Status> expectedStatus, int errors, int allowedErrors, String mode, int millis, int attemptsUsed,
 		String note) implements CustomPacketPayload {
 	public static final Type<AttemptResultPayload> TYPE = new Type<>(LangMod.id("attempt_result"));
@@ -36,11 +38,11 @@ public record AttemptResultPayload(int challengeId, Verdict verdict, String raw,
 		ERROR
 	}
 
-	public record Token(String text, String pinyin, Matcher.Status status) {
+	public record Token(String text, String pronunciation, Matcher.Status status) {
 	}
 
 	private AttemptResultPayload(RegistryFriendlyByteBuf buf) {
-		this(buf.readVarInt(), Verdict.values()[buf.readVarInt()], buf.readUtf(), buf.readUtf(), readTokens(buf), readStatuses(buf),
+		this(buf.readVarInt(), Verdict.values()[buf.readVarInt()], buf.readUtf(), buf.readUtf(), buf.readUtf(), readTokens(buf), readStatuses(buf),
 				buf.readVarInt(), buf.readVarInt(), buf.readUtf(), buf.readVarInt(), buf.readVarInt(), buf.readUtf());
 	}
 
@@ -49,11 +51,12 @@ public record AttemptResultPayload(int challengeId, Verdict verdict, String raw,
 		buf.writeVarInt(verdict.ordinal());
 		buf.writeUtf(raw);
 		buf.writeUtf(heard);
+		buf.writeUtf(heardPronunciation);
 		buf.writeVarInt(heardTokens.size());
 
 		for (Token token : heardTokens) {
 			buf.writeUtf(token.text());
-			buf.writeUtf(token.pinyin());
+			buf.writeUtf(token.pronunciation());
 			buf.writeVarInt(token.status().ordinal());
 		}
 
@@ -93,21 +96,21 @@ public record AttemptResultPayload(int challengeId, Verdict verdict, String raw,
 		return statuses;
 	}
 
-	public static AttemptResultPayload of(int challengeId, Verdict verdict, String raw, Matcher.Result result, int millis,
+	public static AttemptResultPayload of(int challengeId, Verdict verdict, String raw, CheckResult result, int millis,
 			int attemptsUsed, String note) {
 		List<Token> tokens = new ArrayList<>();
 
-		for (Matcher.HeardToken token : result.heardTokens()) {
-			tokens.add(new Token(token.text(), token.pinyin(), token.status()));
+		for (CheckResult.Token token : result.heardTokens()) {
+			tokens.add(new Token(token.text(), token.pronunciation(), token.status()));
 		}
 
-		return new AttemptResultPayload(challengeId, verdict, raw, result.heard(), tokens, result.expectedStatus(),
-				result.errors(), result.allowedErrors(), result.mode().id(), millis, attemptsUsed, note);
+		return new AttemptResultPayload(challengeId, verdict, raw, result.heard(), result.heardPronunciation(), tokens,
+				result.expectedStatus(), result.errors(), result.allowedErrors(), result.mode().id(), millis, attemptsUsed, note);
 	}
 
 	public static AttemptResultPayload notCounted(int challengeId, Verdict verdict, String raw, String heard, int millis,
 			int attemptsUsed, String note) {
-		return new AttemptResultPayload(challengeId, verdict, raw, heard, List.of(), List.of(), 0, 0, "", millis, attemptsUsed, note);
+		return new AttemptResultPayload(challengeId, verdict, raw, heard, "", List.of(), List.of(), 0, 0, "", millis, attemptsUsed, note);
 	}
 
 	@Override

@@ -20,8 +20,10 @@ import net.minecraft.network.chat.Component;
 
 import io.github.dylantopic.langmod.LangModConfig;
 import io.github.dylantopic.langmod.client.ChallengeController;
+import io.github.dylantopic.langmod.client.LangModClient;
 import io.github.dylantopic.langmod.client.audio.MicCapture;
 import io.github.dylantopic.langmod.client.speech.SpeechService;
+import io.github.dylantopic.langmod.core.lang.Language;
 import io.github.dylantopic.langmod.core.speech.WhisperModels;
 
 /**
@@ -36,17 +38,31 @@ public class LangModConfigScreen extends OptionsSubScreen {
 	private static final Map<String, String> PALETTE = palette();
 
 	private final Map<String, OptionInstance<?>> options = new LinkedHashMap<>();
+	private final Screen parent;
 
 	/** @param parent screen to return to, or null to go back to the game */
 	public LangModConfigScreen(Screen parent) {
 		super(parent, Minecraft.getInstance().options, Component.translatable(PREFIX + "title"));
+		this.parent = parent;
 	}
 
 	@Override
 	protected void addOptions() {
 		LangModConfig config = LangModConfig.get();
+		Language language = config.languageEnum();
 		options.clear();
 
+		// Switching language reopens the screen, so the per-language options below show the new language.
+		options.put("language", new OptionInstance<Language>(
+				PREFIX + "language",
+				value -> Tooltip.create(Component.translatable(PREFIX + "language.tooltip")),
+				(caption, value) -> Component.literal(value.nativeName()),
+				new OptionInstance.Enum<>(List.of(Language.values()), Codec.STRING.xmap(id -> Language.byId(id).orElse(Language.MANDARIN), Language::id)),
+				language,
+				value -> {
+					LangModClient.selectLanguage(value);
+					this.minecraft.setScreen(new LangModConfigScreen(parent));
+				}));
 		toggle("enabled", config.enabled, (c, v) -> c.enabled = v);
 		toggle("showEnglish", config.showEnglish, (c, v) -> c.showEnglish = v);
 		choice("maxAttempts", List.of(1, 2, 3, 4, 5, 7, 10), config.maxAttempts, Codec.INT,
@@ -56,10 +72,10 @@ public class LangModConfigScreen extends OptionsSubScreen {
 		choice("matchMode", List.of("strict", "toneless", "lenient"), config.matchMode, Codec.STRING,
 				v -> Component.translatable(PREFIX + "matchMode." + v), v -> Component.translatable(PREFIX + "matchMode." + v + ".tooltip"),
 				(c, v) -> c.matchMode = v);
-		choice("maxNameLength", List.of(2, 3, 4, 5, 6, 8, 10, 12), config.maxNameLength, Codec.INT,
-				v -> Component.translatable(PREFIX + "characters", v), (c, v) -> c.maxNameLength = v);
-		choice("longNameMode", List.of("lenient", "skip"), config.longNameMode, Codec.STRING,
-				v -> Component.translatable(PREFIX + "longNameMode." + v), (c, v) -> c.longNameMode = v);
+		choice("maxNameLength", List.of(1, 2, 3, 4, 5, 6, 8, 10, 12), config.maxNameLength(language), Codec.INT,
+				v -> Component.translatable(PREFIX + language.lengthUnit(), v), (c, v) -> c.nameLengthLimits.put(language.id(), v));
+		choice("longNameMode", List.of("lenient", "skip"), config.skipLongNames(language) ? "skip" : "lenient", Codec.STRING,
+				v -> Component.translatable(PREFIX + "longNameMode." + v), (c, v) -> c.longNameModes.put(language.id(), v));
 		toggle("promptBiasing", config.promptBiasing, (c, v) -> c.promptBiasing = v);
 		choice("modelSize", MODELS, config.modelSize, Codec.STRING, Component::literal, LangModConfigScreen::modelTooltip,
 				(c, v) -> c.modelSize = v);
@@ -76,7 +92,7 @@ public class LangModConfigScreen extends OptionsSubScreen {
 		choice("vadThresholdDb", List.of(6.0, 8.0, 10.0, 12.0, 15.0, 18.0, 21.0, 24.0), config.vadThresholdDb, Codec.DOUBLE,
 				v -> Component.literal(String.format(Locale.ROOT, "%.0f dB", v)), (c, v) -> c.vadThresholdDb = v);
 
-		for (int tone = 1; tone <= 5; tone++) {
+		for (int tone = 1; language.tonal() && tone <= 5; tone++) {
 			String key = Integer.toString(tone);
 			choice("toneColor" + tone, List.copyOf(PALETTE.keySet()), config.toneColors.getOrDefault(key, "#FFFFFF").toUpperCase(Locale.ROOT),
 					Codec.STRING, LangModConfigScreen::colorName, (c, v) -> c.toneColors.put(key, v));

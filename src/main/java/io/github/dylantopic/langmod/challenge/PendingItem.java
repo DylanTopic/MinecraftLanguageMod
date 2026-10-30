@@ -5,7 +5,8 @@ import java.util.List;
 
 import net.minecraft.world.item.ItemStack;
 
-import io.github.dylantopic.langmod.core.PinyinEntry;
+import io.github.dylantopic.langmod.core.lang.Language;
+import io.github.dylantopic.langmod.core.lang.NameEntry;
 
 /**
  * Items of one type that were picked up but are held back until the player says the name.
@@ -13,14 +14,21 @@ import io.github.dylantopic.langmod.core.PinyinEntry;
  */
 final class PendingItem {
 	final String itemId;
-	final PinyinEntry entry;
+	final Language language;
+	final NameEntry entry;
 	final boolean longName;
 	final List<ItemStack> stacks = new ArrayList<>();
 
-	PendingItem(String itemId, PinyinEntry entry, boolean longName) {
+	PendingItem(String itemId, Language language, NameEntry entry, boolean longName) {
 		this.itemId = itemId;
+		this.language = language;
 		this.entry = entry;
 		this.longName = longName;
+	}
+
+	/** "苹果  píng guǒ", "Manzana" or "사과  sagwa". */
+	String nameWithPronunciation() {
+		return entry.pronunciation().isEmpty() ? entry.text() : entry.text() + "  " + entry.pronunciation();
 	}
 
 	/** A stack for the popup icon (count 1, keeps components such as potion colour). */

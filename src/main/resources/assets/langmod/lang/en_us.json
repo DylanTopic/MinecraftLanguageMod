@@ -2,9 +2,17 @@
 	"key.category.langmod.main": "LangMod: Mandarin",
 	"key.langmod.toggle_debug": "Toggle debug overlay",
 	"key.langmod.open_config": "Open LangMod settings",
+	"key.langmod.choose_language": "Choose the language to learn",
+
+	"langmod.language.title": "Choose a language to learn",
+	"langmod.language.hint": "Each language keeps its own progress. Switching gives back the item you are being asked about.",
 
 	"langmod.config.title": "LangMod: Mandarin Settings",
 	"langmod.config.characters": "%s characters",
+	"langmod.config.words": "%s words",
+
+	"langmod.config.language": "Learning",
+	"langmod.config.language.tooltip": "The language you are learning: Mandarin Chinese, Spanish (Mexico), French (Canada) or Korean. Each keeps its own progress. Also: /langmod language.",
 
 	"langmod.config.enabled": "Challenges",
 	"langmod.config.enabled.tooltip": "Master switch. When off, picking things up works like vanilla and held items are given back.",
@@ -22,9 +30,9 @@
 	"langmod.config.matchMode.lenient": "Lenient",
 	"langmod.config.matchMode.lenient.tooltip": "Like strict, but names of 4 or more syllables may have one wrong syllable.",
 	"langmod.config.maxNameLength": "Long names from",
-	"langmod.config.maxNameLength.tooltip": "Names with more characters than this count as long, and are handled as set in \"Long names\".",
+	"langmod.config.maxNameLength.tooltip": "For the language you are learning: names longer than this (characters in Mandarin, words otherwise) count as long, and are handled as set in \"Long names\".",
 	"langmod.config.longNameMode": "Long names",
-	"langmod.config.longNameMode.tooltip": "Lenient: one wrong syllable is allowed. Skip: long names are never challenged.",
+	"langmod.config.longNameMode.tooltip": "For the language you are learning. Lenient: one wrong syllable or word is allowed. Skip: long names are never challenged.",
 	"langmod.config.longNameMode.lenient": "Lenient",
 	"langmod.config.longNameMode.skip": "Skip",
 	"langmod.config.promptBiasing": "Prompt biasing",
@@ -62,8 +70,8 @@
 	"langmod.config.toneColor4.tooltip": "Color of fourth-tone syllables (mà).",
 	"langmod.config.toneColor5": "Neutral tone color",
 	"langmod.config.toneColor5.tooltip": "Color of neutral-tone syllables (ma).",
-	"langmod.config.hanziScale": "Character size",
-	"langmod.config.hanziScale.tooltip": "Size of the Chinese characters in the challenge popup.",
+	"langmod.config.hanziScale": "Name size",
+	"langmod.config.hanziScale.tooltip": "Size of the name in the challenge popup (long names are shrunk to fit the screen).",
 	"langmod.config.debugOverlay": "Debug overlay",
 	"langmod.config.debugOverlay.tooltip": "Show what Whisper heard, its pinyin, the match result and timings (also F9 or /langmod debug)."
 }

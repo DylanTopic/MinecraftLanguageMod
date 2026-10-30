@@ -5,6 +5,8 @@ import net.minecraft.world.item.ItemStack;
 import io.github.dylantopic.langmod.LangMod;
 import io.github.dylantopic.langmod.core.Pinyin;
 import io.github.dylantopic.langmod.core.PinyinEntry;
+import io.github.dylantopic.langmod.core.lang.Language;
+import io.github.dylantopic.langmod.core.lang.NameEntry;
 import io.github.dylantopic.langmod.net.AttemptResultPayload;
 import io.github.dylantopic.langmod.net.ChallengeEndPayload;
 import io.github.dylantopic.langmod.net.ChallengeStartPayload;
@@ -19,9 +21,13 @@ public final class ClientChallenge {
 	/** How long the result of a finished challenge stays on screen. */
 	public static final int END_DISPLAY_TICKS = 50;
 
-	/** The challenge as announced by the server. */
-	public record Active(int id, ItemStack stack, String translationKey, PinyinEntry entry, int timeLimitTicks,
-			int maxAttempts, boolean longName) {
+	/**
+	 * The challenge as announced by the server.
+	 *
+	 * @param pinyin the name's syllables with tones (Mandarin only, null otherwise)
+	 */
+	public record Active(int id, ItemStack stack, String translationKey, Language language, NameEntry entry, PinyinEntry pinyin,
+			int timeLimitTicks, int maxAttempts, boolean longName) {
 	}
 
 	private Active active;
@@ -40,7 +46,7 @@ public final class ClientChallenge {
 
 	/** Kept after the challenge ends, for the debug overlay. */
 	private AttemptResultPayload debugResult;
-	private PinyinEntry debugExpected;
+	private NameEntry debugExpected;
 	private int debugAudioMs;
 
 	private ClientChallenge() {
@@ -51,17 +57,25 @@ public final class ClientChallenge {
 	}
 
 	public void onStart(ChallengeStartPayload payload) {
-		PinyinEntry entry;
+		Language language = Language.byId(payload.language()).orElse(null);
+		NameEntry entry = new NameEntry(payload.translationKey(), payload.text(), payload.pronunciation());
+		PinyinEntry pinyin = null;
 
 		try {
-			entry = PinyinEntry.of(payload.translationKey(), payload.hanzi(), Pinyin.parseAll(payload.pinyin()));
+			if (language == null) {
+				throw new IllegalArgumentException("unknown language " + payload.language());
+			}
+
+			if (language.tonal()) {
+				pinyin = PinyinEntry.of(payload.translationKey(), payload.text(), Pinyin.parseAll(payload.pronunciation()));
+			}
 		} catch (IllegalArgumentException e) {
 			LangMod.LOGGER.error("Bad challenge data from server: {}", e.getMessage());
 			return;
 		}
 
-		active = new Active(payload.challengeId(), payload.stack(), payload.translationKey(), entry, payload.timeLimitTicks(),
-				payload.maxAttempts(), payload.longName());
+		active = new Active(payload.challengeId(), payload.stack(), payload.translationKey(), language, entry, pinyin,
+				payload.timeLimitTicks(), payload.maxAttempts(), payload.longName());
 		remainingTicks = payload.timeLimitTicks();
 		timerRunning = true;
 		ticksSinceSync = 0;
@@ -173,7 +187,7 @@ public final class ClientChallenge {
 		return debugResult;
 	}
 
-	public PinyinEntry debugExpected() {
+	public NameEntry debugExpected() {
 		return debugExpected;
 	}
 

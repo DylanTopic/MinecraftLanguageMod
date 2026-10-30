@@ -16,7 +16,8 @@ import io.github.dylantopic.langmod.client.MicTest;
 import io.github.dylantopic.langmod.client.audio.MicCapture;
 import io.github.dylantopic.langmod.core.Matcher;
 import io.github.dylantopic.langmod.core.Pinyin;
-import io.github.dylantopic.langmod.core.PinyinEntry;
+import io.github.dylantopic.langmod.core.lang.Language;
+import io.github.dylantopic.langmod.core.lang.NameEntry;
 import io.github.dylantopic.langmod.net.AttemptResultPayload;
 import io.github.dylantopic.langmod.net.ChallengeEndPayload;
 
@@ -33,6 +34,7 @@ public final class ChallengeHud {
 	private static final int TEXT = 0xFFFFFFFF;
 	private static final int DIM = 0xFFA0A0A8;
 	private static final int NOTE = 0xFFFFDD66;
+	private static final int ROMANIZATION = 0xFFB8D4FF;
 
 	private ChallengeHud() {
 	}
@@ -68,17 +70,21 @@ public final class ChallengeHud {
 		Font font = minecraft.font;
 		LangModConfig config = LangModConfig.get();
 		ChallengeController controller = ChallengeController.get();
-		PinyinEntry entry = active.entry();
+		NameEntry entry = active.entry();
+		Language language = active.language();
 		AttemptResultPayload result = challenge.lastResult();
 
-		float hanziScale = config.hanziScale;
+		float nameScale = fitScale(font, entry.text(), config.hanziScale, graphics.guiWidth());
 		float pinyinScale = config.pinyinScale;
+		// Mandarin: pinyin coloured by tone; Korean: romanization; Spanish and French: nothing.
+		String romanization = language.tonal() || entry.pronunciation().isEmpty() ? null : entry.pronunciation();
 		String english = config.showEnglish ? Component.translatable(active.translationKey()).getString() : null;
 
-		int hanziWidth = Math.round(font.width(entry.hanzi()) * hanziScale);
-		int pinyinWidth = Math.round(pinyinWidth(font, entry.syllables()) * pinyinScale);
+		int nameWidth = Math.round(font.width(entry.text()) * nameScale);
+		int pronunciationWidth = language.tonal() ? Math.round(pinyinWidth(font, active.pinyin().syllables()) * pinyinScale)
+				: romanization == null ? 0 : Math.round(font.width(romanization) * pinyinScale);
 		int englishWidth = english == null ? 0 : font.width(english);
-		int textWidth = Math.max(hanziWidth, Math.max(pinyinWidth, englishWidth));
+		int textWidth = Math.max(nameWidth, Math.max(pronunciationWidth, englishWidth));
 
 		String status = statusLine(controller);
 		String timer = (challenge.remainingTicks() + 19) / 20 + "s";
@@ -89,12 +95,12 @@ public final class ChallengeHud {
 
 		boolean showHeard = result != null && !result.heardTokens().isEmpty() && result.verdict() == AttemptResultPayload.Verdict.WRONG;
 		String note = result == null ? "" : result.note();
-		int heardWidth = showHeard ? heardWidth(font, result) : 0;
+		int heardWidth = showHeard ? heardWidth(font, result, language) : 0;
 
 		int width = Math.max(ICON + PAD + textWidth, Math.max(Math.max(footerWidth, heardWidth), Math.max(font.width(note), 170))) + 2 * PAD;
-		int hanziHeight = Math.round(font.lineHeight * hanziScale);
-		int pinyinHeight = Math.round(font.lineHeight * pinyinScale);
-		int textHeight = hanziHeight + 3 + pinyinHeight + (english == null ? 0 : 3 + font.lineHeight);
+		int nameHeight = Math.round(font.lineHeight * nameScale);
+		int pronunciationHeight = language.tonal() || romanization != null ? Math.round(font.lineHeight * pinyinScale) : 0;
+		int textHeight = nameHeight + (pronunciationHeight > 0 ? 3 + pronunciationHeight : 0) + (english == null ? 0 : 3 + font.lineHeight);
 		int headerHeight = Math.max(ICON, textHeight);
 		int resultHeight = (showHeard ? font.lineHeight + 3 : 0) + (note.isEmpty() ? 0 : font.lineHeight + 3);
 		int height = PAD + headerHeight + 6 + font.lineHeight + 4 + 3 + 4 + font.lineHeight + (resultHeight > 0 ? 4 + resultHeight : 0) + PAD;
@@ -112,13 +118,26 @@ public final class ChallengeHud {
 		graphics.item(active.stack(), 0, 0);
 		graphics.pose().popMatrix();
 
-		// Name: characters, pinyin coloured by tone (underlined where the last answer was off), English.
+		// Name, then pinyin coloured by tone or romanization, then English. Whatever the last answer
+		// got wrong is underlined: the pinyin syllables in Mandarin, the words or syllables of the name otherwise.
 		int textX = x + PAD + ICON + PAD;
 		int textY = y + PAD + (headerHeight - textHeight) / 2;
-		drawScaled(graphics, font, entry.hanzi(), textX, textY, hanziScale, TEXT);
-		textY += hanziHeight + 3;
-		drawPinyin(graphics, font, entry.syllables(), result == null ? List.of() : result.expectedStatus(), textX, textY, pinyinScale, config);
-		textY += pinyinHeight + 3;
+		List<Matcher.Status> statuses = result == null ? List.of() : result.expectedStatus();
+		drawScaled(graphics, font, entry.text(), textX, textY, nameScale, TEXT);
+
+		if (!language.tonal()) {
+			underlineUnits(graphics, font, language, entry.text(), statuses, textX, textY, nameScale);
+		}
+
+		textY += nameHeight + 3;
+
+		if (language.tonal()) {
+			drawPinyin(graphics, font, active.pinyin().syllables(), statuses, textX, textY, pinyinScale, config);
+			textY += pronunciationHeight + 3;
+		} else if (romanization != null) {
+			drawScaled(graphics, font, romanization, textX, textY, pinyinScale, ROMANIZATION);
+			textY += pronunciationHeight + 3;
+		}
 
 		if (english != null) {
 			graphics.text(font, english, textX, textY, DIM, true);
@@ -149,7 +168,7 @@ public final class ChallengeHud {
 		lineY += font.lineHeight + 4;
 
 		if (showHeard) {
-			drawHeard(graphics, font, result, x + PAD, lineY);
+			drawHeard(graphics, font, result, language, x + PAD, lineY);
 			lineY += font.lineHeight + 3;
 		}
 
@@ -161,10 +180,10 @@ public final class ChallengeHud {
 	private static void drawResult(GuiGraphicsExtractor graphics, ClientChallenge challenge, ClientChallenge.Active ended) {
 		Font font = Minecraft.getInstance().font;
 		ChallengeEndPayload.Outcome outcome = challenge.endOutcome();
-		String hanzi = ended.entry().hanzi();
+		String name = ended.entry().text();
 		String title = switch (outcome) {
-			case SUCCESS -> "正确! " + hanzi + " learned";
-			case FAILED -> hanzi + " vanished";
+			case SUCCESS -> correct(ended.language()) + " " + name + " learned";
+			case FAILED -> name + " vanished";
 			case CANCELLED -> "Challenge stopped";
 		};
 		int color = switch (outcome) {
@@ -180,16 +199,19 @@ public final class ChallengeHud {
 		}
 
 		String detail = challenge.endDetail();
-		int width = Math.max(font.width(title) * 2, font.width(detail)) + 2 * PAD;
-		int height = PAD + font.lineHeight * 2 + (detail.isEmpty() ? 0 : 4 + font.lineHeight) + PAD;
+		float titleScale = Math.min(2.0f, (graphics.guiWidth() - 2 * PAD - 12) / (float) Math.max(1, font.width(title)));
+		int titleWidth = Math.round(font.width(title) * titleScale);
+		int titleHeight = Math.round(font.lineHeight * titleScale);
+		int width = Math.max(titleWidth, font.width(detail)) + 2 * PAD;
+		int height = PAD + titleHeight + (detail.isEmpty() ? 0 : 4 + font.lineHeight) + PAD;
 		int x = (graphics.guiWidth() - width) / 2;
 		int y = 6;
 		graphics.fill(x, y, x + width, y + height, BACKGROUND);
 		graphics.outline(x, y, width, height, color);
-		drawScaled(graphics, font, title, x + (width - font.width(title) * 2) / 2f, y + PAD, 2.0f, color);
+		drawScaled(graphics, font, title, x + (width - titleWidth) / 2f, y + PAD, titleScale, color);
 
 		if (!detail.isEmpty()) {
-			graphics.text(font, detail, x + (width - font.width(detail)) / 2, y + PAD + font.lineHeight * 2 + 4, DIM, true);
+			graphics.text(font, detail, x + (width - font.width(detail)) / 2, y + PAD + titleHeight + 4, DIM, true);
 		}
 	}
 
@@ -211,37 +233,93 @@ public final class ChallengeHud {
 		return mic.inSpeech() ? "Listening..." : "Say it out loud!";
 	}
 
-	private static int heardWidth(Font font, AttemptResultPayload result) {
+	private static int heardWidth(Font font, AttemptResultPayload result, Language language) {
 		int width = font.width("Heard: ");
 
 		for (AttemptResultPayload.Token token : result.heardTokens()) {
-			width += font.width(token.text()) + 1;
+			width += font.width(token.text()) + gap(font, language);
 		}
 
-		width += font.width("  ");
+		if (language.tonal()) {
+			width += font.width("  ");
 
-		for (AttemptResultPayload.Token token : result.heardTokens()) {
-			width += font.width(token.pinyin() + " ");
+			for (AttemptResultPayload.Token token : result.heardTokens()) {
+				width += font.width(token.pronunciation() + " ");
+			}
+		} else if (!result.heardPronunciation().isEmpty()) {
+			width += font.width("  (" + result.heardPronunciation() + ")");
 		}
 
 		return width;
 	}
 
-	/** "Heard: 平国  píng guó" with every character and syllable coloured by how it compared. */
-	private static void drawHeard(GuiGraphicsExtractor graphics, Font font, AttemptResultPayload result, int x, int y) {
+	/**
+	 * "Heard: 平国  píng guó", "Heard: lana roja" or "Heard: 사가  (saga)", with every character,
+	 * word or syllable (and in Mandarin its pinyin) coloured by how it compared.
+	 */
+	private static void drawHeard(GuiGraphicsExtractor graphics, Font font, AttemptResultPayload result, Language language, int x, int y) {
 		graphics.text(font, "Heard: ", x, y, DIM, true);
 		int cursor = x + font.width("Heard: ");
 
 		for (AttemptResultPayload.Token token : result.heardTokens()) {
 			graphics.text(font, token.text(), cursor, y, statusColor(token.status()), true);
-			cursor += font.width(token.text()) + 1;
+			cursor += font.width(token.text()) + gap(font, language);
 		}
 
-		cursor += font.width("  ");
+		if (language.tonal()) {
+			cursor += font.width("  ");
 
-		for (AttemptResultPayload.Token token : result.heardTokens()) {
-			graphics.text(font, token.pinyin(), cursor, y, statusColor(token.status()), true);
-			cursor += font.width(token.pinyin() + " ");
+			for (AttemptResultPayload.Token token : result.heardTokens()) {
+				graphics.text(font, token.pronunciation(), cursor, y, statusColor(token.status()), true);
+				cursor += font.width(token.pronunciation() + " ");
+			}
+		} else if (!result.heardPronunciation().isEmpty()) {
+			graphics.text(font, "  (" + result.heardPronunciation() + ")", cursor, y, DIM, true);
+		}
+	}
+
+	/** Space between heard units: a word space in Spanish and French, 1 pixel between characters and syllables. */
+	private static int gap(Font font, Language language) {
+		return language == Language.SPANISH || language == Language.FRENCH ? font.width(" ") : 1;
+	}
+
+	/** "Correct!" in the language being learned. */
+	private static String correct(Language language) {
+		return switch (language) {
+			case MANDARIN -> "正确!";
+			case SPANISH -> "¡Correcto!";
+			case FRENCH -> "Bravo !";
+			case KOREAN -> "정답!";
+		};
+	}
+
+	/** The name's scale: as configured, but small enough for long names to fit on screen (never below 1). */
+	private static float fitScale(Font font, String name, float preferred, int screenWidth) {
+		float available = Math.max(80, screenWidth - 12 - ICON - 3 * PAD);
+		return Math.max(1.0f, Math.min(preferred, available / Math.max(1, font.width(name))));
+	}
+
+	/** Underlines the words or syllables of a name ({@link Language#units}) that the last answer got wrong. */
+	private static void underlineUnits(GuiGraphicsExtractor graphics, Font font, Language language, String name,
+			List<Matcher.Status> statuses, float x, float y, float scale) {
+		List<String> units = language.units(name);
+		int from = 0;
+		int lineY = Math.round(y + font.lineHeight * scale);
+
+		for (int i = 0; i < units.size() && i < statuses.size(); i++) {
+			int at = name.indexOf(units.get(i), from);
+
+			if (at < 0) {
+				break;
+			}
+
+			from = at + units.get(i).length();
+
+			if (statuses.get(i) != Matcher.Status.MATCH) {
+				int left = Math.round(x + font.width(name.substring(0, at)) * scale);
+				int right = Math.round(x + font.width(name.substring(0, from)) * scale);
+				graphics.fill(left, lineY, right, lineY + 1, statusColor(statuses.get(i)));
+			}
 		}
 	}
 

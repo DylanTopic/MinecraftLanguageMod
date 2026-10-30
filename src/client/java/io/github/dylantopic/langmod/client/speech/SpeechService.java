@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 import io.github.dylantopic.langmod.LangMod;
 import io.github.dylantopic.langmod.LangModConfig;
+import io.github.dylantopic.langmod.core.lang.Language;
 import io.github.dylantopic.langmod.core.speech.SpeechEngine;
 import io.github.dylantopic.langmod.core.speech.WhisperJniEngine;
 import io.github.dylantopic.langmod.core.speech.WhisperModels;
@@ -95,18 +96,19 @@ public final class SpeechService {
 	 * Transcribes a clip in the background. Fails (instead of hanging) if the engine is not ready,
 	 * throws, or takes longer than the configured timeout.
 	 *
-	 * @param expectedHanzi used as Whisper's initial prompt if prompt biasing is enabled (otherwise the
-	 *     generic {@code whisperPrompt} is used); may be null
+	 * @param language the language Whisper is told to expect
+	 * @param expectedName used as Whisper's initial prompt if prompt biasing is enabled (otherwise the
+	 *     language's generic prompt is used); may be null
 	 */
-	public CompletableFuture<Transcript> transcribe(float[] samples, String expectedHanzi) {
+	public CompletableFuture<Transcript> transcribe(float[] samples, Language language, String expectedName) {
 		if (status != Status.READY) {
 			return CompletableFuture.failedFuture(new IllegalStateException(statusMessage));
 		}
 
 		LangModConfig config = LangModConfig.get();
-		String prompt = config.promptBiasing && expectedHanzi != null ? expectedHanzi
-				: config.whisperPrompt.isBlank() ? null : config.whisperPrompt;
-		SpeechEngine.Request request = new SpeechEngine.Request("zh", prompt, WhisperModels.audioContext(samples.length, config.audioContext));
+		String prompt = config.promptBiasing && expectedName != null ? expectedName : config.whisperPrompt(language);
+		SpeechEngine.Request request = new SpeechEngine.Request(language.whisperCode(), prompt,
+				WhisperModels.audioContext(samples.length, config.audioContext));
 		CompletableFuture<Transcript> result = new CompletableFuture<>();
 
 		executor.execute(() -> {

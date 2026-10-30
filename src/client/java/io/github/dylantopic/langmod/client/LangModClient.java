@@ -23,8 +23,10 @@ import io.github.dylantopic.langmod.LangMod;
 import io.github.dylantopic.langmod.LangModConfig;
 import io.github.dylantopic.langmod.client.audio.MicCapture;
 import io.github.dylantopic.langmod.client.config.LangModConfigScreen;
+import io.github.dylantopic.langmod.client.config.LanguageScreen;
 import io.github.dylantopic.langmod.client.hud.ChallengeHud;
 import io.github.dylantopic.langmod.client.speech.SpeechService;
+import io.github.dylantopic.langmod.core.lang.Language;
 import io.github.dylantopic.langmod.net.AttemptResultPayload;
 import io.github.dylantopic.langmod.net.ChallengeEndPayload;
 import io.github.dylantopic.langmod.net.ChallengeStartPayload;
@@ -39,6 +41,7 @@ public class LangModClient implements ClientModInitializer {
 	private static final KeyMapping.Category KEY_CATEGORY = KeyMapping.Category.register(LangMod.id("main"));
 	private static final KeyMapping TOGGLE_DEBUG_KEY = new KeyMapping("key.langmod.toggle_debug", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_F9, KEY_CATEGORY);
 	private static final KeyMapping OPEN_CONFIG_KEY = new KeyMapping("key.langmod.open_config", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, KEY_CATEGORY);
+	private static final KeyMapping CHOOSE_LANGUAGE_KEY = new KeyMapping("key.langmod.choose_language", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, KEY_CATEGORY);
 	private static SpeechService.Status lastNotifiedStatus;
 
 	@Override
@@ -63,6 +66,7 @@ public class LangModClient implements ClientModInitializer {
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> challenge.reset());
 		KeyMappingHelper.registerKeyMapping(TOGGLE_DEBUG_KEY);
 		KeyMappingHelper.registerKeyMapping(OPEN_CONFIG_KEY);
+		KeyMappingHelper.registerKeyMapping(CHOOSE_LANGUAGE_KEY);
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			challenge.tick();
 			ChallengeController.get().tick(client);
@@ -74,6 +78,10 @@ public class LangModClient implements ClientModInitializer {
 
 			while (OPEN_CONFIG_KEY.consumeClick()) {
 				runAction(ClientActionPayload.Action.OPEN_CONFIG);
+			}
+
+			while (CHOOSE_LANGUAGE_KEY.consumeClick()) {
+				runAction(ClientActionPayload.Action.OPEN_LANGUAGE_MENU);
 			}
 		});
 
@@ -93,8 +101,19 @@ public class LangModClient implements ClientModInitializer {
 			boolean ready = speech.ready() && controller.micAvailable();
 			String info = !speech.ready() ? speech.status() + ": " + speech.statusMessage()
 					: controller.micAvailable() ? speech.description() : controller.micError();
-			ClientPlayNetworking.send(new ClientHelloPayload(ClientHelloPayload.PROTOCOL_VERSION, ready, info));
+			ClientPlayNetworking.send(new ClientHelloPayload(ClientHelloPayload.PROTOCOL_VERSION, ready, info, LangModConfig.get().language));
 		}
+	}
+
+	/** Switches the language being learned and tells the server (which gives back the item of a running challenge). */
+	public static void selectLanguage(Language language) {
+		if (LangModConfig.get().languageEnum() == language) {
+			return;
+		}
+
+		LangModConfig.update(config -> config.language = language.id());
+		sendHello();
+		ClientMessages.info("Now learning " + language.englishName() + " (" + language.nativeName() + "). Each language keeps its own progress.");
 	}
 
 	private static void onSpeechStatusChanged() {
@@ -141,6 +160,7 @@ public class LangModClient implements ClientModInitializer {
 				ChallengeController.get().clearMicError();
 			}
 			case OPEN_CONFIG -> Minecraft.getInstance().setScreen(new LangModConfigScreen(null));
+			case OPEN_LANGUAGE_MENU -> Minecraft.getInstance().setScreen(new LanguageScreen(null));
 		}
 	}
 }

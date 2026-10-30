@@ -8,6 +8,7 @@ import io.github.dylantopic.langmod.LangMod;
 import io.github.dylantopic.langmod.LangModConfig;
 import io.github.dylantopic.langmod.client.audio.MicCapture;
 import io.github.dylantopic.langmod.client.speech.SpeechService;
+import io.github.dylantopic.langmod.core.lang.Language;
 import io.github.dylantopic.langmod.net.AttemptResultPayload;
 import io.github.dylantopic.langmod.net.ClientPhasePayload;
 import io.github.dylantopic.langmod.net.TranscriptionPayload;
@@ -25,7 +26,8 @@ public final class ChallengeController {
 
 	private MicCapture mic;
 	private int challengeId = -1;
-	private String expectedHanzi;
+	private Language language;
+	private String expectedText;
 	private boolean checking;
 	private int resumeIn;
 	private boolean micBroken;
@@ -72,7 +74,8 @@ public final class ChallengeController {
 	public void onChallengeStart(ClientChallenge.Active active) {
 		closeMic();
 		challengeId = active.id();
-		expectedHanzi = active.entry().hanzi();
+		language = active.language();
+		expectedText = active.entry().text();
 		checking = false;
 		resumeIn = 0;
 
@@ -167,7 +170,7 @@ public final class ChallengeController {
 		ClientChallenge.get().onChecking(samples.length / 16);
 		long start = System.nanoTime();
 
-		SpeechService.get().transcribe(samples, expectedHanzi).whenComplete((transcript, error) -> Minecraft.getInstance().execute(() -> {
+		SpeechService.get().transcribe(samples, language, expectedText).whenComplete((transcript, error) -> Minecraft.getInstance().execute(() -> {
 			if (id != challengeId) {
 				return; // the challenge ended meanwhile
 			}

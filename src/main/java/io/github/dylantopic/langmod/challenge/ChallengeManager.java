@@ -21,10 +21,11 @@ import net.minecraft.world.item.ItemStack;
 
 import io.github.dylantopic.langmod.LangMod;
 import io.github.dylantopic.langmod.LangModConfig;
-import io.github.dylantopic.langmod.TextData;
-import io.github.dylantopic.langmod.core.ItemDictionary;
-import io.github.dylantopic.langmod.core.Matcher;
-import io.github.dylantopic.langmod.core.PinyinEntry;
+import io.github.dylantopic.langmod.LanguagePacks;
+import io.github.dylantopic.langmod.core.lang.CheckResult;
+import io.github.dylantopic.langmod.core.lang.Language;
+import io.github.dylantopic.langmod.core.lang.LanguagePack;
+import io.github.dylantopic.langmod.core.lang.NameEntry;
 import io.github.dylantopic.langmod.data.PlayerLangData;
 import io.github.dylantopic.langmod.net.AttemptResultPayload;
 import io.github.dylantopic.langmod.net.ChallengeEndPayload;
@@ -47,15 +48,8 @@ public final class ChallengeManager {
 	private static final int COOLDOWN_TICKS = 30;
 	/** If the client reports "speaking"/"checking" and then goes quiet this long, resume the countdown. */
 	private static final int PHASE_TIMEOUT_TICKS = 30 * 20;
-	/**
-	 * Phrases Whisper is known to invent when it gets silence or noise (subtitle credits and the like).
-	 * A transcription containing one of them, but not the expected word, is treated as "nothing heard".
-	 */
-	private static final List<String> NOISE_MARKERS = List.of("谢谢观看", "感谢观看", "多谢观看", "谢谢收看", "谢谢大家",
-			"点赞", "订阅", "字幕", "明镜", "点点栏目", "独播剧场");
 
 	private final Map<UUID, PlayerState> players = new HashMap<>();
-	private volatile ItemDictionary dictionary = ItemDictionary.empty();
 	private long tick;
 
 	private ChallengeManager() {
@@ -65,12 +59,10 @@ public final class ChallengeManager {
 		return INSTANCE;
 	}
 
-	public void setDictionary(ItemDictionary dictionary) {
-		this.dictionary = dictionary;
-	}
-
-	public ItemDictionary dictionary() {
-		return dictionary;
+	/** The language a player is learning (Mandarin until their client says otherwise). */
+	public Language language(UUID player) {
+		PlayerState state = players.get(player);
+		return state == null ? Language.MANDARIN : state.language;
 	}
 
 	// ------------------------------------------------------------------------------------------
@@ -102,27 +94,28 @@ public final class ChallengeManager {
 		}
 
 		String itemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+		Language language = state.language;
 
-		if (data(player).isLearned(itemId)) {
+		if (data(player).isLearned(language, itemId)) {
 			return false;
 		}
 
 		PendingItem pending = state.find(itemId);
 
 		if (pending == null) {
-			Optional<PinyinEntry> entry = dictionary.get(stack.getItem().getDescriptionId());
+			Optional<NameEntry> entry = LanguagePacks.get(language).name(stack.getItem().getDescriptionId());
 
 			if (entry.isEmpty()) {
-				return false; // no Chinese name known (e.g. modded items): normal pickup
+				return false; // no name known in this language (e.g. modded items): normal pickup
 			}
 
-			boolean longName = entry.get().length() > config.maxNameLength;
+			boolean longName = language.length(entry.get().text()) > config.maxNameLength(language);
 
-			if (longName && config.skipLongNames()) {
+			if (longName && config.skipLongNames(language)) {
 				return false;
 			}
 
-			pending = new PendingItem(itemId, entry.get(), longName);
+			pending = new PendingItem(itemId, language, entry.get(), longName);
 			state.queue.addLast(pending);
 		}
 
@@ -188,12 +181,19 @@ public final class ChallengeManager {
 	public void onClientHello(ServerPlayer player, ClientHelloPayload hello) {
 		PlayerState state = players.computeIfAbsent(player.getUUID(), uuid -> new PlayerState());
 		boolean ready = hello.protocolVersion() == ClientHelloPayload.PROTOCOL_VERSION && hello.speechReady();
-		LangMod.LOGGER.info("{}: speech recognition {} ({})", player.getName().getString(), ready ? "ready" : "not ready", hello.speechInfo());
+		Language language = Language.byId(hello.language()).orElse(Language.MANDARIN);
+		LangMod.LOGGER.info("{}: speech recognition {} ({}), learning {}", player.getName().getString(), ready ? "ready" : "not ready",
+				hello.speechInfo(), language.englishName());
 		state.speechReady = ready;
+		boolean busy = state.active != null || !state.queue.isEmpty();
 
-		if (!ready && (state.active != null || !state.queue.isEmpty())) {
+		if (!ready && busy) {
 			returnEverything(player, state, "Speech recognition stopped, so your items were given back.");
+		} else if (language != state.language && busy) {
+			returnEverything(player, state, "You switched to " + language.englishName() + ", so your items were given back.");
 		}
+
+		state.language = language;
 	}
 
 	public boolean isSpeechReady(UUID player) {
@@ -273,9 +273,10 @@ public final class ChallengeManager {
 		PendingItem next = state.queue.pollFirst();
 		Challenge challenge = new Challenge(++state.lastChallengeId, next, config.timerSeconds * 20, config.maxAttempts, tick);
 		state.active = challenge;
-		LangMod.LOGGER.debug("Challenge {} for {}: {} ({})", challenge.id, player.getName().getString(), next.entry.hanzi(), next.itemId);
-		LangModNetworking.send(player, new ChallengeStartPayload(challenge.id, next.displayStack(), next.entry.key(),
-				next.entry.hanzi(), next.entry.numbers(), challenge.remainingTicks, challenge.maxAttempts, state.queue.size(), next.longName));
+		LangMod.LOGGER.debug("Challenge {} for {}: {} ({})", challenge.id, player.getName().getString(), next.entry.text(), next.itemId);
+		LangModNetworking.send(player, new ChallengeStartPayload(challenge.id, next.displayStack(), next.entry.key(), next.language.id(),
+				next.entry.text(), next.entry.pronunciation(), challenge.remainingTicks, challenge.maxAttempts, state.queue.size(),
+				next.longName));
 	}
 
 	public void onClientPhase(ServerPlayer player, ClientPhasePayload payload) {
@@ -303,7 +304,9 @@ public final class ChallengeManager {
 
 		challenge.phase = Challenge.Phase.LISTENING;
 		challenge.phaseSince = tick;
-		PinyinEntry expected = challenge.item.entry;
+		Language language = challenge.item.language;
+		LanguagePack pack = LanguagePacks.get(language);
+		NameEntry expected = challenge.item.entry;
 
 		if (!payload.ok()) {
 			LangModNetworking.send(player, AttemptResultPayload.notCounted(challenge.id, AttemptResultPayload.Verdict.ERROR, "", "",
@@ -312,9 +315,9 @@ public final class ChallengeManager {
 			return;
 		}
 
-		String heard = TextData.get().normalizer().normalize(payload.text());
+		String heard = pack.normalize(payload.text());
 
-		if (heard.isEmpty() || isNoise(heard, expected.hanzi())) {
+		if (heard.isEmpty() || pack.isNoise(heard, expected)) {
 			LangModNetworking.send(player, AttemptResultPayload.notCounted(challenge.id, AttemptResultPayload.Verdict.NO_SPEECH,
 					payload.text(), heard, payload.millis(), challenge.attemptsUsed, "Didn't catch that. Not counted, try again."));
 			sendState(player, state);
@@ -322,10 +325,10 @@ public final class ChallengeManager {
 		}
 
 		LangModConfig config = LangModConfig.get();
-		Matcher.Result result = Matcher.match(expected, heard, TextData.get().readings(), config.matchModeEnum(), challenge.item.longName);
-		LangMod.LOGGER.info("{} said '{}' -> '{}' [{}] for {} [{}]: {} ({} error(s), {} allowed, {})", player.getName().getString(),
-				payload.text(), heard, result.heardPinyin(), expected.hanzi(), expected.marks(), result.pass() ? "correct" : "wrong",
-				result.errors(), result.allowedErrors(), result.mode().id());
+		CheckResult result = pack.check(expected, heard, config.matchModeEnum(), challenge.item.longName);
+		LangMod.LOGGER.info("{} said '{}' -> '{}' [{}] for {} [{}] ({}): {} ({} error(s), {} allowed, {})", player.getName().getString(),
+				payload.text(), heard, result.heardPronunciation(), expected.text(), expected.pronunciation(), language.id(),
+				result.pass() ? "correct" : "wrong", result.errors(), result.allowedErrors(), result.mode().id());
 
 		if (result.pass()) {
 			LangModNetworking.send(player, AttemptResultPayload.of(challenge.id, AttemptResultPayload.Verdict.CORRECT, payload.text(),
@@ -335,7 +338,7 @@ public final class ChallengeManager {
 		}
 
 		challenge.attemptsUsed++;
-		player.setAttached(PlayerLangData.TYPE, data(player).withWrongAttempt(challenge.item.itemId));
+		player.setAttached(PlayerLangData.TYPE, data(player).withWrongAttempt(language, challenge.item.itemId));
 		int left = challenge.maxAttempts - challenge.attemptsUsed;
 		LangModNetworking.send(player, AttemptResultPayload.of(challenge.id, AttemptResultPayload.Verdict.WRONG, payload.text(),
 				result, payload.millis(), challenge.attemptsUsed, left > 0 ? left + (left == 1 ? " try left" : " tries left") : ""));
@@ -353,8 +356,8 @@ public final class ChallengeManager {
 
 	/** Correct answer: hand over the items, mark the type as learned, celebrate. */
 	private void succeed(ServerPlayer player, PlayerState state, Challenge challenge) {
-		finish(player, state, challenge, ChallengeEndPayload.Outcome.SUCCESS, challenge.item.entry.hanzi() + "  " + challenge.item.entry.marks());
-		player.setAttached(PlayerLangData.TYPE, data(player).withLearned(challenge.item.itemId));
+		finish(player, state, challenge, ChallengeEndPayload.Outcome.SUCCESS, challenge.item.nameWithPronunciation());
+		player.setAttached(PlayerLangData.TYPE, data(player).withLearned(challenge.item.language, challenge.item.itemId));
 		giveAll(player, challenge.item.stacks);
 		savePending(player, state);
 		player.level().playSound((Player) null, player.getX(), player.getY(), player.getZ(), SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 0.6f, 1.2f);
@@ -363,26 +366,11 @@ public final class ChallengeManager {
 
 	/** Out of attempts or time: the held items vanish with a poof. The type stays unlearned. */
 	private void fail(ServerPlayer player, PlayerState state, Challenge challenge, String reason) {
-		finish(player, state, challenge, ChallengeEndPayload.Outcome.FAILED, reason + " It was " + challenge.item.entry.hanzi()
-				+ "  " + challenge.item.entry.marks());
-		player.setAttached(PlayerLangData.TYPE, data(player).withFailure(challenge.item.itemId));
+		finish(player, state, challenge, ChallengeEndPayload.Outcome.FAILED, reason + " It was " + challenge.item.nameWithPronunciation());
+		player.setAttached(PlayerLangData.TYPE, data(player).withFailure(challenge.item.language, challenge.item.itemId));
 		savePending(player, state);
 		player.level().playSound((Player) null, player.getX(), player.getY(), player.getZ(), SoundEvents.FIRE_EXTINGUISH, SoundSource.PLAYERS, 0.7f, 1.4f);
 		player.level().sendParticles(ParticleTypes.POOF, player.getX(), player.getY() + 1.0, player.getZ(), 20, 0.3, 0.4, 0.3, 0.02);
-	}
-
-	private static boolean isNoise(String heard, String expected) {
-		if (heard.contains(expected)) {
-			return false;
-		}
-
-		for (String marker : NOISE_MARKERS) {
-			if (heard.contains(marker)) {
-				return true;
-			}
-		}
-
-		return false;
 	}
 
 	private void finish(ServerPlayer player, PlayerState state, Challenge challenge, ChallengeEndPayload.Outcome outcome, String detail) {
@@ -459,6 +447,7 @@ public final class ChallengeManager {
 		final ArrayDeque<PendingItem> queue = new ArrayDeque<>();
 		Challenge active;
 		boolean speechReady;
+		Language language = Language.MANDARIN;
 		int cooldown;
 		int lastChallengeId;
 

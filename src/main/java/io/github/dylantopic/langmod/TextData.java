@@ -2,17 +2,14 @@ package io.github.dylantopic.langmod;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
-import io.github.dylantopic.langmod.core.Pinyin;
 import io.github.dylantopic.langmod.core.text.CharReadings;
 import io.github.dylantopic.langmod.core.text.ChineseConverter;
 import io.github.dylantopic.langmod.core.text.TextNormalizer;
 
 /**
- * Text tables shared by server (matching) and client (display): OpenCC Traditional -> Simplified
- * conversion and the reading of every character.
+ * Mandarin text tables (used through {@link LanguagePacks}): OpenCC Traditional -> Simplified
+ * conversion and the reading of every character. Loaded once; /langmod reload only reloads names.
  */
 public final class TextData {
 	private static volatile TextData instance;
@@ -59,17 +56,5 @@ public final class TextData {
 
 	public CharReadings readings() {
 		return readings;
-	}
-
-	/** Pinyin of a normalized text using each character's most common reading (for display). */
-	public String defaultPinyin(String normalized) {
-		List<String> parts = new ArrayList<>();
-
-		normalized.codePoints().forEach(cp -> {
-			List<Pinyin.Syllable> options = readings.of(cp);
-			parts.add(options.isEmpty() ? new String(Character.toChars(cp)) : options.getFirst().marked());
-		});
-
-		return String.join(" ", parts);
 	}
 }

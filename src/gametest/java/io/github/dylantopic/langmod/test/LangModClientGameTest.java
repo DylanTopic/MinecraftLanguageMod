@@ -27,10 +27,13 @@ import io.github.dylantopic.langmod.challenge.ChallengeManager;
 import io.github.dylantopic.langmod.command.LangModCommands;
 import io.github.dylantopic.langmod.client.ChallengeController;
 import io.github.dylantopic.langmod.client.ClientChallenge;
+import io.github.dylantopic.langmod.client.LangModClient;
 import io.github.dylantopic.langmod.client.MicTest;
 import io.github.dylantopic.langmod.client.config.LangModConfigScreen;
+import io.github.dylantopic.langmod.client.config.LanguageScreen;
 import io.github.dylantopic.langmod.client.speech.SpeechService;
 import io.github.dylantopic.langmod.core.Matcher;
+import io.github.dylantopic.langmod.core.lang.Language;
 import io.github.dylantopic.langmod.data.PlayerLangData;
 import io.github.dylantopic.langmod.net.AttemptResultPayload;
 import io.github.dylantopic.langmod.net.ChallengeEndPayload;
@@ -86,7 +89,7 @@ public class LangModClientGameTest implements FabricClientGameTest {
 			context.takeScreenshot("langmod-05-correct");
 			check(ClientChallenge.get().endOutcome() == ChallengeEndPayload.Outcome.SUCCESS, "correct answer succeeds");
 			waitUntil(context, "apples in the inventory", () -> count(singleplayer, uuid, Items.APPLE) == 3);
-			check(data(singleplayer, uuid).isLearned("minecraft:apple"), "apple is learned");
+			check(data(singleplayer, uuid).isLearned(Language.MANDARIN, "minecraft:apple"), "apple is learned");
 
 			// 2. Once learned, pickups are normal.
 			drop(singleplayer, uuid, new ItemStack(Items.APPLE));
@@ -110,8 +113,8 @@ public class LangModClientGameTest implements FabricClientGameTest {
 			context.takeScreenshot("langmod-07-vanished");
 			check(ClientChallenge.get().endOutcome() == ChallengeEndPayload.Outcome.FAILED, "three wrong answers fail");
 			check(count(singleplayer, uuid, Items.DIRT) == 0, "the dirt vanished");
-			check(!data(singleplayer, uuid).isLearned("minecraft:dirt"), "dirt stays unlearned");
-			check(data(singleplayer, uuid).failures().getOrDefault("minecraft:dirt", 0) == 1, "the failure is recorded");
+			check(!data(singleplayer, uuid).isLearned(Language.MANDARIN, "minecraft:dirt"), "dirt stays unlearned");
+			check(mandarin(singleplayer, uuid).failures().getOrDefault("minecraft:dirt", 0) == 1, "the failure is recorded");
 
 			// 4. Not answering in time also makes the item vanish.
 			drop(singleplayer, uuid, new ItemStack(Items.STICK, 2));
@@ -132,8 +135,9 @@ public class LangModClientGameTest implements FabricClientGameTest {
 			check(count(singleplayer, uuid, Items.TORCH) == 7, "torches were given back when the world was closed");
 			check(count(singleplayer, uuid, Items.APPLE) == 4, "apples are still there");
 			PlayerLangData data = data(singleplayer, uuid);
-			check(data.isLearned("minecraft:apple") && !data.isLearned("minecraft:torch"), "learned items were saved");
-			check(data.failures().getOrDefault("minecraft:dirt", 0) == 1 && data.pending().isEmpty(), "failures saved, nothing pending");
+			check(data.isLearned(Language.MANDARIN, "minecraft:apple") && !data.isLearned(Language.MANDARIN, "minecraft:torch"), "learned items were saved");
+			check(data.progress(Language.MANDARIN).failures().getOrDefault("minecraft:dirt", 0) == 1 && data.pending().isEmpty(),
+					"failures saved, nothing pending");
 			context.takeScreenshot("langmod-08-reloaded");
 
 			// 6. Turning the mod off mid-challenge gives the item back.
@@ -148,15 +152,15 @@ public class LangModClientGameTest implements FabricClientGameTest {
 			LangModConfig.update(c -> c.enabled = true);
 
 			// 7. Commands.
-			String apple = singleplayer.getServer().computeOnServer(server -> LangModCommands.describe("minecraft:apple").getString());
+			String apple = singleplayer.getServer().computeOnServer(server -> LangModCommands.describe(Language.MANDARIN, "minecraft:apple").getString());
 			check(apple.equals("苹果 píng guǒ (Apple)"), "/langmod list line for apple (got " + apple + ")");
 			check(command(singleplayer, uuid, "langmod list") == 1, "/langmod list shows one learned item");
 			check(command(singleplayer, uuid, "langmod review") == 2, "/langmod review lists dirt and stick (cancelled torches don't count)");
 			check(command(singleplayer, uuid, "langmod reset") == 1, "/langmod reset forgets one item");
-			data = data(singleplayer, uuid);
-			check(data.learned().isEmpty() && data.failures().getOrDefault("minecraft:dirt", 0) == 1, "reset keeps the mistake history");
+			PlayerLangData.Progress mandarin = mandarin(singleplayer, uuid);
+			check(mandarin.learned().isEmpty() && mandarin.failures().getOrDefault("minecraft:dirt", 0) == 1, "reset keeps the mistake history");
 			command(singleplayer, uuid, "langmod reset everything");
-			check(data(singleplayer, uuid).failures().isEmpty(), "reset everything clears the mistake history");
+			check(mandarin(singleplayer, uuid).failures().isEmpty(), "reset everything clears the mistake history");
 
 			// 8. Settings screen, opened with /langmod config (Mod Menu opens the same screen).
 			check(FabricLoader.getInstance().getEntrypointContainers("modmenu", Object.class).stream()
@@ -169,6 +173,52 @@ public class LangModClientGameTest implements FabricClientGameTest {
 			check(LangModConfig.get().showEnglish != english, "the settings screen changes the config");
 			context.setScreen(() -> null);
 			LangModConfig.update(c -> c.showEnglish = english);
+
+			// 9. Other languages, each with its own progress. Spanish accepts an article in front.
+			selectLanguage(context, singleplayer, uuid, Language.SPANISH);
+			drop(singleplayer, uuid, new ItemStack(Items.APPLE, 2));
+			waitForChallenge(context, "Manzana");
+			context.takeScreenshot("langmod-10-spanish-popup");
+			answer(context, speech, "¡La manzana!");
+			context.waitFor(minecraft -> ClientChallenge.get().active() == null, 100);
+			check(ClientChallenge.get().endOutcome() == ChallengeEndPayload.Outcome.SUCCESS, "'la manzana' is accepted for Manzana");
+			check(data(singleplayer, uuid).isLearned(Language.SPANISH, "minecraft:apple"), "apple learned in Spanish");
+			check(!data(singleplayer, uuid).isLearned(Language.MANDARIN, "minecraft:apple"), "Mandarin progress is separate");
+			check(command(singleplayer, uuid, "langmod list") == 1, "/langmod list shows the Spanish progress");
+
+			// Long Spanish names (more than 3 words) are skipped: "Letrero colgante de acacia" is picked up normally.
+			drop(singleplayer, uuid, new ItemStack(Items.ACACIA_HANGING_SIGN));
+			waitUntil(context, "a normal pickup of a long name", () -> count(singleplayer, uuid, Items.ACACIA_HANGING_SIGN) == 1);
+			check(ClientChallenge.get().active() == null, "no challenge for a long Spanish name");
+
+			// Korean, with the romanization shown under the name.
+			selectLanguage(context, singleplayer, uuid, Language.KOREAN);
+			drop(singleplayer, uuid, new ItemStack(Items.BREAD));
+			waitForChallenge(context, "빵");
+			check("ppang".equals(context.computeOnClient(minecraft -> ClientChallenge.get().active().entry().pronunciation())), "romanization ppang");
+			context.takeScreenshot("langmod-11-korean-popup");
+			AttemptResultPayload korean = answer(context, speech, "빵이요");
+			check(korean.verdict() == AttemptResultPayload.Verdict.WRONG && korean.expectedStatus().equals(List.of(Matcher.Status.MATCH)),
+					"extra syllables are wrong, 빵 itself matched: " + korean.expectedStatus());
+			answer(context, speech, "빵.");
+			context.waitFor(minecraft -> ClientChallenge.get().active() == null, 100);
+			check(ClientChallenge.get().endOutcome() == ChallengeEndPayload.Outcome.SUCCESS, "빵 is accepted");
+			check(data(singleplayer, uuid).isLearned(Language.KOREAN, "minecraft:bread"), "bread learned in Korean");
+
+			// Switching language during a challenge gives the item back.
+			drop(singleplayer, uuid, new ItemStack(Items.DIRT, 5));
+			waitForChallenge(context, "흙");
+			selectLanguage(context, singleplayer, uuid, Language.FRENCH);
+			context.waitFor(minecraft -> ClientChallenge.get().active() == null, 100);
+			check(ClientChallenge.get().endOutcome() == ChallengeEndPayload.Outcome.CANCELLED, "switching language cancels the challenge");
+			waitUntil(context, "the dirt to come back", () -> count(singleplayer, uuid, Items.DIRT) == 5);
+
+			// The language menu.
+			command(singleplayer, uuid, "langmod language");
+			context.waitFor(minecraft -> minecraft.screen instanceof LanguageScreen, 100);
+			context.takeScreenshot("langmod-12-language-menu");
+			context.setScreen(() -> null);
+			selectLanguage(context, singleplayer, uuid, Language.MANDARIN);
 
 			check(command(singleplayer, uuid, "langmod reload") == 1, "/langmod reload");
 			waitUntilReady(context, singleplayer, uuid);
@@ -209,7 +259,7 @@ public class LangModClientGameTest implements FabricClientGameTest {
 
 	private static void waitForChallenge(ClientGameTestContext context, String hanzi) {
 		context.waitFor(minecraft -> ClientChallenge.get().active() != null, 20 * 8);
-		String shown = context.computeOnClient(minecraft -> ClientChallenge.get().active().entry().hanzi());
+		String shown = context.computeOnClient(minecraft -> ClientChallenge.get().active().entry().text());
 		check(hanzi.equals(shown), "challenge for " + hanzi + " (got " + shown + ")");
 	}
 
@@ -242,6 +292,17 @@ public class LangModClientGameTest implements FabricClientGameTest {
 
 			return total;
 		});
+	}
+
+	/** Switches language as the menu does, and waits until the server has heard about it. */
+	private static void selectLanguage(ClientGameTestContext context, TestSingleplayerContext singleplayer, UUID uuid, Language language) {
+		context.runOnClient(minecraft -> LangModClient.selectLanguage(language));
+		waitUntil(context, "the server to switch to " + language.id(),
+				() -> singleplayer.getServer().computeOnServer(server -> ChallengeManager.get().language(uuid) == language));
+	}
+
+	private static PlayerLangData.Progress mandarin(TestSingleplayerContext singleplayer, UUID uuid) {
+		return data(singleplayer, uuid).progress(Language.MANDARIN);
 	}
 
 	private static PlayerLangData data(TestSingleplayerContext singleplayer, UUID uuid) {

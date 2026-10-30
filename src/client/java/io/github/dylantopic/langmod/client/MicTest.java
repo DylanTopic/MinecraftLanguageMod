@@ -8,14 +8,16 @@ import net.minecraft.network.chat.Component;
 
 import io.github.dylantopic.langmod.LangMod;
 import io.github.dylantopic.langmod.LangModConfig;
-import io.github.dylantopic.langmod.TextData;
+import io.github.dylantopic.langmod.LanguagePacks;
 import io.github.dylantopic.langmod.client.audio.MicCapture;
 import io.github.dylantopic.langmod.client.speech.SpeechService;
 import io.github.dylantopic.langmod.core.audio.Vad;
+import io.github.dylantopic.langmod.core.lang.Language;
+import io.github.dylantopic.langmod.core.lang.LanguagePack;
 
 /**
  * {@code /langmod test}: opens the microphone, records one utterance, transcribes it and prints
- * the raw output, the simplified text, its pinyin and the timings.
+ * the raw output, the cleaned-up text, its pinyin or romanization and the timings.
  */
 public final class MicTest {
 	private static final int LISTEN_TICKS = 20 * 10;
@@ -131,7 +133,8 @@ public final class MicTest {
 		double seconds = samples.length / (double) Vad.SAMPLE_RATE;
 		ClientMessages.info(String.format(Locale.ROOT, "Checking %.1f s of audio...", seconds));
 
-		SpeechService.get().transcribe(samples, null).whenComplete((transcript, error) -> Minecraft.getInstance().execute(() -> {
+		Language language = LangModConfig.get().languageEnum();
+		SpeechService.get().transcribe(samples, language, null).whenComplete((transcript, error) -> Minecraft.getInstance().execute(() -> {
 			current = null;
 
 			if (error != null) {
@@ -139,13 +142,15 @@ public final class MicTest {
 				return;
 			}
 
-			String simplified = TextData.get().normalizer().normalize(transcript.text());
-			String pinyin = TextData.get().defaultPinyin(simplified);
-			lastHeard = simplified;
-			LangMod.LOGGER.info("LANGMOD-MICTEST raw='{}' simplified='{}' pinyin='{}' ms={}", transcript.text(), simplified, pinyin, transcript.millis());
-			ClientMessages.send(Component.literal("Heard: ").withStyle(ChatFormatting.GRAY)
-					.append(Component.literal(simplified.isEmpty() ? "(nothing)" : simplified).withStyle(ChatFormatting.WHITE))
-					.append(Component.literal("  " + pinyin).withStyle(ChatFormatting.AQUA)));
+			LanguagePack pack = LanguagePacks.get(language);
+			String heard = pack.normalize(transcript.text());
+			String pronunciation = pack.pronounce(heard);
+			lastHeard = heard;
+			LangMod.LOGGER.info("LANGMOD-MICTEST language={} raw='{}' normalized='{}' pronunciation='{}' ms={}", language.id(),
+					transcript.text(), heard, pronunciation, transcript.millis());
+			ClientMessages.send(Component.literal("Heard (" + language.englishName() + "): ").withStyle(ChatFormatting.GRAY)
+					.append(Component.literal(heard.isEmpty() ? "(nothing)" : heard).withStyle(ChatFormatting.WHITE))
+					.append(Component.literal(pronunciation.isEmpty() ? "" : "  " + pronunciation).withStyle(ChatFormatting.AQUA)));
 			ClientMessages.info("Raw Whisper output: \"" + transcript.text() + "\"");
 			ClientMessages.info(String.format(Locale.ROOT, "Audio %.1f s, transcription %d ms (%s)", seconds, transcript.millis(), transcript.engine()));
 		}));

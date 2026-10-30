@@ -18,6 +18,7 @@ import com.google.gson.JsonParseException;
 import net.fabricmc.loader.api.FabricLoader;
 
 import io.github.dylantopic.langmod.core.MatchMode;
+import io.github.dylantopic.langmod.core.lang.Language;
 
 /**
  * Settings stored in {@code config/langmod/langmod.json}. The same file is read by the logical
@@ -34,6 +35,8 @@ public final class LangModConfig {
 	// --- General --------------------------------------------------------------------------
 	/** Master switch. When off, pickups behave exactly like vanilla. */
 	public boolean enabled = true;
+	/** The language being learned: zh_cn, es_mx, fr_ca or ko_kr. Each has its own progress. */
+	public String language = Language.MANDARIN.id();
 
 	// --- Challenge rules (server) ---------------------------------------------------------
 	/** Wrong answers allowed before the item disappears. */
@@ -42,10 +45,13 @@ public final class LangModConfig {
 	public int timerSeconds = 20;
 	/** strict, toneless or lenient. See README. */
 	public String matchMode = "strict";
-	/** Names with more characters than this are "long". */
-	public int maxNameLength = 4;
-	/** What to do with long names: lenient (one wrong syllable allowed) or skip (never challenged). */
-	public String longNameMode = "lenient";
+	/** Per language: names longer than this (characters in Mandarin, words otherwise) are "long". */
+	public Map<String, Integer> nameLengthLimits = defaultNameLengthLimits();
+	/** Per language: what to do with long names: lenient (one wrong unit allowed) or skip (never challenged). */
+	public Map<String, String> longNameModes = defaultLongNameModes();
+	/** Replaced by {@link #nameLengthLimits} / {@link #longNameModes}; read from old files, then moved there. */
+	public Integer maxNameLength;
+	public String longNameMode;
 
 	// --- Speech recognition (client) -------------------------------------------------------
 	/** jni (whisper.cpp inside the game, CPU) or server (a separate whisper-server process, can use the GPU). */
@@ -58,10 +64,13 @@ public final class LangModConfig {
 	/** Pass the expected word to Whisper as its initial prompt. Makes it "hear" the right word more easily. */
 	public boolean promptBiasing = false;
 	/**
-	 * Initial prompt when prompt biasing is off. It never contains the answer: "我的世界物品：" ("Minecraft
-	 * items:") makes Whisper prefer item names over everyday words that sound alike. Empty = no prompt.
+	 * Per language: the initial prompt when prompt biasing is off. It never contains the answer;
+	 * "Minecraft items:" in the language makes Whisper prefer item names over everyday words that
+	 * sound alike. Empty = no prompt.
 	 */
-	public String whisperPrompt = "我的世界物品：";
+	public Map<String, String> whisperPrompts = defaultWhisperPrompts();
+	/** Replaced by {@link #whisperPrompts} (it was the Mandarin prompt); read from old files, then moved there. */
+	public String whisperPrompt;
 	/**
 	 * How much audio Whisper encodes per answer: 0 = its full 30 s window, -1 = just the clip plus a
 	 * margin (fastest, much less accurate), or a number of 20 ms frames. 512 (10 s) was as accurate as
@@ -165,8 +174,22 @@ public final class LangModConfig {
 		return MatchMode.fromString(matchMode).orElse(MatchMode.STRICT);
 	}
 
-	public boolean skipLongNames() {
-		return "skip".equals(longNameMode);
+	public Language languageEnum() {
+		return Language.byId(language).orElse(Language.MANDARIN);
+	}
+
+	public int maxNameLength(Language language) {
+		return nameLengthLimits.getOrDefault(language.id(), language.defaultMaxLength());
+	}
+
+	public boolean skipLongNames(Language language) {
+		return "skip".equals(longNameModes.getOrDefault(language.id(), language.defaultLongNameMode()));
+	}
+
+	/** The generic prompt for a language, or null for none. */
+	public String whisperPrompt(Language language) {
+		String prompt = whisperPrompts.getOrDefault(language.id(), language.defaultPrompt());
+		return prompt.isBlank() ? null : prompt;
 	}
 
 	/** Tone colour as 0xAARRGGBB; tone 5 = neutral. */
@@ -183,7 +206,34 @@ public final class LangModConfig {
 	private void validate() {
 		maxAttempts = clamp(maxAttempts, 1, 20, "maxAttempts");
 		timerSeconds = clamp(timerSeconds, 3, 600, "timerSeconds");
-		maxNameLength = clamp(maxNameLength, 1, 32, "maxNameLength");
+		migrateOldSettings();
+
+		if (Language.byId(language).isEmpty()) {
+			LangMod.LOGGER.warn("Config: unknown language '{}', using {}", language, Language.MANDARIN.id());
+			language = Language.MANDARIN.id();
+		}
+
+		Map<String, Integer> limits = defaultNameLengthLimits();
+		Map<String, String> modes = defaultLongNameModes();
+		Map<String, String> prompts = defaultWhisperPrompts();
+
+		for (Language l : Language.values()) {
+			if (nameLengthLimits != null && nameLengthLimits.get(l.id()) != null) {
+				limits.put(l.id(), clamp(nameLengthLimits.get(l.id()), 1, 32, "nameLengthLimits." + l.id()));
+			}
+
+			if (longNameModes != null && longNameModes.get(l.id()) != null) {
+				modes.put(l.id(), oneOf(longNameModes.get(l.id()), "longNameModes." + l.id(), l.defaultLongNameMode(), "lenient", "skip"));
+			}
+
+			if (whisperPrompts != null && whisperPrompts.get(l.id()) != null) {
+				prompts.put(l.id(), whisperPrompts.get(l.id()));
+			}
+		}
+
+		nameLengthLimits = limits;
+		longNameModes = modes;
+		whisperPrompts = prompts;
 		whisperThreads = clamp(whisperThreads, 0, 64, "whisperThreads");
 		audioContext = clamp(audioContext, -1, 1500, "audioContext");
 		transcriptionTimeoutSeconds = clamp(transcriptionTimeoutSeconds, 1, 120, "transcriptionTimeoutSeconds");
@@ -212,7 +262,6 @@ public final class LangModConfig {
 			matchMode = "strict";
 		}
 
-		longNameMode = oneOf(longNameMode, "longNameMode", "lenient", "lenient", "skip");
 		speechEngine = oneOf(speechEngine, "speechEngine", "jni", "jni", "server");
 
 		if (modelSize == null || modelSize.isBlank() || !modelSize.matches("[A-Za-z0-9._-]+")) {
@@ -228,9 +277,6 @@ public final class LangModConfig {
 			whisperServerPath = "";
 		}
 
-		if (whisperPrompt == null) {
-			whisperPrompt = "";
-		}
 
 		Map<String, String> colors = defaultToneColors();
 
@@ -245,6 +291,59 @@ public final class LangModConfig {
 		}
 
 		toneColors = colors;
+	}
+
+	/** Settings that applied to Mandarin only before other languages were added. */
+	private void migrateOldSettings() {
+		String mandarin = Language.MANDARIN.id();
+
+		if (maxNameLength != null) {
+			nameLengthLimits = new LinkedHashMap<>(nameLengthLimits == null ? Map.of() : nameLengthLimits);
+			nameLengthLimits.put(mandarin, maxNameLength);
+			maxNameLength = null;
+		}
+
+		if (longNameMode != null) {
+			longNameModes = new LinkedHashMap<>(longNameModes == null ? Map.of() : longNameModes);
+			longNameModes.put(mandarin, longNameMode);
+			longNameMode = null;
+		}
+
+		if (whisperPrompt != null) {
+			whisperPrompts = new LinkedHashMap<>(whisperPrompts == null ? Map.of() : whisperPrompts);
+			whisperPrompts.put(mandarin, whisperPrompt);
+			whisperPrompt = null;
+		}
+	}
+
+	private static Map<String, Integer> defaultNameLengthLimits() {
+		Map<String, Integer> limits = new LinkedHashMap<>();
+
+		for (Language language : Language.values()) {
+			limits.put(language.id(), language.defaultMaxLength());
+		}
+
+		return limits;
+	}
+
+	private static Map<String, String> defaultLongNameModes() {
+		Map<String, String> modes = new LinkedHashMap<>();
+
+		for (Language language : Language.values()) {
+			modes.put(language.id(), language.defaultLongNameMode());
+		}
+
+		return modes;
+	}
+
+	private static Map<String, String> defaultWhisperPrompts() {
+		Map<String, String> prompts = new LinkedHashMap<>();
+
+		for (Language language : Language.values()) {
+			prompts.put(language.id(), language.defaultPrompt());
+		}
+
+		return prompts;
 	}
 
 	private static Map<String, String> defaultToneColors() {

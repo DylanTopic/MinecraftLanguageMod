@@ -9,8 +9,10 @@ import java.nio.file.Path;
 import net.fabricmc.loader.api.FabricLoader;
 
 import io.github.dylantopic.langmod.core.ItemDictionary;
+import io.github.dylantopic.langmod.core.lang.Language;
+import io.github.dylantopic.langmod.core.lang.NameDictionary;
 
-/** Loads the data files bundled in the mod jar (pinyin tables, OpenCC dictionaries). */
+/** Loads the data files bundled in the mod jar (item names, pinyin tables, OpenCC dictionaries). */
 public final class ModResources {
 	private static final String OVERRIDE_TEMPLATE = """
 			{
@@ -34,18 +36,56 @@ public final class ModResources {
 		return LangModConfig.directory().resolve("pinyin_overrides.json");
 	}
 
+	/** {@code config/langmod/names_es_mx.json} and so on: the user's fixes to the bundled names of one language. */
+	public static Path namesOverridesFile(Language language) {
+		return LangModConfig.directory().resolve("names_" + language.id() + ".json");
+	}
+
+	/** Loads the bundled names of a language (Spanish, French, Korean) merged with the user's override file. */
+	public static NameDictionary loadNames(Language language) {
+		Path overrides = namesOverridesFile(language);
+		createTemplate(overrides, """
+				{
+					"_comment": "Fixes for the bundled %s item names. Entries here win over the mod's assets/langmod/names/%s.json (same format). Keys starting with _ are ignored: remove the _ in front of the example below to activate it, then run /langmod reload or restart.",
+					"_item.minecraft.apple": "..."
+				}
+				""".formatted(language.englishName(), language.id()));
+
+		try (BufferedReader bundled = open("assets/langmod/names/" + language.id() + ".json")) {
+			NameDictionary names;
+
+			if (Files.exists(overrides)) {
+				try (BufferedReader user = Files.newBufferedReader(overrides, StandardCharsets.UTF_8)) {
+					names = NameDictionary.load(bundled, user, LangMod.LOGGER::warn);
+				}
+			} else {
+				names = NameDictionary.load(bundled, null, LangMod.LOGGER::warn);
+			}
+
+			LangMod.LOGGER.info("Loaded {} {} item names ({} from {})", names.size(), language.englishName(), names.overrideCount(),
+					overrides.getFileName());
+			return names;
+		} catch (IOException | RuntimeException e) {
+			LangMod.LOGGER.error("Could not load the {} item names; challenges in that language are disabled", language.englishName(), e);
+			return NameDictionary.empty();
+		}
+	}
+
+	private static void createTemplate(Path file, String content) {
+		try {
+			if (Files.notExists(file)) {
+				Files.createDirectories(file.getParent());
+				Files.writeString(file, content, StandardCharsets.UTF_8);
+			}
+		} catch (IOException e) {
+			LangMod.LOGGER.warn("Could not create {}: {}", file, e.getMessage());
+		}
+	}
+
 	/** Loads the bundled item names merged with config/langmod/pinyin_overrides.json. */
 	public static ItemDictionary loadItemDictionary() {
 		Path overrides = pinyinOverridesFile();
-
-		try {
-			if (Files.notExists(overrides)) {
-				Files.createDirectories(overrides.getParent());
-				Files.writeString(overrides, OVERRIDE_TEMPLATE, StandardCharsets.UTF_8);
-			}
-		} catch (IOException e) {
-			LangMod.LOGGER.warn("Could not create {}: {}", overrides, e.getMessage());
-		}
+		createTemplate(overrides, OVERRIDE_TEMPLATE);
 
 		try (BufferedReader bundled = open("assets/langmod/pinyin/items.json")) {
 			ItemDictionary dictionary;

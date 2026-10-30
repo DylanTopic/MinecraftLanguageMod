@@ -10,6 +10,7 @@ Usage: python3 make_samples.py samples.tsv out_dir
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import imageio_ffmpeg
@@ -19,13 +20,15 @@ FFMPEG = imageio_ffmpeg.get_ffmpeg_exe()
 
 def synthesise(text: str, voice: str, wav: Path) -> None:
     mp3 = wav.with_suffix(".mp3")
-    for attempt in range(3):
+    for attempt in range(5):
         try:
             subprocess.run([sys.executable, "-m", "edge_tts", "--voice", voice, "--text", text, "--write-media", str(mp3)],
-                           check=True, capture_output=True, timeout=60)
+                           check=True, capture_output=True, text=True, timeout=60)
             break
         except subprocess.SubprocessError as e:
-            print(f"  edge-tts attempt {attempt + 1} failed for {text}: {e}")
+            details = (getattr(e, "stderr", None) or "").strip().splitlines()[-1:]
+            print(f"  edge-tts attempt {attempt + 1} failed for {text}: {details or e}")
+            time.sleep(2 ** (attempt + 1))  # the service throttles bursts of requests
     else:
         sys.exit(f"Could not synthesise {text}")
     subprocess.run([FFMPEG, "-y", "-loglevel", "error", "-i", str(mp3), "-ar", "16000", "-ac", "1",
