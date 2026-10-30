@@ -368,12 +368,13 @@ gender ("lana roja", "laine vert", 빨간색 양털). With the 10 s window, abou
 Without biasing, Whisper often wrote a similar-sounding word instead of the name: 방 for 빵, 할 for
 활, 차과 for 사과, 햇불 for 횃불; "Ben" or "Pan" for Pain, "Art" for Arc, "Black Dark" for Bloc d'or;
 "ban" for Pan, "Limbote" for Lingote. With biasing, the misses left were mostly short words (흙
-heard as 흠, 호박 as 호바, 활 as 할, Pan as "Ban", Arc as "Art", Torche as "Tochche") and "une
-pomme", heard as "In Pam" so the article was not recognised. The one wrong answer accepted was
-"mañana", which Whisper heard as the expected "manzana".
+heard as 흠, 호박 as 호바, 활 as 할, Pan as "Ban" or "Ben", Arc as "Art", Torche as "Tochche") and
+"une pomme", where Whisper wrote "In" for the article. The one wrong answer accepted was "mañana",
+which Whisper heard as the expected "manzana".
 
-The test can be rerun with other settings from the Actions tab (workflow "speech", see the variants
-in `src/test/java/.../speech/SpeechCheck.java`).
+The samples are synthesised again on every run, so the counts can differ by one between runs. The
+test can be rerun with other settings from the Actions tab (workflow "speech", see the variants in
+`src/test/java/.../speech/SpeechCheck.java`).
 
 Synthesised speech is cleaner than a real microphone and a learner's accent, so expect somewhat
 worse results in the game. A desktop CPU is much faster than these 2-core runners: Whisper's time
