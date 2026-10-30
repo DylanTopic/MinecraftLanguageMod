@@ -36,6 +36,12 @@ jobs:
         run: chmod +x ./gradlew
       - name: build
         run: ./gradlew build --stacktrace
+      - name: check the mod jar
+        run: |
+          # The jar players install must carry whisper-jni (with its native libraries) inside it.
+          JAR=$(ls build/libs/*.jar | grep -v -- -sources)
+          unzip -l "$JAR" | grep -E "META-INF/jars/whisper-jni-[0-9.]+\.jar"
+          unzip -p "$JAR" fabric.mod.json | grep -q '"META-INF/jars/whisper-jni' || { echo "fabric.mod.json does not list the nested whisper-jni jar"; exit 1; }
       - name: store build reports
         if: failure()
         uses: actions/upload-artifact@v7
@@ -63,6 +69,27 @@ jobs:
         with:
           name: Artifacts
           path: build/libs/
+
+  # The same build on Windows, where most players are: compiles, runs the unit tests and makes the jar.
+  windows:
+    runs-on: windows-2025
+    timeout-minutes: 30
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6
+      - name: setup jdk
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
+      - name: setup gradle (with dependency cache)
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          add-job-summary: never
+      - name: build
+        run: .\gradlew.bat build --stacktrace
+      - name: list the built jars
+        run: Get-ChildItem build\libs
 
   # Short, separate log with just the game test outcome (easier to read than the build log).
   report:
