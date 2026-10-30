@@ -1,8 +1,12 @@
 package io.github.dylantopic.langmod.core.speech;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
+import java.util.Locale;
 import java.util.function.Consumer;
 
 import io.github.givimad.whisperjni.WhisperContext;
@@ -17,6 +21,13 @@ import io.github.givimad.whisperjni.WhisperSamplingStrategy;
  * The bundled build is CPU only; use {@link WhisperServerEngine} for GPU acceleration.
  */
 public final class WhisperJniEngine implements SpeechEngine {
+	/** whisper-jni loads its native library from this directory, if set, instead of extracting it itself. */
+	private static final String LIBRARY_DIR_PROPERTY = "io.github.givimad.whisperjni.libdir";
+	/** The Windows build with whisper.cpp linked in, inside the whisper-jni jar. */
+	private static final String WINDOWS_LIBRARY = "/win-amd64/whisper-jni_full.dll";
+	/** Keep in step with whisper_jni_version in gradle.properties. */
+	private static final String WHISPER_JNI_VERSION = "1.7.1";
+
 	private final Path model;
 	private final int threads;
 	private final boolean useGpu;
@@ -38,14 +49,7 @@ public final class WhisperJniEngine implements SpeechEngine {
 			throw new IOException("Model file not found: " + model);
 		}
 
-		try {
-			WhisperJNI.loadLibrary(log::accept);
-		} catch (UnsatisfiedLinkError e) {
-			throw new IOException("Could not load the whisper.cpp native library (" + e.getMessage() + "). On Windows this "
-					+ "usually means the Microsoft Visual C++ 2015-2022 x64 runtime is missing (https://aka.ms/vs/17/release/vc_redist.x64.exe), "
-					+ "or the CPU lacks AVX2.", e);
-		}
-
+		loadNativeLibrary(log);
 		WhisperJNI.setLibraryLogger(log::accept);
 		whisper = new WhisperJNI();
 		systemInfo = whisper.getSystemInfo();
@@ -56,6 +60,60 @@ public final class WhisperJniEngine implements SpeechEngine {
 		if (context == null) {
 			throw new IOException("whisper.cpp could not load " + model.getFileName() + " (corrupt or not a ggml model?)");
 		}
+	}
+
+	/**
+	 * Loads whisper-jni's native library. On Windows, whisper-jni would first look for a separately
+	 * installed whisper.dll by turning every entry of the PATH environment variable into a Path, which
+	 * throws InvalidPathException if any entry is malformed (for example
+	 * {@code ...\AppData\Roaming\C:\Program Files\ffmpeg.exe}). Extracting the self-contained DLL
+	 * ourselves and pointing whisper-jni at it skips that search.
+	 */
+	public static void loadNativeLibrary(Consumer<String> log) throws IOException {
+		if (System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("win")) {
+			Path dir = Path.of(System.getProperty("java.io.tmpdir"), "langmod-whisper-jni-" + WHISPER_JNI_VERSION);
+			extractWindowsLibrary(dir);
+			System.setProperty(LIBRARY_DIR_PROPERTY, dir.toString());
+		}
+
+		try {
+			WhisperJNI.loadLibrary(log::accept);
+		} catch (UnsatisfiedLinkError e) {
+			throw new IOException("Could not load the whisper.cpp native library (" + e.getMessage() + "). On Windows this "
+					+ "usually means the Microsoft Visual C++ 2015-2022 x64 runtime is missing (https://aka.ms/vs/17/release/vc_redist.x64.exe), "
+					+ "or the CPU lacks AVX2.", e);
+		}
+	}
+
+	/** Writes the self-contained Windows DLL as {@code dir/whisper-jni.dll}, the name whisper-jni loads, unless it is already there. */
+	static Path extractWindowsLibrary(Path dir) throws IOException {
+		byte[] library;
+
+		try (InputStream in = WhisperJNI.class.getResourceAsStream(WINDOWS_LIBRARY)) {
+			if (in == null) {
+				throw new IOException(WINDOWS_LIBRARY + " is missing from the whisper-jni jar");
+			}
+
+			library = in.readAllBytes();
+		}
+
+		Path target = dir.resolve("whisper-jni.dll");
+
+		if (Files.isRegularFile(target) && Arrays.equals(Files.readAllBytes(target), library)) {
+			return target; // extracted on an earlier start (and possibly loaded by another running game)
+		}
+
+		Files.createDirectories(dir);
+		Path temp = Files.createTempFile(dir, "whisper-jni", ".tmp");
+
+		try {
+			Files.write(temp, library);
+			Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING);
+		} finally {
+			Files.deleteIfExists(temp);
+		}
+
+		return target;
 	}
 
 	@Override

@@ -93,8 +93,21 @@ jobs:
         run: |
           SEP=':'; [ "$RUNNER_OS" = "Windows" ] && SEP=';'
           find src/main/java/io/github/dylantopic/langmod/core -name '*.java' > sources.txt
-          echo src/test/java/io/github/dylantopic/langmod/speech/SpeechCheck.java >> sources.txt
+          find src/test/java/io/github/dylantopic/langmod/speech -name '*.java' >> sources.txt
           javac -encoding UTF-8 --release 25 -cp "libs/whisper-jni.jar${SEP}libs/gson.jar" -d out @sources.txt
+      - name: native library loads despite a malformed PATH entry
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          # An entry like one a user had. whisper-jni on its own searches PATH for whisper.dll and
+          # fails on it; the mod's loader skips that search.
+          $env:PATH = "$env:APPDATA\C:\Program Files\ffmpeg.exe;$env:PATH"
+          $cp = "out;libs/whisper-jni.jar;libs/gson.jar"
+          $plain = java --enable-native-access=ALL-UNNAMED -cp $cp io.github.dylantopic.langmod.speech.NativeLoadCheck --plain 2>&1 | Out-String
+          Write-Output $plain.Trim()
+          if ($plain -notmatch 'InvalidPathException') { throw 'expected whisper-jni alone to fail on the malformed PATH entry' }
+          java --enable-native-access=ALL-UNNAMED -cp $cp io.github.dylantopic.langmod.speech.NativeLoadCheck
+          if ($LASTEXITCODE -ne 0) { throw 'the mod could not load the native library' }
       - name: transcribe samples
         env:
           VARIANTS: ${{ github.event.inputs.variants != '' && matrix.os == 'ubuntu-24.04' && github.event.inputs.variants || matrix.variants }}
