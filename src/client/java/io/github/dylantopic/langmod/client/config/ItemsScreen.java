@@ -58,6 +58,7 @@ public class ItemsScreen extends Screen {
 	private final List<Row> rows;
 	private Set<String> learned = Set.of();
 	private boolean learnedRequested;
+	private boolean learnedLoaded;
 	private int learnedCount;
 	private int offCount;
 	private List<FormattedCharSequence> legend = List.of();
@@ -132,8 +133,19 @@ public class ItemsScreen extends Screen {
 	public void onLearnedItems(LearnedItemsPayload payload) {
 		if (payload.language().equals(language.id())) {
 			learned = Set.copyOf(payload.itemIds());
+			learnedLoaded = true;
 			updateCounts();
 		}
+	}
+
+	/** Whether the server has said which items are learned (for the game test). */
+	public boolean learnedLoaded() {
+		return learnedLoaded;
+	}
+
+	/** Listed items the player has learned in this language. */
+	public int learnedCount() {
+		return learnedCount;
 	}
 
 	/** Turns an item on or off for the language being learned. */

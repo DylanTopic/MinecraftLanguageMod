@@ -261,6 +261,8 @@ public class LangModClientGameTest implements FabricClientGameTest {
 			// The Items screen lists every item and can be searched; an item turned off there is picked up normally.
 			context.clickScreenButton(GameMenuButtons.ITEMS);
 			context.waitFor(minecraft -> minecraft.screen instanceof ItemsScreen, 100);
+			// The game is paused here; the server still has to answer which items are learned.
+			context.waitFor(minecraft -> minecraft.screen instanceof ItemsScreen items && items.learnedLoaded(), 100);
 			int allItems = context.computeOnClient(minecraft -> ((ItemsScreen) minecraft.screen).shownItemIds().size());
 			check(allItems > 1000, "the Items screen lists every item: " + allItems);
 			context.getInput().typeChars("carrot");
@@ -275,6 +277,16 @@ public class LangModClientGameTest implements FabricClientGameTest {
 			waitUntil(context, "a normal pickup of an item turned off", () -> count(singleplayer, uuid, Items.CARROT) == 3);
 			check(ClientChallenge.get().active() == null, "no challenge for an item turned off");
 			LangModConfig.update(c -> c.setItemEnabled(Language.MANDARIN, "minecraft:carrot", true));
+
+			// In Spanish, where the apple was learned, the list marks it. /langmod items opens the same screen.
+			selectLanguage(context, singleplayer, uuid, Language.SPANISH);
+			command(singleplayer, uuid, "langmod items");
+			context.waitFor(minecraft -> minecraft.screen instanceof ItemsScreen items && items.learnedLoaded(), 100);
+			int learnedSpanish = context.computeOnClient(minecraft -> ((ItemsScreen) minecraft.screen).learnedCount());
+			check(learnedSpanish == 1, "the Items screen marks the one item learned in Spanish: " + learnedSpanish);
+			context.takeScreenshot("langmod-15-items-spanish");
+			context.setScreen(() -> null);
+			selectLanguage(context, singleplayer, uuid, Language.MANDARIN);
 
 			check(command(singleplayer, uuid, "langmod reload") == 1, "/langmod reload");
 			waitUntilReady(context, singleplayer, uuid);
