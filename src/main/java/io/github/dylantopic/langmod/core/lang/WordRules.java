@@ -32,9 +32,10 @@ public enum WordRules {
 			// so verre/vert/vers or doré/dorée/dorés get the same key, while vert/verte do not.
 			String s = word.replace("œ", "e").replace("æ", "e").replaceAll("[éèêë]", "E").replaceAll("[àâä]", "a")
 					.replaceAll("[îï]", "i").replaceAll("[ôö]", "o").replaceAll("[ùûü]", "u").replace("ç", "s");
-			// An n or m after a vowel and not before another vowel makes the vowel nasal ("N"): pain,
-			// diamant, pomp, unlike pomme or laine.
-			s = s.replaceAll("(?<=[aeiouyE])[nm](?![aeiouyEnmh])", "N");
+			// An n after a vowel and not before another vowel makes the vowel nasal ("N"): pain, diamant,
+			// unlike laine. So does an m before a consonant (pompe, champ); a final m is left alone, also
+			// before a plural s, as in totem, golem or alliums (and Whisper writes "pom" for pomme).
+			s = s.replaceAll("(?<=[aeiouyE])(?:n(?![aeiouyEnmh])|m(?=[^aeiouyEnmh])(?![sx]$))", "N");
 
 			for (int k = 0; k < 2 && s.length() > 2 && "sxztdp".indexOf(s.charAt(s.length() - 1)) >= 0; k++) {
 				s = s.substring(0, s.length() - 1);

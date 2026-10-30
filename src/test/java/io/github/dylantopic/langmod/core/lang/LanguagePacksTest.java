@@ -113,6 +113,8 @@ class LanguagePacksTest {
 		assertFalse(check(pack, "item.minecraft.apple", "pomp").pass(), "a nasal vowel is not pomme");
 		assertFalse(check(pack, "item.minecraft.apple", "pompe").pass());
 		assertTrue(check(pack, "item.minecraft.apple", "pommes").pass(), "silent plural s");
+		assertTrue(check(pack, "item.minecraft.apple", "POM").pass(), "a final m is not nasal");
+		assertTrue(check(pack, "block.minecraft.mycelium", "mycéliums").pass(), "nor before a plural s");
 		assertFalse(check(pack, "item.minecraft.bread", "pan").pass(), "pain and pan have different nasal vowels");
 		assertTrue(check(pack, "item.minecraft.diamond_pickaxe", "pioche en diamand").pass(), "silent final consonant after a nasal vowel");
 		assertTrue(pack.isNoise(pack.normalize("Sous-titres réalisés para la communauté d'Amara.org"), pack.name("item.minecraft.apple").orElseThrow()));

@@ -241,12 +241,13 @@ Names are compared word by word, and these differences are ignored:
   fine too.
 - Words spelled differently but pronounced the same. Whisper writes words, and when several
   spellings sound alike it picks one, so the mod compares how words sound:
-  - in Spanish (as spoken in Mexico): b/v, s/z/soft c, ll/y, and a silent h ("mansana" counts);
+  - in Spanish (as spoken in Mexico): b/v, s/z/soft c, ll/y, a silent h ("mansana" counts), and the
+    soft d between vowels, which Whisper sometimes writes as "th" ("bithrio" for Vidrio);
   - in French: silent endings, é/è/ê/ai and the like ("vert" or "vers" for Verre, "pomme doré"
     for Pomme dorée).
 
-A missing, extra or different word is wrong: "manzanas" for Manzana, or "laine vert" for Laine
-verte (the t of verte is pronounced). The popup underlines the words of the name you did not say
+A missing, extra or different word is wrong: "manzanas" for Manzana, "laine vert" for Laine verte
+(the t of verte is pronounced), or "pan" for Pain (a different nasal vowel). The popup underlines the words of the name you did not say
 correctly. Matching modes: `strict` and `toneless` are the same here; with `lenient`, names of 4 or
 more words may have one wrong word. Names of more than 3 words are skipped by default (see "Long
 names").
@@ -293,27 +294,38 @@ popup shows when it is. Audio is recorded as 16 kHz mono and split into utteranc
 voice activity detector (it adapts to background noise; 0.8 s of silence ends a recording, 5 s
 maximum).
 
-Whisper gets two hints by default, chosen from the measurements below:
+Whisper gets these hints by default, chosen from the measurements below:
 
-- A generic **initial prompt**, `我的世界物品：` ("Minecraft items:"). It does not contain the
-  answer, but nudges Whisper towards item names: it got one or two more names right with every
-  window size (for example 火把 "torch" instead of 活吧 with the 30 s window, and 铁定 tiě dìng, which
-  sounds like 铁锭, instead of 贴定 tiē dìng with the 10 s one). Set `whisperPrompt` to `""` to turn
-  it off.
 - A **10 second window** instead of Whisper's usual 30 seconds (it always processes a fixed window,
-  even for a one-second word). This is about 4 times faster and was as accurate.
+  even for a one-second word). This is about 4 times faster and was as accurate in Mandarin, where
+  both were measured.
+- In Spanish, French and Korean, **prompt biasing**: the expected name is given to Whisper as its
+  initial prompt, so it hears that name much more readily. Without it, Whisper turned many correct
+  answers into similar-sounding words (방 for 빵, 할 for 활, "Pan" for Pain, "Art" for Arc) and the
+  mod rejected them. The price is that Whisper may also "hear" the name when you said something
+  close to it (see the measurements).
+- In Mandarin, a generic **initial prompt** instead, `我的世界物品：` ("Minecraft items:"). It does
+  not contain the answer, but nudges Whisper towards item names: it got one or two more names right
+  with every window size (for example 火把 "torch" instead of 活吧 with the 30 s window, and 铁定
+  tiě dìng, which sounds like 铁锭, instead of 贴定 tiē dìng with the 10 s one). Prompt biasing fixes
+  most false failures in Mandarin too (暂时 for 钻石, 念包 for 面包), but with the 10 s window it also
+  accepted the wrong-tone sample (你吐 for 泥土), and tones are much of what you learn in Mandarin.
+  With the full 30 s window it did not, so if you turn biasing on in Mandarin, also set "Whisper
+  window" to 30 s.
 
-**Prompt biasing** (off by default) replaces the generic prompt with the expected word itself.
-Whisper then hears that word much more readily: it fixed most false failures (暂时 for 钻石, 念包 for
-面包). The price is that it also "hears" the word when you said something close to it: with the 10 s
-window it accepted the wrong-tone sample (你吐 for 泥土). With the full 30 s window it did not, so if
-you turn biasing on, also set "Whisper window" to 30 s.
+"Prompt biasing" in the settings applies to the language you are learning. The generic prompts of
+the other languages (`Objetos de Minecraft:`, `Objets de Minecraft :`, `마인크래프트 아이템:`, used
+when biasing is off) did not help in the measurements: no change in French and Korean, one name
+fewer in Spanish. An entry of `whisperPrompts` set to `""` turns that language's generic prompt off.
 
 ### Measured accuracy and speed
 
-`.github/workflows/speech.yml` synthesises 16 Mandarin samples (13 correct item names spoken by two
-neural voices, plus a wrong word, a similar word and a wrong tone) and runs them through the mod's
-real pipeline with the `small` model on GitHub's 2-core runners:
+`.github/workflows/speech.yml` synthesises item names with neural voices and runs them through the
+mod's real pipeline with the `small` model on GitHub's 2-core runners. In every language some of the
+samples are wrong answers, which must be rejected.
+
+**Mandarin:** 16 samples (13 correct item names spoken by two voices, plus a wrong word, a similar
+word and a wrong tone):
 
 | Prompt | Window | Correct names accepted (strict) | Wrong answers rejected | Time per answer (2 threads) |
 |---|---|---|---|---|
@@ -334,8 +346,34 @@ window, with the same transcriptions as on Linux.
 The misses are words Whisper turned into a more common word that sounds almost the same: 钻石
 zuàn shí became 暂时 zàn shí, 面包 miàn bāo became 念包, and the one-syllable 弓 became the English
 "GO!" (even with biasing). Homophones are accepted through the pinyin comparison: 目棍 for 木棍 and
-铁钉 for 铁锭 passed. The test can be rerun with other settings from the Actions tab (workflow
-"speech", see the variants in `src/test/java/.../speech/SpeechCheck.java`).
+铁钉 for 铁锭 passed.
+
+**Spanish, French and Korean:** 15 Spanish samples spoken by two Mexican voices, 15 French ones by
+two Canadian voices and 14 Korean ones, each language with 3 wrong answers: a wrong word, a
+similar-sounding word (mañana for manzana, pompe for pomme, 사고 for 사과) and a wrong colour or
+gender ("lana roja", "laine vert", 빨간색 양털). With the 10 s window, about 3 s per answer:
+
+| Language | Prompt | Correct names accepted | Wrong answers rejected |
+|---|---|---|---|
+| Spanish | none | 9 of 12 | 3 of 3 |
+| Spanish | "Minecraft items:" | 8 of 12 | 3 of 3 |
+| **Spanish** | **expected word (biasing, default)** | **11 of 12** | **2 of 3** |
+| French | none | 5 of 12 | 3 of 3 |
+| French | "Minecraft items:" | 5 of 12 | 3 of 3 |
+| **French** | **expected word (biasing, default)** | **8 of 12** | **3 of 3** |
+| Korean | none | 3 of 11 | 3 of 3 |
+| Korean | "Minecraft items:" | 3 of 11 | 3 of 3 |
+| **Korean** | **expected word (biasing, default)** | **8 of 11** | **3 of 3** |
+
+Without biasing, Whisper often wrote a similar-sounding word instead of the name: 방 for 빵, 할 for
+활, 차과 for 사과, 햇불 for 횃불; "Ben" or "Pan" for Pain, "Art" for Arc, "Black Dark" for Bloc d'or;
+"ban" for Pan, "Limbote" for Lingote. With biasing, the misses left were mostly short words (흙
+heard as 흠, 호박 as 호바, 활 as 할, Pan as "Ban", Arc as "Art", Torche as "Tochche") and "une
+pomme", heard as "In Pam" so the article was not recognised. The one wrong answer accepted was
+"mañana", which Whisper heard as the expected "manzana".
+
+The test can be rerun with other settings from the Actions tab (workflow "speech", see the variants
+in `src/test/java/.../speech/SpeechCheck.java`).
 
 Synthesised speech is cleaner than a real microphone and a learner's accent, so expect somewhat
 worse results in the game. A desktop CPU is much faster than these 2-core runners: Whisper's time
@@ -459,8 +497,9 @@ in GitHub Actions (`.github/workflows/build.yml`), which also uploads the built 
 - **"Transcription took longer than 10 s"** (not counted as an attempt): use a smaller model
   (`base`), give Whisper more threads, use the `server` engine with a GPU, or as a last resort set
   "Whisper window" to "Clip only".
-- **Correct answers are rejected too often**: turn on prompt biasing (with the 30 s window), or use
-  `toneless` matching.
+- **Correct answers are rejected too often**: check that "Prompt biasing" is on. In Mandarin, turn it
+  on together with the 30 s window, or use `toneless` matching. A bigger model (`medium`) is more
+  accurate but slower. The debug overlay (F9) shows what Whisper wrote.
 - **A wrong name or reading in the popup**: add the item to `config/langmod/pinyin_overrides.json`
   (Mandarin) or `config/langmod/names_<language>.json` (Spanish, French, Korean).
 - **"You switched to ..., so your items were given back"**: changing the language during a
