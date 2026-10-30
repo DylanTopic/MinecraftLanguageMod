@@ -27,7 +27,9 @@ public record ClientActionPayload(Action action) implements CustomPacketPayload 
 		/** /langmod config: open the settings screen (also reachable through Mod Menu). */
 		OPEN_CONFIG,
 		/** /langmod language: open the menu for choosing the language to learn. */
-		OPEN_LANGUAGE_MENU
+		OPEN_LANGUAGE_MENU,
+		/** /langmod items: open the list of items, where each can be turned off. */
+		OPEN_ITEMS
 	}
 
 	private ClientActionPayload(RegistryFriendlyByteBuf buf) {

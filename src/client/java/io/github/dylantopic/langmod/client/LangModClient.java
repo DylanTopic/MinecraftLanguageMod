@@ -22,6 +22,8 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import io.github.dylantopic.langmod.LangMod;
 import io.github.dylantopic.langmod.LangModConfig;
 import io.github.dylantopic.langmod.client.audio.MicCapture;
+import io.github.dylantopic.langmod.client.config.GameMenuButtons;
+import io.github.dylantopic.langmod.client.config.ItemsScreen;
 import io.github.dylantopic.langmod.client.config.LangModConfigScreen;
 import io.github.dylantopic.langmod.client.config.LanguageScreen;
 import io.github.dylantopic.langmod.client.hud.ChallengeHud;
@@ -33,6 +35,7 @@ import io.github.dylantopic.langmod.net.ChallengeStartPayload;
 import io.github.dylantopic.langmod.net.ChallengeStatePayload;
 import io.github.dylantopic.langmod.net.ClientActionPayload;
 import io.github.dylantopic.langmod.net.ClientHelloPayload;
+import io.github.dylantopic.langmod.net.LearnedItemsPayload;
 
 /**
  * Client entrypoint: microphone, speech recognition and the challenge popup.
@@ -55,6 +58,11 @@ public class LangModClient implements ClientModInitializer {
 		ClientPlayNetworking.registerGlobalReceiver(ChallengeEndPayload.TYPE, (payload, context) -> challenge.onEnd(payload));
 		ClientPlayNetworking.registerGlobalReceiver(ClientActionPayload.TYPE, (payload, context) -> runAction(payload.action()));
 		ClientPlayNetworking.registerGlobalReceiver(AttemptResultPayload.TYPE, (payload, context) -> challenge.onAttemptResult(payload));
+		ClientPlayNetworking.registerGlobalReceiver(LearnedItemsPayload.TYPE, (payload, context) -> {
+			if (Minecraft.getInstance().screen instanceof ItemsScreen items) {
+				items.onLearnedItems(payload);
+			}
+		});
 
 		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
 			sendHello();
@@ -67,6 +75,7 @@ public class LangModClient implements ClientModInitializer {
 		KeyMappingHelper.registerKeyMapping(TOGGLE_DEBUG_KEY);
 		KeyMappingHelper.registerKeyMapping(OPEN_CONFIG_KEY);
 		KeyMappingHelper.registerKeyMapping(CHOOSE_LANGUAGE_KEY);
+		GameMenuButtons.register();
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			challenge.tick();
 			ChallengeController.get().tick(client);
@@ -161,6 +170,7 @@ public class LangModClient implements ClientModInitializer {
 			}
 			case OPEN_CONFIG -> Minecraft.getInstance().setScreen(new LangModConfigScreen(null));
 			case OPEN_LANGUAGE_MENU -> Minecraft.getInstance().setScreen(new LanguageScreen(null));
+			case OPEN_ITEMS -> Minecraft.getInstance().setScreen(new ItemsScreen(null));
 		}
 	}
 }

@@ -19,9 +19,11 @@ public final class LangModNetworking {
 		PayloadTypeRegistry.clientboundPlay().register(ChallengeEndPayload.TYPE, ChallengeEndPayload.CODEC);
 		PayloadTypeRegistry.clientboundPlay().register(ClientActionPayload.TYPE, ClientActionPayload.CODEC);
 		PayloadTypeRegistry.clientboundPlay().register(AttemptResultPayload.TYPE, AttemptResultPayload.CODEC);
+		PayloadTypeRegistry.clientboundPlay().register(LearnedItemsPayload.TYPE, LearnedItemsPayload.CODEC);
 		PayloadTypeRegistry.serverboundPlay().register(ClientHelloPayload.TYPE, ClientHelloPayload.CODEC);
 		PayloadTypeRegistry.serverboundPlay().register(ClientPhasePayload.TYPE, ClientPhasePayload.CODEC);
 		PayloadTypeRegistry.serverboundPlay().register(TranscriptionPayload.TYPE, TranscriptionPayload.CODEC);
+		PayloadTypeRegistry.serverboundPlay().register(LearnedItemsRequestPayload.TYPE, LearnedItemsRequestPayload.CODEC);
 
 		// Fabric runs these handlers on the server thread.
 		ServerPlayNetworking.registerGlobalReceiver(ClientHelloPayload.TYPE,
@@ -30,6 +32,8 @@ public final class LangModNetworking {
 				(payload, context) -> ChallengeManager.get().onClientPhase(context.player(), payload));
 		ServerPlayNetworking.registerGlobalReceiver(TranscriptionPayload.TYPE,
 				(payload, context) -> ChallengeManager.get().onTranscription(context.player(), payload));
+		ServerPlayNetworking.registerGlobalReceiver(LearnedItemsRequestPayload.TYPE,
+				(payload, context) -> ChallengeManager.get().onLearnedItemsRequest(context.player(), payload));
 	}
 
 	/** Sends a payload if the player's client has the mod (it is silently dropped otherwise). */

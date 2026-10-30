@@ -4,6 +4,17 @@
 	"key.langmod.open_config": "Open LangMod settings",
 	"key.langmod.choose_language": "Choose the language to learn",
 
+	"langmod.menu.items": "Items",
+	"langmod.menu.language": "Practice Language",
+
+	"langmod.items.title": "Items",
+	"langmod.items.search": "Search items",
+	"langmod.items.header": "Language: %s · %s of %s learned · %s off",
+	"langmod.items.legend": "Click an item to turn it on or off. Green: you say its name when you pick it up. Red: picked up normally.",
+	"langmod.items.learned": "learned",
+	"langmod.items.long": "long name",
+	"langmod.items.empty": "No items match.",
+
 	"langmod.language.title": "Choose a language to learn",
 	"langmod.language.hint": "Each language keeps its own progress. Switching gives back the item you are being asked about.",
 

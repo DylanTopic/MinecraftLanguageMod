@@ -34,6 +34,8 @@ import io.github.dylantopic.langmod.net.ChallengeStatePayload;
 import io.github.dylantopic.langmod.net.ClientHelloPayload;
 import io.github.dylantopic.langmod.net.ClientPhasePayload;
 import io.github.dylantopic.langmod.net.LangModNetworking;
+import io.github.dylantopic.langmod.net.LearnedItemsPayload;
+import io.github.dylantopic.langmod.net.LearnedItemsRequestPayload;
 import io.github.dylantopic.langmod.net.TranscriptionPayload;
 
 /**
@@ -98,6 +100,10 @@ public final class ChallengeManager {
 
 		if (data(player).isLearned(language, itemId)) {
 			return false;
+		}
+
+		if (!config.isItemEnabled(language, itemId)) {
+			return false; // turned off in the Items screen: normal pickup
 		}
 
 		PendingItem pending = state.find(itemId);
@@ -436,6 +442,12 @@ public final class ChallengeManager {
 		}
 
 		player.setAttached(PlayerLangData.TYPE, data(player).withPending(all));
+	}
+
+	/** The Items screen asks which items the player has learned in a language, to mark them. */
+	public void onLearnedItemsRequest(ServerPlayer player, LearnedItemsRequestPayload payload) {
+		Language.byId(payload.language()).ifPresent(language -> LangModNetworking.send(player,
+				new LearnedItemsPayload(language.id(), List.copyOf(data(player).progress(language).learned()))));
 	}
 
 	static PlayerLangData data(ServerPlayer player) {

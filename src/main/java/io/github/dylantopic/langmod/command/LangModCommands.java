@@ -51,6 +51,7 @@ public final class LangModCommands {
 						.then(Commands.literal("debug").executes(context -> clientAction(context, ClientActionPayload.Action.TOGGLE_DEBUG)))
 						.then(Commands.literal("config").executes(context -> clientAction(context, ClientActionPayload.Action.OPEN_CONFIG)))
 						.then(Commands.literal("language").executes(context -> clientAction(context, ClientActionPayload.Action.OPEN_LANGUAGE_MENU)))
+						.then(Commands.literal("items").executes(context -> clientAction(context, ClientActionPayload.Action.OPEN_ITEMS)))
 						.then(Commands.literal("list")
 								.executes(context -> list(context, 1))
 								.then(Commands.argument("page", IntegerArgumentType.integer(1))

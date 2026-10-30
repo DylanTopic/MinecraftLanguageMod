@@ -9,6 +9,8 @@ import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Consumer;
 
 import com.google.gson.Gson;
@@ -52,6 +54,11 @@ public final class LangModConfig {
 	/** Replaced by {@link #nameLengthLimits} / {@link #longNameModes}; read from old files, then moved there. */
 	public Integer maxNameLength;
 	public String longNameMode;
+	/**
+	 * Per language: ids of items turned off in the Items screen (e.g. {@code minecraft:dirt}). They are
+	 * picked up normally and never challenged. Every item is on by default.
+	 */
+	public Map<String, Set<String>> disabledItems = defaultDisabledItems();
 
 	// --- Speech recognition (client) -------------------------------------------------------
 	/** jni (whisper.cpp inside the game, CPU) or server (a separate whisper-server process, can use the GPU). */
@@ -188,6 +195,29 @@ public final class LangModConfig {
 		return "skip".equals(longNameModes.getOrDefault(language.id(), language.defaultLongNameMode()));
 	}
 
+	/** False if the item was turned off for this language in the Items screen. */
+	public boolean isItemEnabled(Language language, String itemId) {
+		Set<String> disabled = disabledItems.get(language.id());
+		return disabled == null || !disabled.contains(itemId);
+	}
+
+	public int disabledItemCount(Language language) {
+		return disabledItems.getOrDefault(language.id(), Set.of()).size();
+	}
+
+	/** Turns an item on or off for a language. Call it on the copy passed to {@link #update}. */
+	public void setItemEnabled(Language language, String itemId, boolean enabled) {
+		Set<String> disabled = new TreeSet<>(disabledItems.getOrDefault(language.id(), Set.of()));
+
+		if (enabled) {
+			disabled.remove(itemId);
+		} else {
+			disabled.add(itemId);
+		}
+
+		disabledItems.put(language.id(), disabled);
+	}
+
 	public boolean promptBiasing(Language language) {
 		return promptBiasingByLanguage.getOrDefault(language.id(), language.defaultPromptBiasing());
 	}
@@ -223,6 +253,7 @@ public final class LangModConfig {
 		Map<String, String> modes = defaultLongNameModes();
 		Map<String, String> prompts = defaultWhisperPrompts();
 		Map<String, Boolean> biasing = defaultPromptBiasing();
+		Map<String, Set<String>> disabled = defaultDisabledItems();
 
 		for (Language l : Language.values()) {
 			if (nameLengthLimits != null && nameLengthLimits.get(l.id()) != null) {
@@ -240,12 +271,21 @@ public final class LangModConfig {
 			if (promptBiasingByLanguage != null && promptBiasingByLanguage.get(l.id()) != null) {
 				biasing.put(l.id(), promptBiasingByLanguage.get(l.id()));
 			}
+
+			if (disabledItems != null && disabledItems.get(l.id()) != null) {
+				for (String id : disabledItems.get(l.id())) {
+					if (id != null && !id.isBlank()) {
+						disabled.get(l.id()).add(id.trim());
+					}
+				}
+			}
 		}
 
 		nameLengthLimits = limits;
 		longNameModes = modes;
 		whisperPrompts = prompts;
 		promptBiasingByLanguage = biasing;
+		disabledItems = disabled;
 		whisperThreads = clamp(whisperThreads, 0, 64, "whisperThreads");
 		audioContext = clamp(audioContext, -1, 1500, "audioContext");
 		transcriptionTimeoutSeconds = clamp(transcriptionTimeoutSeconds, 1, 120, "transcriptionTimeoutSeconds");
@@ -362,6 +402,16 @@ public final class LangModConfig {
 		}
 
 		return prompts;
+	}
+
+	private static Map<String, Set<String>> defaultDisabledItems() {
+		Map<String, Set<String>> disabled = new LinkedHashMap<>();
+
+		for (Language language : Language.values()) {
+			disabled.put(language.id(), new TreeSet<>());
+		}
+
+		return disabled;
 	}
 
 	private static Map<String, Boolean> defaultPromptBiasing() {

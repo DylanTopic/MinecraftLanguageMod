@@ -43,9 +43,9 @@ Other rules:
 
 ## Choosing a language
 
-Open the language menu with `/langmod language` (or a key you can set under Options > Controls >
-Key Binds > LangMod), or change "Learning" at the top of the settings screen. You learn one
-language at a time:
+Open the language menu with **Practice Language** in the game menu (Esc), `/langmod language` (or
+a key you can set under Options > Controls > Key Binds > LangMod), or change "Learning" at the top
+of the settings screen. You learn one language at a time:
 
 - Each language keeps its own progress: an apple learned in Spanish is still new in Korean.
 - Switching while a challenge is running gives the held items back; nothing counts as a failure.
@@ -61,6 +61,21 @@ language at a time:
 Singleplayer only for now. All game logic runs on the (integrated) server and the microphone and
 speech recognition on the client; they talk over Fabric networking, so multiplayer can be added
 later.
+
+## Items list
+
+**Items** in the game menu (Esc), or `/langmod items`, lists every item that has a name in the
+language you are learning, with its icon, in alphabetical order (Mandarin by pinyin). Items you have
+learned are marked "learned".
+
+- Type in the search box to find an item by its name (accents and tone marks optional: "pina",
+  "pingguo"), its pronunciation ("sagwa"), its name in the game's language ("apple") or its id.
+- Click an item to turn it off (red square): it is then picked up normally and never challenged.
+  Click it again to turn it back on (green). Every item is on until you turn it off.
+- Long names that are not challenged anyway (see "Long names" in the settings) have a grey square.
+
+Turned-off items are kept per language in `config/langmod/langmod.json` (`disabledItems`), so they
+apply in every world.
 
 ## Requirements
 
@@ -148,7 +163,8 @@ default launcher: `%APPDATA%\.minecraft\config\langmod\models`).
 |---|---|
 | `/langmod test` | Records one utterance and prints what Whisper heard (text, pinyin or romanization, timing). |
 | `/langmod mics` | Lists the microphones. |
-| `/langmod language` | Opens the menu for choosing the language to learn. |
+| `/langmod language` | Opens the menu for choosing the language to learn (also **Practice Language** in the game menu). |
+| `/langmod items` | Opens the items list, where items can be turned off (also **Items** in the game menu). |
 | `/langmod list [page]` | Learned items in the current language, with their name, pronunciation and English name. |
 | `/langmod review` | The items you failed most often in the current language, with failure and wrong-answer counts. |
 | `/langmod reset` | Forgets the learned items of the current language, so they are challenged again. |
@@ -194,6 +210,7 @@ Only in the file:
 
 | Key | Default | Meaning |
 |---|---|---|
+| `disabledItems` | none | Per language, the ids of items turned off in the [items list](#items-list), e.g. `"es_mx": ["minecraft:dirt"]`. |
 | `vadSilenceMs` | 800 | Silence that ends a recording. |
 | `vadMaxClipMs` | 5000 | Longest recording. |
 | `vadMinSpeechMs` | 200 | Shorter sounds (clicks, bumps) are ignored. |
@@ -472,6 +489,10 @@ The mod was built in five stages. To check them by hand, start `.\gradlew.bat ru
    `/langmod list` now lists only what you learned in Spanish. Choose 한국어 and pick up bread: the
    popup shows 빵 with "ppang" under it. Pick up something new and switch language before
    answering: the item is given back.
+7. **Game menu and items list** (added afterwards): press Esc. Items and Practice Language are next
+   to the vanilla buttons. Items lists everything in the current language; search for "carrot",
+   click it so its square turns red, close the menus and pick up a carrot: it goes straight into
+   your inventory.
 
 Automated tests:
 

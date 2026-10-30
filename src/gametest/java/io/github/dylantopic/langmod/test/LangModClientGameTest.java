@@ -5,11 +5,15 @@ import java.util.UUID;
 import java.util.function.BooleanSupplier;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import org.lwjgl.glfw.GLFW;
 
 import net.minecraft.client.OptionInstance;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -18,6 +22,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
+import net.fabricmc.fabric.api.client.screen.v1.Screens;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
 import net.fabricmc.fabric.api.client.gametest.v1.world.TestWorldSave;
@@ -31,6 +36,8 @@ import io.github.dylantopic.langmod.client.ChallengeController;
 import io.github.dylantopic.langmod.client.ClientChallenge;
 import io.github.dylantopic.langmod.client.LangModClient;
 import io.github.dylantopic.langmod.client.MicTest;
+import io.github.dylantopic.langmod.client.config.GameMenuButtons;
+import io.github.dylantopic.langmod.client.config.ItemsScreen;
 import io.github.dylantopic.langmod.client.config.LangModConfigScreen;
 import io.github.dylantopic.langmod.client.config.LanguageScreen;
 import io.github.dylantopic.langmod.client.speech.SpeechService;
@@ -241,6 +248,34 @@ public class LangModClientGameTest implements FabricClientGameTest {
 					"tone colors while learning Mandarin");
 			context.setScreen(() -> null);
 
+			// 10. The game menu (Esc) gets Items and Practice Language buttons beside the vanilla ones.
+			context.getInput().pressKey(GLFW.GLFW_KEY_ESCAPE);
+			context.waitFor(minecraft -> minecraft.screen instanceof PauseScreen, 100);
+			context.takeScreenshot("langmod-13-game-menu");
+			check(context.computeOnClient(minecraft -> menuButtonsFit(minecraft.screen)), "Items and Practice Language are on screen, clear of the other buttons");
+			context.clickScreenButton(GameMenuButtons.LANGUAGE);
+			context.waitFor(minecraft -> minecraft.screen instanceof LanguageScreen, 100);
+			context.getInput().pressKey(GLFW.GLFW_KEY_ESCAPE);
+			context.waitFor(minecraft -> minecraft.screen instanceof PauseScreen, 100);
+
+			// The Items screen lists every item and can be searched; an item turned off there is picked up normally.
+			context.clickScreenButton(GameMenuButtons.ITEMS);
+			context.waitFor(minecraft -> minecraft.screen instanceof ItemsScreen, 100);
+			int allItems = context.computeOnClient(minecraft -> ((ItemsScreen) minecraft.screen).shownItemIds().size());
+			check(allItems > 1000, "the Items screen lists every item: " + allItems);
+			context.getInput().typeChars("carrot");
+			context.waitFor(minecraft -> minecraft.screen instanceof ItemsScreen items && items.shownItemIds().size() < allItems, 100);
+			List<String> found = context.computeOnClient(minecraft -> ((ItemsScreen) minecraft.screen).shownItemIds());
+			check(found.contains("minecraft:carrot") && found.size() < 10, "searching for carrot: " + found);
+			context.takeScreenshot("langmod-14-items");
+			context.runOnClient(minecraft -> ((ItemsScreen) minecraft.screen).toggle("minecraft:carrot"));
+			check(!LangModConfig.get().isItemEnabled(Language.MANDARIN, "minecraft:carrot"), "the Items screen turns carrots off");
+			context.setScreen(() -> null);
+			drop(singleplayer, uuid, new ItemStack(Items.CARROT, 3));
+			waitUntil(context, "a normal pickup of an item turned off", () -> count(singleplayer, uuid, Items.CARROT) == 3);
+			check(ClientChallenge.get().active() == null, "no challenge for an item turned off");
+			LangModConfig.update(config -> config.setItemEnabled(Language.MANDARIN, "minecraft:carrot", true));
+
 			check(command(singleplayer, uuid, "langmod reload") == 1, "/langmod reload");
 			waitUntilReady(context, singleplayer, uuid);
 		}
@@ -252,6 +287,36 @@ public class LangModClientGameTest implements FabricClientGameTest {
 	private static void toggle(OptionInstance<?> option) {
 		OptionInstance<Boolean> toggle = (OptionInstance<Boolean>) option;
 		toggle.set(!toggle.get());
+	}
+
+	/** The two buttons LangMod adds to the game menu are inside the screen and overlap no other button. */
+	private static boolean menuButtonsFit(Screen screen) {
+		List<AbstractWidget> widgets = Screens.getWidgets(screen).stream().filter(widget -> widget.visible).toList();
+		List<AbstractWidget> ours = widgets.stream()
+				.filter(widget -> hasKey(widget, GameMenuButtons.ITEMS) || hasKey(widget, GameMenuButtons.LANGUAGE)).toList();
+
+		if (ours.size() != 2) {
+			return false;
+		}
+
+		for (AbstractWidget a : ours) {
+			if (a.getX() < 0 || a.getY() < 0 || a.getX() + a.getWidth() > screen.width || a.getY() + a.getHeight() > screen.height) {
+				return false;
+			}
+
+			for (AbstractWidget b : widgets) {
+				if (a != b && a.getX() < b.getX() + b.getWidth() && b.getX() < a.getX() + a.getWidth()
+						&& a.getY() < b.getY() + b.getHeight() && b.getY() < a.getY() + a.getHeight()) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
+	private static boolean hasKey(AbstractWidget widget, String key) {
+		return widget.getMessage().getContents() instanceof TranslatableContents contents && contents.getKey().equals(key);
 	}
 
 	@SuppressWarnings("unchecked")
