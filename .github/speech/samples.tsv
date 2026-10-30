@@ -1,18 +1,62 @@
 # Speech samples for the speech CI check (.github/workflows/speech.yml).
-# file	translation key the player is challenged with	text the TTS voice actually says	voice	what should happen
-apple	item.minecraft.apple	苹果	zh-CN-XiaoxiaoNeural	pass
-diamond	item.minecraft.diamond	钻石	zh-CN-YunxiNeural	pass
-dirt	block.minecraft.dirt	泥土	zh-CN-XiaoxiaoNeural	pass
-stick	item.minecraft.stick	木棍	zh-CN-YunxiNeural	pass
-bread	item.minecraft.bread	面包	zh-CN-XiaoxiaoNeural	pass
-torch	block.minecraft.torch	火把	zh-CN-YunxiNeural	pass
-iron_ingot	item.minecraft.iron_ingot	铁锭	zh-CN-XiaoxiaoNeural	pass
-pumpkin	block.minecraft.pumpkin	南瓜	zh-CN-YunxiNeural	pass
-diamond_sword	item.minecraft.diamond_sword	钻石剑	zh-CN-XiaoxiaoNeural	pass
-green_wool	block.minecraft.green_wool	绿色羊毛	zh-CN-YunxiNeural	pass
-diorite	block.minecraft.diorite	闪长岩	zh-CN-XiaoxiaoNeural	pass
-golden_apple	item.minecraft.enchanted_golden_apple	附魔金苹果	zh-CN-YunxiNeural	pass
-bow	item.minecraft.bow	弓	zh-CN-XiaoxiaoNeural	pass
-wrong_word	item.minecraft.apple	香蕉	zh-CN-YunxiNeural	fail
-similar_word	block.minecraft.pumpkin	西瓜	zh-CN-XiaoxiaoNeural	fail
-wrong_tone	block.minecraft.dirt	你吐	zh-CN-YunxiNeural	fail-strict
+# file	translation key the player is challenged with	text the TTS voice actually says	voice	what should happen	language
+apple	item.minecraft.apple	苹果	zh-CN-XiaoxiaoNeural	pass	zh_cn
+diamond	item.minecraft.diamond	钻石	zh-CN-YunxiNeural	pass	zh_cn
+dirt	block.minecraft.dirt	泥土	zh-CN-XiaoxiaoNeural	pass	zh_cn
+stick	item.minecraft.stick	木棍	zh-CN-YunxiNeural	pass	zh_cn
+bread	item.minecraft.bread	面包	zh-CN-XiaoxiaoNeural	pass	zh_cn
+torch	block.minecraft.torch	火把	zh-CN-YunxiNeural	pass	zh_cn
+iron_ingot	item.minecraft.iron_ingot	铁锭	zh-CN-XiaoxiaoNeural	pass	zh_cn
+pumpkin	block.minecraft.pumpkin	南瓜	zh-CN-YunxiNeural	pass	zh_cn
+diamond_sword	item.minecraft.diamond_sword	钻石剑	zh-CN-XiaoxiaoNeural	pass	zh_cn
+green_wool	block.minecraft.green_wool	绿色羊毛	zh-CN-YunxiNeural	pass	zh_cn
+diorite	block.minecraft.diorite	闪长岩	zh-CN-XiaoxiaoNeural	pass	zh_cn
+golden_apple	item.minecraft.enchanted_golden_apple	附魔金苹果	zh-CN-YunxiNeural	pass	zh_cn
+bow	item.minecraft.bow	弓	zh-CN-XiaoxiaoNeural	pass	zh_cn
+wrong_word	item.minecraft.apple	香蕉	zh-CN-YunxiNeural	fail	zh_cn
+similar_word	block.minecraft.pumpkin	西瓜	zh-CN-XiaoxiaoNeural	fail	zh_cn
+wrong_tone	block.minecraft.dirt	你吐	zh-CN-YunxiNeural	fail-strict	zh_cn
+es_apple	item.minecraft.apple	Manzana	es-MX-DaliaNeural	pass	es_mx
+es_dirt	block.minecraft.dirt	Tierra	es-MX-JorgeNeural	pass	es_mx
+es_stick	item.minecraft.stick	Palo	es-MX-DaliaNeural	pass	es_mx
+es_bread	item.minecraft.bread	Pan	es-MX-JorgeNeural	pass	es_mx
+es_torch	block.minecraft.torch	Antorcha	es-MX-DaliaNeural	pass	es_mx
+es_pumpkin	block.minecraft.pumpkin	Calabaza	es-MX-JorgeNeural	pass	es_mx
+es_bow	item.minecraft.bow	Arco	es-MX-DaliaNeural	pass	es_mx
+es_glass	block.minecraft.glass	Vidrio	es-MX-JorgeNeural	pass	es_mx
+es_green_wool	block.minecraft.green_wool	Lana verde	es-MX-DaliaNeural	pass	es_mx
+es_diamond_pickaxe	item.minecraft.diamond_pickaxe	Pico de diamante	es-MX-JorgeNeural	pass	es_mx
+es_iron_ingot	item.minecraft.iron_ingot	Lingote de hierro	es-MX-DaliaNeural	pass	es_mx
+es_article	item.minecraft.apple	La manzana	es-MX-JorgeNeural	pass	es_mx
+es_wrong_word	item.minecraft.apple	Plátano	es-MX-DaliaNeural	fail	es_mx
+es_similar_word	item.minecraft.apple	Mañana	es-MX-JorgeNeural	fail	es_mx
+es_wrong_colour	block.minecraft.green_wool	Lana roja	es-MX-DaliaNeural	fail	es_mx
+fr_apple	item.minecraft.apple	Pomme	fr-CA-SylvieNeural	pass	fr_ca
+fr_dirt	block.minecraft.dirt	Terre	fr-CA-JeanNeural	pass	fr_ca
+fr_stick	item.minecraft.stick	Bâton	fr-CA-SylvieNeural	pass	fr_ca
+fr_bread	item.minecraft.bread	Pain	fr-CA-JeanNeural	pass	fr_ca
+fr_torch	block.minecraft.torch	Torche	fr-CA-SylvieNeural	pass	fr_ca
+fr_pumpkin	block.minecraft.pumpkin	Citrouille	fr-CA-JeanNeural	pass	fr_ca
+fr_bow	item.minecraft.bow	Arc	fr-CA-SylvieNeural	pass	fr_ca
+fr_glass	block.minecraft.glass	Verre	fr-CA-JeanNeural	pass	fr_ca
+fr_green_wool	block.minecraft.green_wool	Laine verte	fr-CA-SylvieNeural	pass	fr_ca
+fr_diamond_pickaxe	item.minecraft.diamond_pickaxe	Pioche en diamant	fr-CA-JeanNeural	pass	fr_ca
+fr_gold_block	block.minecraft.gold_block	Bloc d'or	fr-CA-SylvieNeural	pass	fr_ca
+fr_article	item.minecraft.apple	Une pomme	fr-CA-JeanNeural	pass	fr_ca
+fr_wrong_word	item.minecraft.apple	Poire	fr-CA-SylvieNeural	fail	fr_ca
+fr_similar_word	item.minecraft.apple	Pompe	fr-CA-JeanNeural	fail	fr_ca
+fr_wrong_gender	block.minecraft.green_wool	Laine vert	fr-CA-SylvieNeural	fail	fr_ca
+ko_apple	item.minecraft.apple	사과	ko-KR-SunHiNeural	pass	ko_kr
+ko_dirt	block.minecraft.dirt	흙	ko-KR-InJoonNeural	pass	ko_kr
+ko_stick	item.minecraft.stick	막대기	ko-KR-SunHiNeural	pass	ko_kr
+ko_bread	item.minecraft.bread	빵	ko-KR-InJoonNeural	pass	ko_kr
+ko_torch	block.minecraft.torch	횃불	ko-KR-SunHiNeural	pass	ko_kr
+ko_pumpkin	block.minecraft.pumpkin	호박	ko-KR-InJoonNeural	pass	ko_kr
+ko_bow	item.minecraft.bow	활	ko-KR-SunHiNeural	pass	ko_kr
+ko_glass	block.minecraft.glass	유리	ko-KR-InJoonNeural	pass	ko_kr
+ko_green_wool	block.minecraft.green_wool	초록색 양털	ko-KR-SunHiNeural	pass	ko_kr
+ko_diamond_pickaxe	item.minecraft.diamond_pickaxe	다이아몬드 곡괭이	ko-KR-InJoonNeural	pass	ko_kr
+ko_gold_block	block.minecraft.gold_block	금 블록	ko-KR-SunHiNeural	pass	ko_kr
+ko_wrong_word	item.minecraft.apple	바나나	ko-KR-InJoonNeural	fail	ko_kr
+ko_similar_word	item.minecraft.apple	사고	ko-KR-SunHiNeural	fail	ko_kr
+ko_wrong_colour	block.minecraft.green_wool	빨간색 양털	ko-KR-InJoonNeural	fail	ko_kr

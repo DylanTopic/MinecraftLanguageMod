@@ -41,7 +41,7 @@ def main() -> None:
     for line in manifest.read_text(encoding="utf-8").splitlines():
         if not line.strip() or line.startswith("#"):
             continue
-        name, _key, text, voice, _expect = line.split("\t")
+        name, _key, text, voice, _expect, _language = line.split("\t")
         synthesise(text, voice, out / f"{name}.wav")
         engines[name] = "edge-tts " + voice
         print(f"{name}: {text} ({engines[name]})")
