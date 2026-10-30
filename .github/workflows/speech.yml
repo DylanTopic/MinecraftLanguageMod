@@ -103,9 +103,11 @@ jobs:
           # fails on it; the mod's loader skips that search.
           $env:PATH = "$env:APPDATA\C:\Program Files\ffmpeg.exe;$env:PATH"
           $cp = "out;libs/whisper-jni.jar;libs/gson.jar"
-          $plain = java --enable-native-access=ALL-UNNAMED -cp $cp io.github.dylantopic.langmod.speech.NativeLoadCheck --plain 2>&1 | Out-String
-          Write-Output $plain.Trim()
-          if ($plain -notmatch 'InvalidPathException') { throw 'expected whisper-jni alone to fail on the malformed PATH entry' }
+          # Its expected failure goes to a file, so it is not reported as an error of this (passing) step.
+          java --enable-native-access=ALL-UNNAMED -cp $cp io.github.dylantopic.langmod.speech.NativeLoadCheck --plain 2> plain.txt
+          $plain = Get-Content plain.txt -Raw
+          if ($plain -notmatch 'InvalidPathException') { throw "expected whisper-jni alone to fail on the malformed PATH entry, got: $plain" }
+          Write-Output "whisper-jni alone: $(($plain -split "`n")[0].Trim())"
           java --enable-native-access=ALL-UNNAMED -cp $cp io.github.dylantopic.langmod.speech.NativeLoadCheck
           if ($LASTEXITCODE -ne 0) { throw 'the mod could not load the native library' }
       - name: transcribe samples
