@@ -274,7 +274,7 @@ public class LangModClientGameTest implements FabricClientGameTest {
 			drop(singleplayer, uuid, new ItemStack(Items.CARROT, 3));
 			waitUntil(context, "a normal pickup of an item turned off", () -> count(singleplayer, uuid, Items.CARROT) == 3);
 			check(ClientChallenge.get().active() == null, "no challenge for an item turned off");
-			LangModConfig.update(config -> config.setItemEnabled(Language.MANDARIN, "minecraft:carrot", true));
+			LangModConfig.update(c -> c.setItemEnabled(Language.MANDARIN, "minecraft:carrot", true));
 
 			check(command(singleplayer, uuid, "langmod reload") == 1, "/langmod reload");
 			waitUntilReady(context, singleplayer, uuid);
