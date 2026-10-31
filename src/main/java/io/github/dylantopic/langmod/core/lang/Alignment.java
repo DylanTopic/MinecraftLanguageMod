@@ -1,5 +1,6 @@
 package io.github.dylantopic.langmod.core.lang;
 
+import java.util.Arrays;
 import java.util.function.BiFunction;
 
 import io.github.dylantopic.langmod.core.Matcher.Status;
@@ -63,5 +64,14 @@ final class Alignment {
 		}
 
 		return new Outcome(expected, heard, cost[n][m]);
+	}
+
+	/** Every unit on both sides matched (the same words, split differently). */
+	static Outcome allMatch(int n, int m) {
+		Status[] expected = new Status[n];
+		Status[] heard = new Status[m];
+		Arrays.fill(expected, Status.MATCH);
+		Arrays.fill(heard, Status.MATCH);
+		return new Outcome(expected, heard, 0);
 	}
 }

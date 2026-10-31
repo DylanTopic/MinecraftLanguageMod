@@ -188,6 +188,8 @@ class LanguagePacksTest {
 		assertTrue(check(pack, "block.minecraft.glass", "bitrum").pass(), "v said b");
 		assertTrue(check(pack, "block.minecraft.pumpkin", "kukurbita").pass(), "c written k");
 		assertTrue(check(pack, "item.minecraft.diamond_pickaxe", "dolabra adamantina").pass());
+		assertTrue(check(pack, "item.minecraft.iron_ingot", "Lat-ter-fer-reus").pass(), "split into syllables");
+		assertTrue(check(pack, "block.minecraft.green_wool", "L'Annaviridis").pass(), "words run together");
 		assertFalse(check(pack, "item.minecraft.apple", "Pirum").pass());
 		assertFalse(check(pack, "item.minecraft.apple", "Maluus").pass(), "malus is not malum");
 		assertFalse(check(pack, "block.minecraft.green_wool", "La na rubra").pass());
@@ -199,6 +201,7 @@ class LanguagePacksTest {
 		assertTrue(check(pack, "item.minecraft.apple", "A maçã!").pass(), "article in front");
 		assertTrue(check(pack, "item.minecraft.iron_ingot", "Lingote de Ferrro").pass(), "a tripled letter");
 		assertTrue(check(pack, "item.minecraft.diamond_pickaxe", "picareta de diamante").pass());
+		assertTrue(check(pack, "block.minecraft.pumpkin", "a bóbora.").pass(), "first letter written as an article");
 		assertFalse(check(pack, "item.minecraft.apple", "Massa").pass(), "maçã has a nasal vowel");
 		assertFalse(check(pack, "item.minecraft.apple", "Banana").pass());
 		assertFalse(check(pack, "block.minecraft.green_wool", "Lã Vermelha").pass());
@@ -210,6 +213,9 @@ class LanguagePacksTest {
 		assertTrue(check(pack, "item.minecraft.apple", "Jabuka").exact());
 		assertTrue(check(pack, "item.minecraft.diamond_pickaxe", "Dijamanski kramp").pass(), "t dropped between n and s");
 		assertTrue(check(pack, "item.minecraft.apple", "jabuka.").pass());
+		assertTrue(check(pack, "block.minecraft.green_wool", "Zelenavuna.").pass(), "words run together");
+		assertTrue(check(pack, "block.minecraft.green_wool", "Zele na Vuna").pass(), "split in the wrong place");
+		assertFalse(check(pack, "block.minecraft.green_wool", "Crvenavuna").pass());
 		assertFalse(check(pack, "item.minecraft.apple", "Kruška").pass());
 		assertFalse(check(pack, "item.minecraft.apple", "Jabuke").pass());
 		assertFalse(check(pack, "block.minecraft.green_wool", "Crvena vuna").pass());
@@ -221,6 +227,7 @@ class LanguagePacksTest {
 		assertEquals("Mansanas", pack.name("item.minecraft.apple").orElseThrow().text());
 		assertTrue(check(pack, "item.minecraft.apple", "ang mansanas").pass(), "article in front");
 		assertTrue(check(pack, "item.minecraft.diamond_pickaxe", "Jamanteng Piko").pass(), "diya said ja");
+		assertTrue(check(pack, "item.minecraft.bow", "Pa na!").pass(), "split into two words");
 		assertFalse(check(pack, "item.minecraft.apple", "Saging").pass());
 		assertFalse(check(pack, "block.minecraft.dirt", "Luya").pass());
 		assertFalse(check(pack, "block.minecraft.green_wool", "Pulang Lana").pass());
@@ -278,6 +285,7 @@ class LanguagePacksTest {
 		assertTrue(check(pack, "item.minecraft.apple", "Der Apfel").pass(), "article in front");
 		assertTrue(check(pack, "item.minecraft.bread", "Brod").pass(), "a final d sounds like t");
 		assertTrue(check(pack, "item.minecraft.diamond_pickaxe", "Diamantspitzhacke").pass());
+		assertTrue(check(pack, "block.minecraft.gold_block", "Gold Block").pass(), "a compound written as two words");
 		assertFalse(check(pack, "item.minecraft.apple", "Äpfel").pass(), "the plural, with an umlaut");
 		assertFalse(check(pack, "item.minecraft.apple", "Birne").pass());
 		assertFalse(check(pack, "block.minecraft.green_wool", "Rote Wolle").pass());

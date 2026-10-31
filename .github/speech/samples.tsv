@@ -182,7 +182,7 @@ vi_gold_block	block.minecraft.gold_block	Khối vàng	vi-VN-NamMinhNeural	pass	v
 vi_iron_ingot	item.minecraft.iron_ingot	Phôi sắt	vi-VN-HoaiMyNeural	pass	vi_vn
 vi_article	item.minecraft.apple	Quả táo	vi-VN-NamMinhNeural	pass	vi_vn
 vi_wrong_word	item.minecraft.apple	Chuối	vi-VN-HoaiMyNeural	fail	vi_vn
-vi_wrong_tone	item.minecraft.apple	Tào	vi-VN-NamMinhNeural	fail	vi_vn
+vi_wrong_tone	item.minecraft.apple	Tào	vi-VN-NamMinhNeural	fail-strict	vi_vn
 vi_wrong_colour	block.minecraft.green_wool	Len đỏ	vi-VN-HoaiMyNeural	fail	vi_vn
 de_apple	item.minecraft.apple	Apfel	de-DE-ConradNeural	pass	de_de
 de_dirt	block.minecraft.dirt	Erde	de-DE-KatjaNeural	pass	de_de

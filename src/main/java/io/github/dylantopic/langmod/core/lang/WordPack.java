@@ -9,11 +9,12 @@ import io.github.dylantopic.langmod.core.MatchMode;
 import io.github.dylantopic.langmod.core.Matcher.Status;
 
 /**
- * Languages written with spaces between words (Spanish, French, Russian, Dutch, Tagalog, Bosnian,
- * Portuguese): names are compared word by word, ignoring case, punctuation, apostrophes, accents
- * and an article in front ("la manzana" for Manzana, "l'arc" for Arc). A word that is spelled
- * differently but sounds the same still matches (see {@link WordRules#soundKey}). Russian names
- * are shown with a transliteration.
+ * Languages written with spaces between words (Spanish, French, Russian, Dutch, Latin, Tagalog,
+ * Bosnian, Portuguese, German): names are compared word by word, ignoring case, punctuation,
+ * apostrophes, accents and an article in front ("la manzana" for Manzana, "l'arc" for Arc). A word
+ * that is spelled differently but sounds the same still matches (see {@link WordRules#soundKey}),
+ * and so do words Whisper split or joined differently. Russian names are shown with a
+ * transliteration.
  */
 public final class WordPack implements LanguagePack {
 	private final Language language;
@@ -110,6 +111,12 @@ public final class WordPack implements LanguagePack {
 
 		int allowed = (mode == MatchMode.LENIENT && want.size() >= 4) || longName ? 1 : 0;
 		Alignment.Outcome outcome = Alignment.align(want.size(), compared.size(), (i, j) -> compare(want.get(i), compared.get(j)));
+
+		// Whisper split or joined the words differently: "zelenavuna" for Zelena Vuna, "pa na" for Pana, "a bóbora" for Abóbora.
+		if (outcome.errors() > allowed && !compared.isEmpty() && (sameJoined(want, compared) || sameJoined(want, heard))) {
+			outcome = Alignment.allMatch(want.size(), compared.size());
+		}
+
 		List<CheckResult.Token> tokens = new ArrayList<>();
 
 		for (int j = 0; j < heard.size(); j++) {
@@ -161,6 +168,11 @@ public final class WordPack implements LanguagePack {
 		}
 
 		return Status.WRONG;
+	}
+
+	/** Whether the words run together are the same letters or sound the same. */
+	private boolean sameJoined(List<String> want, List<String> heard) {
+		return compare(String.join("", want), String.join("", heard)) == Status.MATCH;
 	}
 
 	/** Lowercase, without apostrophes ("D'or" -> "dor"). */
