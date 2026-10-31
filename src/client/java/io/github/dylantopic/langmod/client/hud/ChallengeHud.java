@@ -295,6 +295,7 @@ public final class ChallengeHud {
 			case KOREAN -> "정답!";
 			case RUSSIAN -> "Правильно!";
 			case DUTCH -> "Goed zo!";
+			case LATIN -> "Recte!";
 			case FILIPINO -> "Tama!";
 			case JAPANESE -> "正解！";
 			case BOSNIAN -> "Tačno!";

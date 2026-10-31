@@ -77,6 +77,16 @@ public enum WordRules {
 			return s.replaceAll("(.)\\1+", "$1");
 		}
 	},
+	LATIN(List.of(), List.of("amara", "sottotitoli", "subtitles")) {
+		@Override
+		public String soundKey(String word) {
+			// Latin is said the classical or the church way, and its spelling has variants: ae/oe/e,
+			// v/b (and u), j/i, y/i, ph/f, th/t, ch/c/k/qu, a silent h.
+			String s = stripAccents(word).replace("ae", "e").replace("oe", "e").replace('v', 'b').replace('j', 'i').replace('y', 'i');
+			s = s.replace("ph", "f").replace("th", "t").replace("ch", "k").replace("qu", "k").replace('c', 'k').replace("x", "ks").replace("h", "");
+			return s.replaceAll("(.)\\1+", "$1");
+		}
+	},
 	FILIPINO(List.of("ang", "mga", "ng", "isang", "si"), List.of("salamat sa panonood", "mag-subscribe", "mag subscribe")) {
 		@Override
 		public String soundKey(String word) {
@@ -130,6 +140,7 @@ public enum WordRules {
 			case FRENCH -> FRENCH;
 			case RUSSIAN -> RUSSIAN;
 			case DUTCH -> DUTCH;
+			case LATIN -> LATIN;
 			case FILIPINO -> FILIPINO;
 			case BOSNIAN -> BOSNIAN;
 			case PORTUGUESE -> PORTUGUESE;

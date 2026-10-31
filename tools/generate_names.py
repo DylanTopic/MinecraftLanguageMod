@@ -38,7 +38,7 @@ CACHE_DIR = ROOT / "tools" / ".cache"
 VERSION_MANIFEST = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
 ASSET_SERVER = "https://resources.download.minecraft.net"
 ITEM_KEY = re.compile(r"^(item|block)\.minecraft\.[a-z0-9_]+$")
-LOCALES = "es_mx,fr_ca,ko_kr,ru_ru,nl_nl,pt_br,bs_ba,fil_ph,ja_jp"
+LOCALES = "es_mx,fr_ca,ko_kr,ru_ru,nl_nl,la_la,pt_br,bs_ba,fil_ph,ja_jp"
 SKIP_ENGLISH = {"ru_ru", "nl_nl", "pt_br", "bs_ba", "fil_ph", "ja_jp", "la_la"}
 
 

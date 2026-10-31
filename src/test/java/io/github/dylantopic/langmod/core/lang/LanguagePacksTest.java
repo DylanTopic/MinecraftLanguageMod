@@ -181,6 +181,19 @@ class LanguagePacksTest {
 	}
 
 	@Test
+	void latinAnswers() throws IOException {
+		LanguagePack pack = pack(Language.LATIN);
+		assertEquals("Malum", pack.name("item.minecraft.apple").orElseThrow().text());
+		assertTrue(check(pack, "item.minecraft.apple", "Malum.").exact());
+		assertTrue(check(pack, "block.minecraft.glass", "bitrum").pass(), "v said b");
+		assertTrue(check(pack, "block.minecraft.pumpkin", "kukurbita").pass(), "c written k");
+		assertTrue(check(pack, "item.minecraft.diamond_pickaxe", "dolabra adamantina").pass());
+		assertFalse(check(pack, "item.minecraft.apple", "Pirum").pass());
+		assertFalse(check(pack, "item.minecraft.apple", "Maluus").pass(), "malus is not malum");
+		assertFalse(check(pack, "block.minecraft.green_wool", "La na rubra").pass());
+	}
+
+	@Test
 	void portugueseAnswers() throws IOException {
 		LanguagePack pack = pack(Language.PORTUGUESE);
 		assertTrue(check(pack, "item.minecraft.apple", "A maçã!").pass(), "article in front");

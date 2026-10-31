@@ -16,6 +16,7 @@ public enum Language {
 	KOREAN("ko_kr", "ko", "Korean", "한국어", 2, "skip", "마인크래프트 아이템:", true),
 	RUSSIAN("ru_ru", "ru", "Russian", "Русский", 3, "skip", "Предметы Minecraft:", true),
 	DUTCH("nl_nl", "nl", "Dutch", "Nederlands", 2, "skip", "Minecraft-voorwerpen:", true),
+	LATIN("la_la", "la", "Latin", "Latina", 3, "skip", "Res Minecraft:", true),
 	FILIPINO("fil_ph", "tl", "Tagalog (Filipino)", "Tagalog", 3, "skip", "Mga item sa Minecraft:", true),
 	JAPANESE("ja_jp", "ja", "Japanese", "日本語", 12, "skip", "マインクラフトのアイテム：", true),
 	BOSNIAN("bs_ba", "bs", "Bosnian", "Bosanski", 3, "skip", "Predmeti iz Minecrafta:", true),

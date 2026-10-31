@@ -2,7 +2,7 @@
 
 A Fabric mod for Minecraft 26.1.2 that teaches a language through exposure: **Mandarin Chinese**
 (Simplified), **Spanish** (Mexico), **French** (Canada), **Korean**, **Russian**, **Dutch**,
-**Tagalog**, **Japanese**, **Bosnian** or **Portuguese** (Brazil). The first time you pick up an
+**Latin**, **Tagalog**, **Japanese**, **Bosnian** or **Portuguese** (Brazil). The first time you pick up an
 item type, you have to **say its name out loud** in the language you are learning before you get
 it. Speech recognition runs entirely on your computer with
 [whisper.cpp](https://github.com/ggml-org/whisper.cpp). Nothing is sent anywhere.
@@ -60,6 +60,7 @@ of the settings screen. You learn one language at a time:
 | Korean | `ko_kr` | more than 2 words: not challenged | Revised Romanization |
 | Russian | `ru_ru` | more than 3 words: not challenged | transliteration (Яблоко: Yabloko) |
 | Dutch | `nl_nl` | more than 2 words: not challenged | - |
+| Latin | `la_la` | more than 3 words: not challenged | - |
 | Tagalog | `fil_ph` | more than 3 words: not challenged | - |
 | Japanese | `ja_jp` | more than 12 characters: not challenged | reading and romaji (松明: たいまつ taimatsu) |
 | Bosnian | `bs_ba` | more than 3 words: not challenged | - |
@@ -70,8 +71,9 @@ of the settings screen. You learn one language at a time:
   words instead (Kandos, Asanorya).
 - Names a translation left in English are not challenged (151 in Bosnian, like "Cherry Door";
   a few loanwords such as "Lava" in the others), and neither is TNT.
-- Latin is not included: Minecraft has a Latin translation, but Whisper hardly recognises spoken
-  Latin (see [Measured accuracy](#measured-accuracy-and-speed)).
+- Whisper hardly understands Latin on its own, so in Latin it relies on prompt biasing (on by
+  default). It was measured with Italian voices, i.e. Latin as said in church; a classical
+  pronunciation may be recognised less well (see [Measured accuracy](#measured-accuracy-and-speed)).
 
 Singleplayer only for now. All game logic runs on the (integrated) server and the microphone and
 speech recognition on the client; they talk over Fabric networking, so multiplayer can be added
@@ -201,7 +203,7 @@ screen. The file can also be edited by hand (then run `/langmod reload`).
 
 | Setting (`langmod.json` key) | Default | Meaning |
 |---|---|---|
-| Learning (`language`) | `zh_cn` | `zh_cn`, `es_mx`, `fr_ca`, `ko_kr`, `ru_ru`, `nl_nl`, `fil_ph`, `ja_jp`, `bs_ba` or `pt_br`, see [Choosing a language](#choosing-a-language). |
+| Learning (`language`) | `zh_cn` | `zh_cn`, `es_mx`, `fr_ca`, `ko_kr`, `ru_ru`, `nl_nl`, `la_la`, `fil_ph`, `ja_jp`, `bs_ba` or `pt_br`, see [Choosing a language](#choosing-a-language). |
 | Challenges (`enabled`) | on | Master switch. Turning it off gives held items back. |
 | English name (`showEnglish`) | on | Show the English name in the popup. |
 | Attempts (`maxAttempts`) | 3 | Wrong answers before the item vanishes. |
@@ -263,7 +265,7 @@ slightly-off pronunciations to the word it expects from context, and sometimes w
 same-sounding word with other tones even when you said it right. Tone checking is therefore
 helpful but imperfect. If it gets in the way, use `toneless` matching.
 
-### Spanish, French, Russian, Dutch, Tagalog, Bosnian and Portuguese
+### Spanish, French, Russian, Dutch, Latin, Tagalog, Bosnian and Portuguese
 
 Names are compared word by word, and these differences are ignored:
 
@@ -279,6 +281,8 @@ Names are compared word by word, and these differences are ignored:
     for Pomme dorée);
   - in Russian: ё written as е, and voiced consonants at the end of a word ("хлеп" for Хлеб);
   - in Dutch: ij/ei, ou/au, a final d or t, g/ch, and a doubled vowel ("pompoeen" for Pompoen);
+  - in Latin, which is said the classical or the church way: ae/oe/e, v/b, j/i, y/i, ph/f, c/k/ch
+    and a silent h ("bitrum" for Vitrum, "kukurbita" for Cucurbita);
   - in Tagalog: e/i and o/u, "ja" for "diya" ("jamanteng piko"), and loan letters said the
     Tagalog way (c = k, f = p, v = b);
   - in Bosnian: č/ć, dž/đ, and a t dropped between n and s ("dijamanski kramp");
@@ -448,8 +452,8 @@ of 26.1.2 exist in every one of these languages.
 
 Your own fixes go in `config/langmod/names_<language>.json` (e.g. `names_es_mx.json`, created on
 first start, same format); run `/langmod reload` after editing. In the languages added later
-(Russian, Dutch, Tagalog, Japanese, Bosnian, Portuguese), names the translation left in English are
-left out. The Korean and Russian romanizations are worked out by the mod itself, so they need no
+(Russian, Dutch, Latin, Tagalog, Japanese, Bosnian, Portuguese), names the translation left in English
+are left out. The Korean and Russian romanizations are worked out by the mod itself, so they need no
 data.
 
 Japanese also needs the reading of every name: `tools/generate_japanese.py` works it out with

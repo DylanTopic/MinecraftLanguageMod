@@ -1,4 +1,4 @@
-# Speech samples for the speech CI check (.github/workflows/speech.yml).
+# Speech samples for the speech CI check (.github/workflows/speech.yml). The Latin ones are read by Italian voices (there is no Latin voice).
 # file	translation key the player is challenged with	text the TTS voice actually says	voice	what should happen	language
 apple	item.minecraft.apple	苹果	zh-CN-XiaoxiaoNeural	pass	zh_cn
 diamond	item.minecraft.diamond	钻石	zh-CN-YunxiNeural	pass	zh_cn
@@ -91,6 +91,21 @@ nl_article	item.minecraft.apple	De appel	nl-NL-MaartenNeural	pass	nl_nl
 nl_wrong_word	item.minecraft.apple	Peer	nl-NL-FennaNeural	fail	nl_nl
 nl_similar_word	item.minecraft.apple	Appels	nl-NL-MaartenNeural	fail	nl_nl
 nl_wrong_colour	block.minecraft.green_wool	Rode wol	nl-NL-FennaNeural	fail	nl_nl
+la_apple	item.minecraft.apple	Malum	it-IT-DiegoNeural	pass	la_la
+la_dirt	block.minecraft.dirt	Humus	it-IT-ElsaNeural	pass	la_la
+la_stick	item.minecraft.stick	Virga	it-IT-DiegoNeural	pass	la_la
+la_bread	item.minecraft.bread	Panis	it-IT-ElsaNeural	pass	la_la
+la_torch	block.minecraft.torch	Fax	it-IT-DiegoNeural	pass	la_la
+la_pumpkin	block.minecraft.pumpkin	Cucurbita	it-IT-ElsaNeural	pass	la_la
+la_bow	item.minecraft.bow	Arcus	it-IT-DiegoNeural	pass	la_la
+la_glass	block.minecraft.glass	Vitrum	it-IT-ElsaNeural	pass	la_la
+la_green_wool	block.minecraft.green_wool	Lana viridis	it-IT-DiegoNeural	pass	la_la
+la_diamond_pickaxe	item.minecraft.diamond_pickaxe	Dolabra adamantina	it-IT-ElsaNeural	pass	la_la
+la_gold_block	block.minecraft.gold_block	Cubus aureus	it-IT-DiegoNeural	pass	la_la
+la_iron_ingot	item.minecraft.iron_ingot	Later ferreus	it-IT-ElsaNeural	pass	la_la
+la_wrong_word	item.minecraft.apple	Pirum	it-IT-DiegoNeural	fail	la_la
+la_similar_word	item.minecraft.apple	Malus	it-IT-ElsaNeural	fail	la_la
+la_wrong_colour	block.minecraft.green_wool	Lana rubra	it-IT-DiegoNeural	fail	la_la
 fil_apple	item.minecraft.apple	Mansanas	fil-PH-AngeloNeural	pass	fil_ph
 fil_dirt	block.minecraft.dirt	Lupa	fil-PH-BlessicaNeural	pass	fil_ph
 fil_stick	item.minecraft.stick	Tungkod	fil-PH-AngeloNeural	pass	fil_ph
