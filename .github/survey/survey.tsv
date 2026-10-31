@@ -1,79 +1,25 @@
 # Survey of how well Whisper hears item names in languages LangMod might add (.github/workflows/survey.yml).
+# Earlier rounds covered Russian, Dutch, Latin, Tagalog, Japanese, Bosnian and Portuguese (all added since).
 # file	expected name if the voice says something else (- = the same)	text the voice says	voice	(unused)	Whisper language code
-ru_apple	-	Яблоко	ru-RU-DmitryNeural	-	ru
-ru_dirt	-	Земля	ru-RU-SvetlanaNeural	-	ru
-ru_bread	-	Хлеб	ru-RU-DmitryNeural	-	ru
-ru_torch	-	Факел	ru-RU-SvetlanaNeural	-	ru
-ru_pumpkin	-	Тыква	ru-RU-DmitryNeural	-	ru
-ru_glass	-	Стекло	ru-RU-SvetlanaNeural	-	ru
-ru_diamond_pickaxe	-	Алмазная кирка	ru-RU-DmitryNeural	-	ru
-ru_iron_ingot	-	Железный слиток	ru-RU-SvetlanaNeural	-	ru
-nl_apple	-	Appel	nl-NL-MaartenNeural	-	nl
-nl_dirt	-	Aarde	nl-NL-FennaNeural	-	nl
-nl_bread	-	Brood	nl-NL-MaartenNeural	-	nl
-nl_torch	-	Fakkel	nl-NL-FennaNeural	-	nl
-nl_pumpkin	-	Pompoen	nl-NL-MaartenNeural	-	nl
-nl_glass	-	Glas	nl-NL-FennaNeural	-	nl
-nl_diamond_pickaxe	-	Diamanten houweel	nl-NL-MaartenNeural	-	nl
-nl_iron_ingot	-	IJzerstaaf	nl-NL-FennaNeural	-	nl
-la_apple	-	Malum	it-IT-DiegoNeural	-	la
-la_dirt	-	Humus	it-IT-ElsaNeural	-	la
-la_bread	-	Panis	it-IT-DiegoNeural	-	la
-la_torch	-	Fax	it-IT-ElsaNeural	-	la
-la_pumpkin	-	Cucurbita	it-IT-DiegoNeural	-	la
-la_glass	-	Vitrum	it-IT-ElsaNeural	-	la
-la_diamond_pickaxe	-	Dolabra adamantina	it-IT-DiegoNeural	-	la
-la_iron_ingot	-	Later ferreus	it-IT-ElsaNeural	-	la
-tl_apple	-	Mansanas	fil-PH-AngeloNeural	-	tl
-tl_dirt	-	Lupa	fil-PH-BlessicaNeural	-	tl
-tl_bread	-	Tinapay	fil-PH-AngeloNeural	-	tl
-tl_torch	-	Sulo	fil-PH-BlessicaNeural	-	tl
-tl_pumpkin	-	Kalabasa	fil-PH-AngeloNeural	-	tl
-tl_glass	-	Salamin	fil-PH-BlessicaNeural	-	tl
-tl_diamond_pickaxe	-	Diyamanteng Piko	fil-PH-AngeloNeural	-	tl
-tl_iron_ingot	-	Linggote ng Bakal	fil-PH-BlessicaNeural	-	tl
-ja_apple	-	リンゴ	ja-JP-KeitaNeural	-	ja
-ja_dirt	-	土	ja-JP-NanamiNeural	-	ja
-ja_bread	-	パン	ja-JP-KeitaNeural	-	ja
-ja_torch	-	松明	ja-JP-NanamiNeural	-	ja
-ja_pumpkin	-	カボチャ	ja-JP-KeitaNeural	-	ja
-ja_glass	-	ガラス	ja-JP-NanamiNeural	-	ja
-ja_diamond_pickaxe	-	ダイヤモンドのツルハシ	ja-JP-KeitaNeural	-	ja
-ja_iron_ingot	-	鉄インゴット	ja-JP-NanamiNeural	-	ja
-bs_apple	-	Jabuka	bs-BA-GoranNeural	-	bs
-bs_dirt	-	Zemlja	bs-BA-VesnaNeural	-	bs
-bs_bread	-	Hljeb	bs-BA-GoranNeural	-	bs
-bs_torch	-	Baklja	bs-BA-VesnaNeural	-	bs
-bs_pumpkin	-	Bundeva	bs-BA-GoranNeural	-	bs
-bs_glass	-	Staklo	bs-BA-VesnaNeural	-	bs
-bs_diamond_pickaxe	-	Dijamantski kramp	bs-BA-GoranNeural	-	bs
-bs_iron_ingot	-	Gvozdena poluga	bs-BA-VesnaNeural	-	bs
-pt_apple	-	Maçã	pt-BR-AntonioNeural	-	pt
-pt_dirt	-	Terra	pt-BR-FranciscaNeural	-	pt
-pt_bread	-	Pão	pt-BR-AntonioNeural	-	pt
-pt_torch	-	Tocha	pt-BR-FranciscaNeural	-	pt
-pt_pumpkin	-	Abóbora	pt-BR-AntonioNeural	-	pt
-pt_glass	-	Vidro	pt-BR-FranciscaNeural	-	pt
-pt_diamond_pickaxe	-	Picareta de Diamante	pt-BR-AntonioNeural	-	pt
-pt_iron_ingot	-	Lingote de Ferro	pt-BR-FranciscaNeural	-	pt
-ru_wrong1	Яблоко	Груша	ru-RU-SvetlanaNeural	-	ru
-ru_wrong2	Яблоко	Яблоки	ru-RU-DmitryNeural	-	ru
-ru_wrong3	Зелёная шерсть	Красная шерсть	ru-RU-SvetlanaNeural	-	ru
-nl_wrong1	Appel	Peer	nl-NL-FennaNeural	-	nl
-nl_wrong2	Appel	Appels	nl-NL-MaartenNeural	-	nl
-nl_wrong3	Groene wol	Rode wol	nl-NL-FennaNeural	-	nl
-la_wrong1	Malum	Pirum	it-IT-ElsaNeural	-	la
-la_wrong2	Malum	Malus	it-IT-DiegoNeural	-	la
-la_wrong3	Lana viridis	Lana rubra	it-IT-ElsaNeural	-	la
-tl_wrong1	Mansanas	Saging	fil-PH-BlessicaNeural	-	tl
-tl_wrong2	Lupa	Luya	fil-PH-AngeloNeural	-	tl
-tl_wrong3	Berdeng Lana	Pulang Lana	fil-PH-BlessicaNeural	-	tl
-ja_wrong1	リンゴ	バナナ	ja-JP-NanamiNeural	-	ja
-ja_wrong2	リンゴ	リング	ja-JP-KeitaNeural	-	ja
-ja_wrong3	緑色の羊毛	赤色の羊毛	ja-JP-NanamiNeural	-	ja
-bs_wrong1	Jabuka	Kruška	bs-BA-VesnaNeural	-	bs
-bs_wrong2	Jabuka	Jabuke	bs-BA-GoranNeural	-	bs
-bs_wrong3	Zelena vuna	Crvena vuna	bs-BA-VesnaNeural	-	bs
-pt_wrong1	Maçã	Banana	pt-BR-FranciscaNeural	-	pt
-pt_wrong2	Maçã	Massa	pt-BR-AntonioNeural	-	pt
-pt_wrong3	Lã Verde	Lã Vermelha	pt-BR-FranciscaNeural	-	pt
+vi_apple	-	Táo	vi-VN-NamMinhNeural	-	vi
+vi_dirt	-	Đất	vi-VN-HoaiMyNeural	-	vi
+vi_bread	-	Bánh mì	vi-VN-NamMinhNeural	-	vi
+vi_torch	-	Đuốc	vi-VN-HoaiMyNeural	-	vi
+vi_pumpkin	-	Bí ngô	vi-VN-NamMinhNeural	-	vi
+vi_glass	-	Thủy tinh	vi-VN-HoaiMyNeural	-	vi
+vi_diamond_pickaxe	-	Cuốc chim kim cương	vi-VN-NamMinhNeural	-	vi
+vi_iron_ingot	-	Phôi sắt	vi-VN-HoaiMyNeural	-	vi
+vi_wrong1	Táo	Chuối	vi-VN-HoaiMyNeural	-	vi
+vi_wrong2	Táo	Tào	vi-VN-NamMinhNeural	-	vi
+vi_wrong3	Len xanh lá cây	Len đỏ	vi-VN-HoaiMyNeural	-	vi
+de_apple	-	Apfel	de-DE-ConradNeural	-	de
+de_dirt	-	Erde	de-DE-KatjaNeural	-	de
+de_bread	-	Brot	de-DE-ConradNeural	-	de
+de_torch	-	Fackel	de-DE-KatjaNeural	-	de
+de_pumpkin	-	Kürbis	de-DE-ConradNeural	-	de
+de_glass	-	Glas	de-DE-KatjaNeural	-	de
+de_diamond_pickaxe	-	Diamantspitzhacke	de-DE-ConradNeural	-	de
+de_iron_ingot	-	Eisenbarren	de-DE-KatjaNeural	-	de
+de_wrong1	Apfel	Birne	de-DE-KatjaNeural	-	de
+de_wrong2	Apfel	Äpfel	de-DE-ConradNeural	-	de
+de_wrong3	Grüne Wolle	Rote Wolle	de-DE-KatjaNeural	-	de
