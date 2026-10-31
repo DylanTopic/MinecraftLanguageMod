@@ -1,5 +1,5 @@
 # Survey of how well Whisper hears item names in languages LangMod might add (.github/workflows/survey.yml).
-# file	(unused)	text the voice says	voice	(unused)	Whisper language code
+# file	expected name if the voice says something else (- = the same)	text the voice says	voice	(unused)	Whisper language code
 ru_apple	-	Яблоко	ru-RU-DmitryNeural	-	ru
 ru_dirt	-	Земля	ru-RU-SvetlanaNeural	-	ru
 ru_bread	-	Хлеб	ru-RU-DmitryNeural	-	ru
@@ -56,3 +56,24 @@ pt_pumpkin	-	Abóbora	pt-BR-AntonioNeural	-	pt
 pt_glass	-	Vidro	pt-BR-FranciscaNeural	-	pt
 pt_diamond_pickaxe	-	Picareta de Diamante	pt-BR-AntonioNeural	-	pt
 pt_iron_ingot	-	Lingote de Ferro	pt-BR-FranciscaNeural	-	pt
+ru_wrong1	Яблоко	Груша	ru-RU-SvetlanaNeural	-	ru
+ru_wrong2	Яблоко	Яблоки	ru-RU-DmitryNeural	-	ru
+ru_wrong3	Зелёная шерсть	Красная шерсть	ru-RU-SvetlanaNeural	-	ru
+nl_wrong1	Appel	Peer	nl-NL-FennaNeural	-	nl
+nl_wrong2	Appel	Appels	nl-NL-MaartenNeural	-	nl
+nl_wrong3	Groene wol	Rode wol	nl-NL-FennaNeural	-	nl
+la_wrong1	Malum	Pirum	it-IT-ElsaNeural	-	la
+la_wrong2	Malum	Malus	it-IT-DiegoNeural	-	la
+la_wrong3	Lana viridis	Lana rubra	it-IT-ElsaNeural	-	la
+tl_wrong1	Mansanas	Saging	fil-PH-BlessicaNeural	-	tl
+tl_wrong2	Lupa	Luya	fil-PH-AngeloNeural	-	tl
+tl_wrong3	Berdeng Lana	Pulang Lana	fil-PH-BlessicaNeural	-	tl
+ja_wrong1	リンゴ	バナナ	ja-JP-NanamiNeural	-	ja
+ja_wrong2	リンゴ	リング	ja-JP-KeitaNeural	-	ja
+ja_wrong3	緑色の羊毛	赤色の羊毛	ja-JP-NanamiNeural	-	ja
+bs_wrong1	Jabuka	Kruška	bs-BA-VesnaNeural	-	bs
+bs_wrong2	Jabuka	Jabuke	bs-BA-GoranNeural	-	bs
+bs_wrong3	Zelena vuna	Crvena vuna	bs-BA-VesnaNeural	-	bs
+pt_wrong1	Maçã	Banana	pt-BR-FranciscaNeural	-	pt
+pt_wrong2	Maçã	Massa	pt-BR-AntonioNeural	-	pt
+pt_wrong3	Lã Verde	Lã Vermelha	pt-BR-FranciscaNeural	-	pt

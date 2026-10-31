@@ -23,6 +23,8 @@ import io.github.dylantopic.langmod.core.speech.WhisperModels;
  * Research tool: how well Whisper hears item names in languages LangMod does not support yet.
  * Transcribes .github/survey/survey.tsv without a prompt and with the expected name as prompt,
  * and counts transcripts equal to the name once case, accents, punctuation and kana type are ignored.
+ * Samples with a different expected name are wrong answers: there, a transcript equal to the
+ * expected name means a wrong answer would be accepted.
  *
  * <p>Usage: SpeechSurvey model.bin samples_dir threads
  */
@@ -35,6 +37,7 @@ public final class SpeechSurvey {
 		Path samples = Path.of(args[1]);
 		int threads = Integer.parseInt(args[2]);
 		Map<String, int[]> stats = new LinkedHashMap<>(); // language -> {plain ok, biased ok, total}
+		Map<String, int[]> wrongStats = new LinkedHashMap<>(); // language -> {plain accepted, biased accepted, total}
 
 		try (SpeechEngine engine = new WhisperJniEngine(model, threads, true, line -> { })) {
 			engine.load();
@@ -47,19 +50,22 @@ public final class SpeechSurvey {
 				String[] f = line.split("\t");
 				String file = f[0];
 				String text = f[2];
+				String expected = f[1].equals("-") ? text : f[1];
 				String code = f[5];
 				float[] audio = readWav(samples.resolve(file + ".wav"));
 				int context = WhisperModels.audioContext(audio.length, 512);
 				String plain = engine.transcribe(audio, new SpeechEngine.Request(code, null, context)).trim();
-				String biased = engine.transcribe(audio, new SpeechEngine.Request(code, text, context)).trim();
-				boolean plainOk = fold(plain).equals(fold(text));
-				boolean biasedOk = fold(biased).equals(fold(text));
-				int[] counts = stats.computeIfAbsent(code, key -> new int[3]);
-				counts[0] += plainOk ? 1 : 0;
-				counts[1] += biasedOk ? 1 : 0;
+				String biased = engine.transcribe(audio, new SpeechEngine.Request(code, expected, context)).trim();
+				boolean plainHit = fold(plain).equals(fold(expected));
+				boolean biasedHit = fold(biased).equals(fold(expected));
+				boolean wrongAnswer = !expected.equals(text);
+				int[] counts = (wrongAnswer ? wrongStats : stats).computeIfAbsent(code, key -> new int[3]);
+				counts[0] += plainHit ? 1 : 0;
+				counts[1] += biasedHit ? 1 : 0;
 				counts[2]++;
-				System.out.printf(Locale.ROOT, "%-20s want %-24s plain %-28s %s   biased %-28s %s%n", file, text, '"' + plain + '"',
-						plainOk ? "OK" : "--", '"' + biased + '"', biasedOk ? "OK" : "--");
+				String hit = wrongAnswer ? "ACCEPTED" : "OK";
+				System.out.printf(Locale.ROOT, "%-20s want %-24s said %-20s plain %-28s %s   biased %-28s %s%n", file, expected, text,
+						'"' + plain + '"', plainHit ? hit : "--", '"' + biased + '"', biasedHit ? hit : "--");
 			}
 		}
 
@@ -67,6 +73,14 @@ public final class SpeechSurvey {
 		System.out.println("language  same as the name: no prompt / expected name as prompt");
 
 		for (Map.Entry<String, int[]> entry : stats.entrySet()) {
+			int[] c = entry.getValue();
+			System.out.printf(Locale.ROOT, "%-8s  %d of %d / %d of %d%n", entry.getKey(), c[0], c[2], c[1], c[2]);
+		}
+
+		System.out.println();
+		System.out.println("language  wrong answers heard as the expected name: no prompt / expected name as prompt");
+
+		for (Map.Entry<String, int[]> entry : wrongStats.entrySet()) {
 			int[] c = entry.getValue();
 			System.out.printf(Locale.ROOT, "%-8s  %d of %d / %d of %d%n", entry.getKey(), c[0], c[2], c[1], c[2]);
 		}
