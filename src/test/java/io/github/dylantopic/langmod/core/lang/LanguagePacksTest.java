@@ -256,6 +256,9 @@ class LanguagePacksTest {
 		assertTrue(check(pack, "item.minecraft.apple", "Quả táo").pass(), "classifier in front");
 		assertTrue(check(pack, "item.minecraft.bread", "bánh mỳ").pass(), "i written y");
 		assertTrue(check(pack, "block.minecraft.glass", "thuỷ tinh").pass(), "tone mark on another vowel");
+		assertTrue(check(pack, "block.minecraft.dirt", "Đấc").pass(), "final t and c sound alike");
+		assertTrue(check(pack, "item.minecraft.iron_ingot", "Phôi sắp").pass(), "final t and p sound alike");
+		assertFalse(check(pack, "item.minecraft.apple", "Tàu").pass(), "another vowel and tone");
 
 		CheckResult wrongTone = check(pack, "item.minecraft.apple", "Tào");
 		assertFalse(wrongTone.pass());

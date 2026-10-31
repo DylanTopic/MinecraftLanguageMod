@@ -14,6 +14,8 @@ import io.github.dylantopic.langmod.core.Matcher.Status;
  * each syllable's tone is checked like a Mandarin one: the right letters with another tone mark is a
  * wrong tone, unless the match mode is toneless. Where a tone mark sits (hòa or hoà) and i or y
  * (kĩ or kỹ) do not matter, and a classifier in front ("quả táo", "cái bánh mì") is ignored.
+ * Final consonants that many speakers (and Whisper) do not tell apart count as the same: the
+ * unreleased stops -t, -c, -ch, -p (đất/đấc) and the nasals -n, -ng, -nh.
  */
 public final class VietnamesePack implements LanguagePack {
 	private static final List<String> CLASSIFIERS = List.of("quả", "trái", "cái", "con", "chiếc", "cục", "một", "những", "các");
@@ -29,8 +31,11 @@ public final class VietnamesePack implements LanguagePack {
 		this.names = names;
 	}
 
-	/** @param tone 0 for the level tone, otherwise 1 + the index of its mark in {@link #TONE_MARKS} */
-	record Syllable(String letters, int tone) {
+	/**
+	 * @param sound the letters with the final consonants that sound alike merged
+	 * @param tone 0 for the level tone, otherwise 1 + the index of its mark in {@link #TONE_MARKS}
+	 */
+	record Syllable(String letters, String sound, int tone) {
 	}
 
 	@Override
@@ -112,7 +117,7 @@ public final class VietnamesePack implements LanguagePack {
 		Syllable e = syllable(expected);
 		Syllable h = syllable(heard);
 
-		if (!e.letters().equals(h.letters())) {
+		if (!e.letters().equals(h.letters()) && !e.sound().equals(h.sound())) {
 			return Status.WRONG;
 		}
 
@@ -136,7 +141,7 @@ public final class VietnamesePack implements LanguagePack {
 
 		// A final y after a consonant is the same vowel as i (kỹ = kĩ, lý = lí).
 		String plain = Normalizer.normalize(letters, Normalizer.Form.NFC).replaceAll("^([bcdđghklmnpqrstvx]+)y$", "$1i");
-		return new Syllable(plain, tone);
+		return new Syllable(plain, plain.replaceAll("(ch|c|p|t)$", "K").replaceAll("(ng|nh|n)$", "N"), tone);
 	}
 
 	/** How many words at the start are classifiers not part of the name ("quả táo" for Táo). */

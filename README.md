@@ -307,6 +307,8 @@ Names are compared syllable by syllable, and the tone of each syllable is checke
 "Tào" for Táo has the right letters but the wrong tone, so it is underlined in orange and does not
 count (in `toneless` mode it does). Where the tone mark sits ("thuỷ" or "thủy") and i or y ("bánh
 mỳ" or "bánh mì") do not matter, and a classifier in front is fine ("quả táo", "cái bánh mì").
+Final consonants that many speakers, and Whisper, do not tell apart count as the same: -t, -c, -ch
+and -p ("Đấc" for Đất), and -n, -ng and -nh.
 
 ### Japanese
 
