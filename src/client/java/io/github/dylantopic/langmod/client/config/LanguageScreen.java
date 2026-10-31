@@ -21,6 +21,7 @@ import io.github.dylantopic.langmod.core.lang.Language;
 public class LanguageScreen extends Screen {
 	private static final int BUTTON_WIDTH = 240;
 	private static final int GAP = 8;
+	private static final int ROW = 24;
 	private static final int HINT_WIDTH = 300;
 	private static final int HINT_Y = 30;
 	private final Screen parent;
@@ -37,17 +38,19 @@ public class LanguageScreen extends Screen {
 		Language current = LangModConfig.get().languageEnum();
 		hint = this.font.split(Component.translatable("langmod.language.hint"), Math.min(HINT_WIDTH, this.width - 40));
 		Language[] languages = Language.values();
-		// More than five languages go in two columns, filled top to bottom.
-		int columns = languages.length > 5 ? 2 : 1;
+		// As many columns (filled top to bottom) as it takes to stay clear of the Done button.
+		int below = HINT_Y + hint.size() * lineHeight() + 8;
+		int rowsThatFit = Math.max(1, (this.height - 32 - below - 20) / ROW + 1);
+		int columns = Math.max(1, (languages.length + rowsThatFit - 1) / rowsThatFit);
 		int rows = (languages.length + columns - 1) / columns;
 		int buttonWidth = Math.min(BUTTON_WIDTH, (this.width - 40 - (columns - 1) * GAP) / columns);
 		int left = (this.width - columns * buttonWidth - (columns - 1) * GAP) / 2;
-		int top = Math.max(HINT_Y + hint.size() * lineHeight() + 8, this.height / 2 - rows * 12);
+		int top = Math.max(below, Math.min(this.height / 2 - rows * ROW / 2, this.height - 32 - (rows - 1) * ROW - 20));
 
 		for (int i = 0; i < languages.length; i++) {
 			Language language = languages[i];
 			int x = left + (i / rows) * (buttonWidth + GAP);
-			int y = top + (i % rows) * 24;
+			int y = top + (i % rows) * ROW;
 			this.addRenderableWidget(Button.builder(label(language, language == current, buttonWidth), button -> choose(language))
 					.pos(x, y).size(buttonWidth, 20).build());
 		}

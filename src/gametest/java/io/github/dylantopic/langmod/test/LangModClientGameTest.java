@@ -241,9 +241,8 @@ public class LangModClientGameTest implements FabricClientGameTest {
 			context.takeScreenshot("langmod-12-language-menu");
 			check(context.computeOnClient(minecraft -> {
 				List<Button> buttons = minecraft.screen.children().stream().filter(Button.class::isInstance).map(Button.class::cast).toList();
-				return buttons.size() == Language.values().length + 1 && buttons.stream().allMatch(button -> button.getX() >= 0 && button.getY() >= 0
-						&& button.getX() + button.getWidth() <= minecraft.screen.width && button.getY() + button.getHeight() <= minecraft.screen.height);
-			}), "the language menu shows every language and fits the screen");
+				return buttons.size() == Language.values().length + 1 && fitWithoutOverlap(List.<AbstractWidget>copyOf(buttons), minecraft.screen);
+			}), "the language menu shows every language, on screen and clear of each other and Done");
 			context.setScreen(() -> null);
 
 			// The "Learning" option of the settings screen switches language and reopens the screen for it.
@@ -319,11 +318,16 @@ public class LangModClientGameTest implements FabricClientGameTest {
 		List<AbstractWidget> widgets = Screens.getWidgets(screen).stream().filter(widget -> widget.visible).toList();
 		List<AbstractWidget> ours = widgets.stream()
 				.filter(widget -> hasKey(widget, GameMenuButtons.ITEMS) || hasKey(widget, GameMenuButtons.LANGUAGE)).toList();
+		return ours.size() == 2 && fitWithoutOverlap(ours, widgets, screen);
+	}
 
-		if (ours.size() != 2) {
-			return false;
-		}
+	/** Every widget is inside the screen and overlaps none of the others. */
+	private static boolean fitWithoutOverlap(List<AbstractWidget> widgets, Screen screen) {
+		return fitWithoutOverlap(widgets, widgets, screen);
+	}
 
+	/** Each of {@code ours} is inside the screen and overlaps none of {@code widgets}. */
+	private static boolean fitWithoutOverlap(List<AbstractWidget> ours, List<AbstractWidget> widgets, Screen screen) {
 		for (AbstractWidget a : ours) {
 			if (a.getX() < 0 || a.getY() < 0 || a.getX() + a.getWidth() > screen.width || a.getY() + a.getHeight() > screen.height) {
 				return false;
