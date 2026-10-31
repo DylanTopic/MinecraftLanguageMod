@@ -276,6 +276,9 @@ Names are compared word by word, and these differences are ignored:
 - An article in front of the name: "la manzana" or "una manzana" for Manzana, "une pomme",
   "l'arc" or "de la laine verte" for Pomme, Arc and Laine verte, "de appel", "ang mansanas",
   "a maçã". Saying the name without one is fine too.
+- Where the words are split. Whisper sometimes runs words together or splits one, which counts
+  when the letters, or how they sound, are the same: "Zelenavuna" for Zelena Vuna, "Gold Block"
+  for Goldblock, "pa na" for Pana.
 - Words spelled differently but pronounced the same. Whisper writes words, and when several
   spellings sound alike it picks one, so the mod compares how words sound:
   - in Spanish (as spoken in Mexico): b/v, s/z/soft c, ll/y, a silent h ("mansana" counts), and the
@@ -443,6 +446,11 @@ which Whisper heard as the expected "manzana".
 The samples are synthesised again on every run, so the counts can differ by one between runs. The
 test can be rerun with other settings from the Actions tab (workflow "speech", see the variants in
 `src/test/java/.../speech/SpeechCheck.java`).
+
+Before a language is added, the workflow "survey" checks whether Whisper hears it well enough: it
+has the names in `.github/survey/survey.tsv` read by neural voices and prints what Whisper wrote
+with and without the name as a hint, and whether wrong answers would slip through. Run it from the
+Actions tab; `MODEL` in `.github/workflows/survey.yml` picks the Whisper model.
 
 Synthesised speech is cleaner than a real microphone and a learner's accent, so expect somewhat
 worse results in the game. A desktop CPU is much faster than these 2-core runners: Whisper's time
