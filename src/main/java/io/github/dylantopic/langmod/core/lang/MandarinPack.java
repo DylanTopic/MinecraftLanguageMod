@@ -1,5 +1,6 @@
 package io.github.dylantopic.langmod.core.lang;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -85,6 +86,12 @@ public final class MandarinPack implements LanguagePack {
 		}
 
 		return false;
+	}
+
+	/** Characters have no alphabetical order, so Mandarin names are sorted by their pinyin. */
+	@Override
+	public String sortKey(NameEntry entry) {
+		return Normalizer.normalize(entry.pronunciation(), Normalizer.Form.NFD).replaceAll("\\p{M}+", "") + " " + entry.text();
 	}
 
 	@Override

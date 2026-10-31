@@ -3,12 +3,9 @@ package io.github.dylantopic.langmod;
 import java.util.EnumMap;
 import java.util.Map;
 
-import io.github.dylantopic.langmod.core.lang.KoreanPack;
 import io.github.dylantopic.langmod.core.lang.Language;
 import io.github.dylantopic.langmod.core.lang.LanguagePack;
 import io.github.dylantopic.langmod.core.lang.MandarinPack;
-import io.github.dylantopic.langmod.core.lang.WordPack;
-import io.github.dylantopic.langmod.core.lang.WordRules;
 
 /** The language packs (names, matching, pronunciation), loaded on first use and reloaded by /langmod reload. */
 public final class LanguagePacks {
@@ -27,11 +24,11 @@ public final class LanguagePacks {
 	}
 
 	private static LanguagePack load(Language language) {
-		return switch (language) {
-			case MANDARIN -> new MandarinPack(ModResources.loadItemDictionary(), TextData.get().normalizer(), TextData.get().readings());
-			case SPANISH -> new WordPack(language, WordRules.SPANISH, ModResources.loadNames(language));
-			case FRENCH -> new WordPack(language, WordRules.FRENCH, ModResources.loadNames(language));
-			case KOREAN -> new KoreanPack(ModResources.loadNames(language));
-		};
+		if (language == Language.MANDARIN) {
+			return new MandarinPack(ModResources.loadItemDictionary(), TextData.get().normalizer(), TextData.get().readings());
+		}
+
+		return LanguagePack.forNames(language, ModResources.loadNames(language),
+				language == Language.JAPANESE ? ModResources.loadJapaneseReadings() : Map.of());
 	}
 }

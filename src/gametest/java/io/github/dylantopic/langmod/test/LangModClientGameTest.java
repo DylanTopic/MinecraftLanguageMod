@@ -222,6 +222,19 @@ public class LangModClientGameTest implements FabricClientGameTest {
 			check(ClientChallenge.get().endOutcome() == ChallengeEndPayload.Outcome.CANCELLED, "switching language cancels the challenge");
 			waitUntil(context, "the dirt to come back", () -> count(singleplayer, uuid, Items.DIRT) == 5);
 
+			// Japanese: the reading and romaji are shown under a name in kanji, and an answer in kana counts.
+			selectLanguage(context, singleplayer, uuid, Language.JAPANESE);
+			drop(singleplayer, uuid, new ItemStack(Items.TORCH, 2));
+			waitForChallenge(context, "松明");
+			check("たいまつ  taimatsu".equals(context.computeOnClient(minecraft -> ClientChallenge.get().active().entry().pronunciation())),
+					"reading and romaji under 松明");
+			context.takeScreenshot("langmod-16-japanese-popup");
+			answer(context, speech, "たいまつ。");
+			context.waitFor(minecraft -> ClientChallenge.get().active() == null, 100);
+			check(ClientChallenge.get().endOutcome() == ChallengeEndPayload.Outcome.SUCCESS, "たいまつ is accepted for 松明");
+			check(data(singleplayer, uuid).isLearned(Language.JAPANESE, "minecraft:torch"), "torch learned in Japanese");
+			selectLanguage(context, singleplayer, uuid, Language.FRENCH);
+
 			// The language menu: one button per language plus Done, all on screen.
 			command(singleplayer, uuid, "langmod language");
 			context.waitFor(minecraft -> minecraft.screen instanceof LanguageScreen, 100);

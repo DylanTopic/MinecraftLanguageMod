@@ -49,6 +49,11 @@ public final class NameDictionary {
 		return names.size();
 	}
 
+	/** Every entry (used for files that map names to readings rather than keys to names). */
+	public Map<String, String> entries() {
+		return names;
+	}
+
 	public int overrideCount() {
 		return overrideCount;
 	}

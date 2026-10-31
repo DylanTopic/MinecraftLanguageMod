@@ -49,14 +49,24 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Every language without a prompt, with its generic prompt (the default) and with prompt
-          # biasing, all with the default 10 s window. Other variants (see SpeechCheck.VARIANTS) can
-          # be run from the Actions tab.
+          # Every language without a prompt, with its generic prompt and with prompt biasing, all
+          # with the default 10 s window, in three parallel jobs. Other variants (see
+          # SpeechCheck.VARIANTS) can be run from the Actions tab.
           - os: ubuntu-24.04
             variants: ctx512,mc512,biased512
-            samples: 100
+            languages: zh_cn,es_mx,fr_ca,ko_kr
+            samples: 500
+          - os: ubuntu-24.04
+            variants: ctx512,mc512,biased512
+            languages: ru_ru,nl_nl,fil_ph
+            samples: 500
+          - os: ubuntu-24.04
+            variants: ctx512,mc512,biased512
+            languages: ja_jp,bs_ba,pt_br
+            samples: 500
           - os: windows-2025
             variants: mc512
+            languages: all
             samples: 4
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
@@ -121,4 +131,4 @@ jobs:
           cat samples/engines.txt
           java -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 --enable-native-access=ALL-UNNAMED \
             -cp "out${SEP}libs/whisper-jni.jar${SEP}libs/gson.jar" \
-            io.github.dylantopic.langmod.speech.SpeechCheck models/ggml-$MODEL.bin samples 2 "$VARIANTS" ${{ matrix.samples }}
+            io.github.dylantopic.langmod.speech.SpeechCheck models/ggml-$MODEL.bin samples 2 "$VARIANTS" ${{ matrix.samples }} "${{ matrix.languages }}"

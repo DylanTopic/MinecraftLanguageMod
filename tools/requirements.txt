@@ -1,2 +1,5 @@
-# Build-time dependency of tools/generate_pinyin.py (not needed to build or run the mod).
+# Build-time dependencies of tools/generate_pinyin.py and tools/generate_japanese.py
+# (not needed to build or run the mod).
 pypinyin==0.55.0
+SudachiPy==0.7.0
+sudachidict-core==20261015

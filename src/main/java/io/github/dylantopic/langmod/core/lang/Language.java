@@ -13,7 +13,13 @@ public enum Language {
 	MANDARIN("zh_cn", "zh", "Mandarin Chinese", "中文", 4, "lenient", "我的世界物品：", false),
 	SPANISH("es_mx", "es", "Spanish (Mexico)", "Español (México)", 3, "skip", "Objetos de Minecraft:", true),
 	FRENCH("fr_ca", "fr", "French (Canada)", "Français (Canada)", 3, "skip", "Objets de Minecraft :", true),
-	KOREAN("ko_kr", "ko", "Korean", "한국어", 2, "skip", "마인크래프트 아이템:", true);
+	KOREAN("ko_kr", "ko", "Korean", "한국어", 2, "skip", "마인크래프트 아이템:", true),
+	RUSSIAN("ru_ru", "ru", "Russian", "Русский", 3, "skip", "Предметы Minecraft:", true),
+	DUTCH("nl_nl", "nl", "Dutch", "Nederlands", 2, "skip", "Minecraft-voorwerpen:", true),
+	FILIPINO("fil_ph", "tl", "Tagalog (Filipino)", "Tagalog", 3, "skip", "Mga item sa Minecraft:", true),
+	JAPANESE("ja_jp", "ja", "Japanese", "日本語", 12, "skip", "マインクラフトのアイテム：", true),
+	BOSNIAN("bs_ba", "bs", "Bosnian", "Bosanski", 3, "skip", "Predmeti iz Minecrafta:", true),
+	PORTUGUESE("pt_br", "pt", "Portuguese (Brazil)", "Português (Brasil)", 3, "skip", "Itens do Minecraft:", true);
 
 	private final String id;
 	private final String whisperCode;
@@ -93,14 +99,19 @@ public enum Language {
 		return this == MANDARIN;
 	}
 
-	/** What {@link #length} counts, for messages: "characters" or "words". */
-	public String lengthUnit() {
-		return this == MANDARIN ? "characters" : "words";
+	/** Mandarin and Japanese are written without spaces, so their names are measured in characters. */
+	public boolean countsCharacters() {
+		return this == MANDARIN || this == JAPANESE;
 	}
 
-	/** Length of a name for the long-name rule: characters for Mandarin, words otherwise. */
+	/** What {@link #length} counts, for messages: "characters" or "words". */
+	public String lengthUnit() {
+		return countsCharacters() ? "characters" : "words";
+	}
+
+	/** Length of a name for the long-name rule: characters for Mandarin and Japanese, words otherwise. */
 	public int length(String name) {
-		if (this == MANDARIN) {
+		if (countsCharacters()) {
 			return name.codePointCount(0, name.length());
 		}
 
@@ -110,14 +121,14 @@ public enum Language {
 
 	/**
 	 * The parts of a name that are compared one by one and marked right or wrong on screen:
-	 * characters for Mandarin, syllables for Korean (Latin letters and digits stay together),
-	 * words for Spanish and French (hyphens separate words too).
+	 * characters for Mandarin and Japanese, syllables for Korean (Latin letters and digits stay
+	 * together), words for the others (hyphens separate words too).
 	 */
 	public List<String> units(String text) {
 		List<String> units = new ArrayList<>();
 
 		switch (this) {
-			case MANDARIN -> text.codePoints().filter(cp -> !Character.isWhitespace(cp)).forEach(cp -> units.add(Character.toString(cp)));
+			case MANDARIN, JAPANESE -> text.codePoints().filter(cp -> !Character.isWhitespace(cp)).forEach(cp -> units.add(Character.toString(cp)));
 			case KOREAN -> {
 				StringBuilder run = new StringBuilder();
 

@@ -20,6 +20,7 @@ import io.github.dylantopic.langmod.core.lang.Language;
  */
 public class LanguageScreen extends Screen {
 	private static final int BUTTON_WIDTH = 240;
+	private static final int GAP = 8;
 	private static final int HINT_WIDTH = 300;
 	private static final int HINT_Y = 30;
 	private final Screen parent;
@@ -35,13 +36,20 @@ public class LanguageScreen extends Screen {
 	protected void init() {
 		Language current = LangModConfig.get().languageEnum();
 		hint = this.font.split(Component.translatable("langmod.language.hint"), Math.min(HINT_WIDTH, this.width - 40));
-		int x = (this.width - BUTTON_WIDTH) / 2;
-		int y = Math.max(HINT_Y + hint.size() * lineHeight() + 8, this.height / 2 - Language.values().length * 12);
+		Language[] languages = Language.values();
+		// More than five languages go in two columns, filled top to bottom.
+		int columns = languages.length > 5 ? 2 : 1;
+		int rows = (languages.length + columns - 1) / columns;
+		int buttonWidth = Math.min(BUTTON_WIDTH, (this.width - 40 - (columns - 1) * GAP) / columns);
+		int left = (this.width - columns * buttonWidth - (columns - 1) * GAP) / 2;
+		int top = Math.max(HINT_Y + hint.size() * lineHeight() + 8, this.height / 2 - rows * 12);
 
-		for (Language language : Language.values()) {
-			Component label = Component.literal((language == current ? "✔ " : "") + language.nativeName() + "  -  " + language.englishName());
-			this.addRenderableWidget(Button.builder(label, button -> choose(language)).pos(x, y).size(BUTTON_WIDTH, 20).build());
-			y += 24;
+		for (int i = 0; i < languages.length; i++) {
+			Language language = languages[i];
+			int x = left + (i / rows) * (buttonWidth + GAP);
+			int y = top + (i % rows) * 24;
+			this.addRenderableWidget(Button.builder(label(language, language == current, buttonWidth), button -> choose(language))
+					.pos(x, y).size(buttonWidth, 20).build());
 		}
 
 		this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> onClose())
@@ -63,6 +71,14 @@ public class LanguageScreen extends Screen {
 	@Override
 	public void onClose() {
 		this.minecraft.setScreen(parent);
+	}
+
+	/** "✔ Русский - Russian", or just the English name when both do not fit (or say the same). */
+	private Component label(Language language, boolean current, int width) {
+		String mark = current ? "✔ " : "";
+		String both = mark + language.nativeName() + "  -  " + language.englishName();
+		boolean same = language.englishName().startsWith(language.nativeName());
+		return Component.literal(!same && this.font.width(both) <= width - 8 ? both : mark + language.englishName());
 	}
 
 	private int lineHeight() {

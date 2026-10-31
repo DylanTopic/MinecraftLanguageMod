@@ -9,9 +9,11 @@ import io.github.dylantopic.langmod.core.MatchMode;
 import io.github.dylantopic.langmod.core.Matcher.Status;
 
 /**
- * Spanish and French: names are compared word by word, ignoring case, punctuation, apostrophes,
- * accents and an article in front ("la manzana" for Manzana, "l'arc" for Arc). A word that is
- * spelled differently but sounds the same still matches (see {@link WordRules#soundKey}).
+ * Languages written with spaces between words (Spanish, French, Russian, Dutch, Tagalog, Bosnian,
+ * Portuguese): names are compared word by word, ignoring case, punctuation, apostrophes, accents
+ * and an article in front ("la manzana" for Manzana, "l'arc" for Arc). A word that is spelled
+ * differently but sounds the same still matches (see {@link WordRules#soundKey}). Russian names
+ * are shown with a transliteration.
  */
 public final class WordPack implements LanguagePack {
 	private final Language language;
@@ -31,7 +33,7 @@ public final class WordPack implements LanguagePack {
 
 	@Override
 	public Optional<NameEntry> name(String translationKey) {
-		return names.get(translationKey).map(text -> new NameEntry(translationKey, text, ""));
+		return names.get(translationKey).map(text -> new NameEntry(translationKey, text, rules.romanize(text)));
 	}
 
 	@Override
@@ -77,7 +79,7 @@ public final class WordPack implements LanguagePack {
 
 	@Override
 	public String pronounce(String normalized) {
-		return "";
+		return rules.romanize(normalized);
 	}
 
 	@Override
@@ -111,7 +113,7 @@ public final class WordPack implements LanguagePack {
 		List<CheckResult.Token> tokens = new ArrayList<>();
 
 		for (int j = 0; j < heard.size(); j++) {
-			tokens.add(new CheckResult.Token(heard.get(j), "", j < articles ? Status.MATCH : outcome.heard()[j - articles]));
+			tokens.add(new CheckResult.Token(heard.get(j), rules.romanize(heard.get(j)), j < articles ? Status.MATCH : outcome.heard()[j - articles]));
 		}
 
 		boolean exact = compared.size() == want.size();
@@ -121,7 +123,7 @@ public final class WordPack implements LanguagePack {
 		}
 
 		boolean pass = !compared.isEmpty() && outcome.errors() <= allowed;
-		return new CheckResult(pass, exact, normalized, tokens, List.of(outcome.expected()), outcome.errors(), allowed, mode, "");
+		return new CheckResult(pass, exact, normalized, tokens, List.of(outcome.expected()), outcome.errors(), allowed, mode, pronounce(normalized));
 	}
 
 	/** How many words at the start are articles not part of the name ("de la" counts as two). */

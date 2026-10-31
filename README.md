@@ -1,9 +1,10 @@
 # LangMod
 
 A Fabric mod for Minecraft 26.1.2 that teaches a language through exposure: **Mandarin Chinese**
-(Simplified), **Spanish** (Mexico), **French** (Canada) or **Korean**. The first time you pick up
-an item type, you have to **say its name out loud** in the language you are learning before you
-get it. Speech recognition runs entirely on your computer with
+(Simplified), **Spanish** (Mexico), **French** (Canada), **Korean**, **Russian**, **Dutch**,
+**Tagalog**, **Japanese**, **Bosnian** or **Portuguese** (Brazil). The first time you pick up an
+item type, you have to **say its name out loud** in the language you are learning before you get
+it. Speech recognition runs entirely on your computer with
 [whisper.cpp](https://github.com/ggml-org/whisper.cpp). Nothing is sent anywhere.
 
 Item names are Minecraft's own translations (the ones you see when you switch the game to that
@@ -57,6 +58,20 @@ of the settings screen. You learn one language at a time:
 | Spanish (Mexico) | `es_mx` | more than 3 words: not challenged | - |
 | French (Canada) | `fr_ca` | more than 3 words: not challenged | - |
 | Korean | `ko_kr` | more than 2 words: not challenged | Revised Romanization |
+| Russian | `ru_ru` | more than 3 words: not challenged | transliteration (Яблоко: Yabloko) |
+| Dutch | `nl_nl` | more than 2 words: not challenged | - |
+| Tagalog | `fil_ph` | more than 3 words: not challenged | - |
+| Japanese | `ja_jp` | more than 12 characters: not challenged | reading and romaji (松明: たいまつ taimatsu) |
+| Bosnian | `bs_ba` | more than 3 words: not challenged | - |
+| Portuguese (Brazil) | `pt_br` | more than 3 words: not challenged | - |
+
+- Tagalog uses Minecraft's "Filipino" translation, the standard form of Tagalog with the words
+  people use every day (Kalabasa, Karot). Minecraft's "Tagalog" translation uses rare, purist
+  words instead (Kandos, Asanorya).
+- Names a translation left in English are not challenged (151 in Bosnian, like "Cherry Door";
+  a few loanwords such as "Lava" in the others), and neither is TNT.
+- Latin is not included: Minecraft has a Latin translation, but Whisper hardly recognises spoken
+  Latin (see [Measured accuracy](#measured-accuracy-and-speed)).
 
 Singleplayer only for now. All game logic runs on the (integrated) server and the microphone and
 speech recognition on the client; they talk over Fabric networking, so multiplayer can be added
@@ -186,7 +201,7 @@ screen. The file can also be edited by hand (then run `/langmod reload`).
 
 | Setting (`langmod.json` key) | Default | Meaning |
 |---|---|---|
-| Learning (`language`) | `zh_cn` | `zh_cn`, `es_mx`, `fr_ca` or `ko_kr`, see [Choosing a language](#choosing-a-language). |
+| Learning (`language`) | `zh_cn` | `zh_cn`, `es_mx`, `fr_ca`, `ko_kr`, `ru_ru`, `nl_nl`, `fil_ph`, `ja_jp`, `bs_ba` or `pt_br`, see [Choosing a language](#choosing-a-language). |
 | Challenges (`enabled`) | on | Master switch. Turning it off gives held items back. |
 | English name (`showEnglish`) | on | Show the English name in the popup. |
 | Attempts (`maxAttempts`) | 3 | Wrong answers before the item vanishes. |
@@ -248,26 +263,44 @@ slightly-off pronunciations to the word it expects from context, and sometimes w
 same-sounding word with other tones even when you said it right. Tone checking is therefore
 helpful but imperfect. If it gets in the way, use `toneless` matching.
 
-### Spanish and French
+### Spanish, French, Russian, Dutch, Tagalog, Bosnian and Portuguese
 
 Names are compared word by word, and these differences are ignored:
 
 - Capital letters, punctuation and accents: "azucar" counts for Azúcar, "baton" for Bâton.
 - An article in front of the name: "la manzana" or "una manzana" for Manzana, "une pomme",
-  "l'arc" or "de la laine verte" for Pomme, Arc and Laine verte. Saying the name without one is
-  fine too.
+  "l'arc" or "de la laine verte" for Pomme, Arc and Laine verte, "de appel", "ang mansanas",
+  "a maçã". Saying the name without one is fine too.
 - Words spelled differently but pronounced the same. Whisper writes words, and when several
   spellings sound alike it picks one, so the mod compares how words sound:
   - in Spanish (as spoken in Mexico): b/v, s/z/soft c, ll/y, a silent h ("mansana" counts), and the
     soft d between vowels, which Whisper sometimes writes as "th" ("bithrio" for Vidrio);
   - in French: silent endings, é/è/ê/ai and the like ("vert" or "vers" for Verre, "pomme doré"
-    for Pomme dorée).
+    for Pomme dorée);
+  - in Russian: ё written as е, and voiced consonants at the end of a word ("хлеп" for Хлеб);
+  - in Dutch: ij/ei, ou/au, a final d or t, g/ch, and a doubled vowel ("pompoeen" for Pompoen);
+  - in Tagalog: e/i and o/u, "ja" for "diya" ("jamanteng piko"), and loan letters said the
+    Tagalog way (c = k, f = p, v = b);
+  - in Bosnian: č/ć, dž/đ, and a t dropped between n and s ("dijamanski kramp");
+  - in Brazilian Portuguese: ç/ss/s/z, a final e/o said i/u, but nasal vowels count (Massa is not
+    Maçã).
 
 A missing, extra or different word is wrong: "manzanas" for Manzana, "laine vert" for Laine verte
-(the t of verte is pronounced), or "pan" for Pain (a different nasal vowel). The popup underlines the words of the name you did not say
-correctly. Matching modes: `strict` and `toneless` are the same here; with `lenient`, names of 4 or
-more words may have one wrong word. Names of more than 3 words are skipped by default (see "Long
-names").
+(the t of verte is pronounced), "pan" for Pain (a different nasal vowel), or "яблоки" for Яблоко.
+The popup underlines the words of the name you did not say correctly, and shows the Russian name
+and what Whisper heard in Latin letters too. Matching modes: `strict` and `toneless` are the same
+here; with `lenient`, names of 4 or more words may have one wrong word. Long names are skipped by
+default (see the table in [Choosing a language](#choosing-a-language)).
+
+### Japanese
+
+Names are compared character by character, with katakana and hiragana counting as the same, so
+"かぼちゃ" counts for カボチャ. For a name written with kanji, an answer in kana counts when it
+matches the name's reading: "たいまつ" or "タイマツ" for 松明. A long vowel mark or a small っ that
+Whisper leaves out or adds there is not counted ("てついんごと" for 鉄インゴット). A different word
+is wrong ("リング" for リンゴ, 赤色の羊毛 for 緑色の羊毛), and so is a word written with other kanji,
+because the mod only knows the readings of the item names. Under the name the popup shows its
+reading (for names with kanji) and romaji: 松明 たいまつ taimatsu.
 
 ### Korean
 
@@ -400,11 +433,11 @@ scales with the threads it gets (`whisperThreads`, auto = half your cores).
 ## Names and pinyin data
 
 No name is translated by hand: they are Minecraft's own translations from its language files
-(`zh_cn.json`, `es_mx.json`, `fr_ca.json` and `ko_kr.json`), looked up by translation key
-(`item.minecraft.apple` → 苹果, Manzana, Pomme, 사과). All 1715 item and block names of 26.1.2 exist
-in all four languages.
+(`zh_cn.json`, `es_mx.json`, `ja_jp.json`, ...), looked up by translation key
+(`item.minecraft.apple` → 苹果, Manzana, Pomme, 사과, Яблоко, リンゴ). All 1715 item and block names
+of 26.1.2 exist in every one of these languages.
 
-### Spanish, French and Korean
+### Every language but Mandarin
 
 `tools/generate_names.py` copies the item and block names into
 `src/main/resources/assets/langmod/names/<language>.json`, one per line:
@@ -413,24 +446,32 @@ in all four languages.
 "item.minecraft.apple": "Manzana",
 ```
 
-Your own fixes go in `config/langmod/names_es_mx.json`, `names_fr_ca.json` or `names_ko_kr.json`
-(created on first start, same format); run `/langmod reload` after editing. The Korean romanization
-is worked out by the mod itself, so it needs no data.
+Your own fixes go in `config/langmod/names_<language>.json` (e.g. `names_es_mx.json`, created on
+first start, same format); run `/langmod reload` after editing. In the languages added later
+(Russian, Dutch, Tagalog, Japanese, Bosnian, Portuguese), names the translation left in English are
+left out. The Korean and Russian romanizations are worked out by the mod itself, so they need no
+data.
 
-To regenerate (Python 3.10+, nothing to install):
+Japanese also needs the reading of every name: `tools/generate_japanese.py` works it out with
+[SudachiPy](https://github.com/WorksApplications/SudachiPy) and writes
+`src/main/resources/assets/langmod/names/ja_jp_kana.json` (name → reading in hiragana). Every name
+with kanji is listed with its reading in `tools/japanese_review.md`; corrections that should survive
+regeneration go in `tools/japanese_fixes.json`.
+
+To regenerate (Python 3.10+; the Japanese readings need `pip install -r tools/requirements.txt`):
 
 ```powershell
 python tools/generate_names.py
+python tools/generate_japanese.py
 ```
 
 By default the script downloads the language files for 26.1.2 from Mojang's servers (cached in
 `tools/.cache`); `--lang-dir` reads local copies instead. The bundled files were generated from the
 copies mirrored in
 [InventivetalentDev/minecraft-assets](https://github.com/InventivetalentDev/minecraft-assets/tree/26.1.2)
-(sha1 `ec1286e287ca210b507bf986875f49b4ac479d43` for `es_mx.json`,
-`6995ef81185678d50236ed38574bd82d0d0da83b` for `fr_ca.json`,
-`96a4223c3a3b05b6692a89a11b585480a821aa5b` for `ko_kr.json`), for the same reason as the pinyin
-below.
+(the script prints each file's sha1; for example `ec1286e287ca210b507bf986875f49b4ac479d43` for
+`es_mx.json` and `82ae51a68e114943fd95cc870643317dc02fe5e4` for `ja_jp.json`), for the same reason
+as the pinyin below.
 
 ### Mandarin pinyin
 
@@ -543,7 +584,7 @@ src/main/java/.../langmod/
 src/client/java/.../langmod/client/     microphone, speech service, popup and overlays, settings screen
 src/gametest/                           client game test (runClientGameTest)
 src/test/                               unit tests and the SpeechCheck tool used by CI
-tools/                                  name and pinyin generators, pinyin fixes and review list
+tools/                                  name, pinyin and Japanese reading generators, fixes and review lists
 ```
 
 ## Versions

@@ -29,15 +29,15 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 
 import io.github.dylantopic.langmod.LangModConfig;
 import io.github.dylantopic.langmod.LanguagePacks;
+import io.github.dylantopic.langmod.core.lang.JapaneseRomanizer;
 import io.github.dylantopic.langmod.core.lang.Language;
 import io.github.dylantopic.langmod.core.lang.LanguagePack;
-import io.github.dylantopic.langmod.core.lang.NameEntry;
 import io.github.dylantopic.langmod.net.LearnedItemsPayload;
 import io.github.dylantopic.langmod.net.LearnedItemsRequestPayload;
 
 /**
  * Every item that has a name in the language being learned, with its icon, in alphabetical order
- * (Mandarin by pinyin). Clicking an item turns it off: it is then picked up normally and never
+ * (Mandarin by pinyin, Japanese by reading). Clicking an item turns it off: it is then picked up normally and never
  * challenged. All items are on by default. Learned items are marked. Opened from the game menu
  * (Esc) or with {@code /langmod items}.
  */
@@ -194,7 +194,7 @@ public class ItemsScreen extends Screen {
 				String gameName = Component.translatable(key).getString();
 				String search = fold(String.join("\n", entry.text(), entry.pronunciation(), gameName, id));
 				boolean longName = language.length(entry.text()) > config.maxNameLength(language) && config.skipLongNames(language);
-				rows.add(new Row(id, new ItemStack(item), entry.text(), sortKey(language, entry), search, search.replace(" ", ""), longName));
+				rows.add(new Row(id, new ItemStack(item), entry.text(), pack.sortKey(entry), search, search.replace(" ", ""), longName));
 			});
 		}
 
@@ -203,14 +203,12 @@ public class ItemsScreen extends Screen {
 		return rows;
 	}
 
-	/** Characters have no alphabetical order, so Mandarin names are sorted by their pinyin. */
-	private static String sortKey(Language language, NameEntry entry) {
-		return language.tonal() ? fold(entry.pronunciation()) + " " + entry.text() : entry.text();
-	}
-
-	/** Lowercase without accents or tone marks, so "pina" finds piña and "pingguo" finds píng guǒ. */
+	/**
+	 * Lowercase without accents or tone marks, and katakana as hiragana, so "pina" finds piña,
+	 * "pingguo" finds píng guǒ and "りんご" finds リンゴ.
+	 */
 	private static String fold(String text) {
-		String plain = Normalizer.normalize(text.toLowerCase(Locale.ROOT), Normalizer.Form.NFD).replaceAll("\\p{M}+", "");
+		String plain = Normalizer.normalize(JapaneseRomanizer.toHiragana(text).toLowerCase(Locale.ROOT), Normalizer.Form.NFD).replaceAll("\\p{M}+", "");
 		return Normalizer.normalize(plain, Normalizer.Form.NFC);
 	}
 

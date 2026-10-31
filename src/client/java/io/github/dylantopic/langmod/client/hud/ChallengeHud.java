@@ -76,13 +76,15 @@ public final class ChallengeHud {
 
 		float nameScale = fitScale(font, entry.text(), config.hanziScale, graphics.guiWidth());
 		float pinyinScale = config.pinyinScale;
-		// Mandarin: pinyin coloured by tone; Korean: romanization; Spanish and French: nothing.
+		// Mandarin: pinyin coloured by tone; Korean and Russian: romanization; Japanese: reading and romaji;
+		// languages written in Latin letters: nothing. Long ones are shrunk to fit, like the name.
 		String romanization = language.tonal() || entry.pronunciation().isEmpty() ? null : entry.pronunciation();
+		float romanizationScale = romanization == null ? pinyinScale : fitScale(font, romanization, pinyinScale, graphics.guiWidth());
 		String english = config.showEnglish ? Component.translatable(active.translationKey()).getString() : null;
 
 		int nameWidth = Math.round(font.width(entry.text()) * nameScale);
 		int pronunciationWidth = language.tonal() ? Math.round(pinyinWidth(font, active.pinyin().syllables()) * pinyinScale)
-				: romanization == null ? 0 : Math.round(font.width(romanization) * pinyinScale);
+				: romanization == null ? 0 : Math.round(font.width(romanization) * romanizationScale);
 		int englishWidth = english == null ? 0 : font.width(english);
 		int textWidth = Math.max(nameWidth, Math.max(pronunciationWidth, englishWidth));
 
@@ -99,7 +101,8 @@ public final class ChallengeHud {
 
 		int width = Math.max(ICON + PAD + textWidth, Math.max(Math.max(footerWidth, heardWidth), Math.max(font.width(note), 170))) + 2 * PAD;
 		int nameHeight = Math.round(font.lineHeight * nameScale);
-		int pronunciationHeight = language.tonal() || romanization != null ? Math.round(font.lineHeight * pinyinScale) : 0;
+		int pronunciationHeight = language.tonal() ? Math.round(font.lineHeight * pinyinScale)
+				: romanization != null ? Math.round(font.lineHeight * romanizationScale) : 0;
 		int textHeight = nameHeight + (pronunciationHeight > 0 ? 3 + pronunciationHeight : 0) + (english == null ? 0 : 3 + font.lineHeight);
 		int headerHeight = Math.max(ICON, textHeight);
 		int resultHeight = (showHeard ? font.lineHeight + 3 : 0) + (note.isEmpty() ? 0 : font.lineHeight + 3);
@@ -135,7 +138,7 @@ public final class ChallengeHud {
 			drawPinyin(graphics, font, active.pinyin().syllables(), statuses, textX, textY, pinyinScale, config);
 			textY += pronunciationHeight + 3;
 		} else if (romanization != null) {
-			drawScaled(graphics, font, romanization, textX, textY, pinyinScale, ROMANIZATION);
+			drawScaled(graphics, font, romanization, textX, textY, romanizationScale, ROMANIZATION);
 			textY += pronunciationHeight + 3;
 		}
 
@@ -290,6 +293,12 @@ public final class ChallengeHud {
 			case SPANISH -> "¡Correcto!";
 			case FRENCH -> "Bravo !";
 			case KOREAN -> "정답!";
+			case RUSSIAN -> "Правильно!";
+			case DUTCH -> "Goed zo!";
+			case FILIPINO -> "Tama!";
+			case JAPANESE -> "正解！";
+			case BOSNIAN -> "Tačno!";
+			case PORTUGUESE -> "Correto!";
 		};
 	}
 

@@ -20,14 +20,11 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 import io.github.dylantopic.langmod.core.ItemDictionary;
 import io.github.dylantopic.langmod.core.MatchMode;
 import io.github.dylantopic.langmod.core.lang.CheckResult;
-import io.github.dylantopic.langmod.core.lang.KoreanPack;
 import io.github.dylantopic.langmod.core.lang.Language;
 import io.github.dylantopic.langmod.core.lang.LanguagePack;
 import io.github.dylantopic.langmod.core.lang.MandarinPack;
 import io.github.dylantopic.langmod.core.lang.NameDictionary;
 import io.github.dylantopic.langmod.core.lang.NameEntry;
-import io.github.dylantopic.langmod.core.lang.WordPack;
-import io.github.dylantopic.langmod.core.lang.WordRules;
 import io.github.dylantopic.langmod.core.speech.SpeechEngine;
 import io.github.dylantopic.langmod.core.speech.WhisperJniEngine;
 import io.github.dylantopic.langmod.core.speech.WhisperModels;
@@ -94,12 +91,14 @@ public final class SpeechCheck {
 		List<String> wanted = List.of((args.length > 3 ? args[3] : "plain,biased").split(","));
 		List<Variant> variants = VARIANTS.stream().filter(v -> wanted.contains(v.name())).toList();
 		int maxSamples = args.length > 4 ? Integer.parseInt(args[4]) : Integer.MAX_VALUE;
+		List<String> languages = args.length > 5 && !args[5].equals("all") ? List.of(args[5].split(",")) : null;
 		Map<Language, LanguagePack> packs = loadPacks();
 
 		System.out.printf(Locale.ROOT, "java %s on %s %s, %d cores%n", System.getProperty("java.version"),
 				System.getProperty("os.name"), System.getProperty("os.arch"), Runtime.getRuntime().availableProcessors());
 		long start = System.nanoTime();
 		List<Sample> manifest = readManifest(samples.resolve("samples.tsv"));
+		manifest = manifest.stream().filter(sample -> languages == null || languages.contains(sample.language().id())).toList();
 		manifest = manifest.subList(0, Math.min(maxSamples, manifest.size()));
 		Map<String, int[]> stats = new LinkedHashMap<>(); // "variant language" -> {as expected, total, total ms}
 		List<String> surprises = new ArrayList<>();
@@ -165,14 +164,17 @@ public final class SpeechCheck {
 					new TextNormalizer(ChineseConverter.load(phrases, characters)), CharReadings.load(chars)));
 		}
 
-		for (Language language : List.of(Language.SPANISH, Language.FRENCH, Language.KOREAN)) {
-			try (Reader names = reader(ASSETS.resolve("names/" + language.id() + ".json"))) {
-				NameDictionary dictionary = NameDictionary.load(names, null, System.err::println);
-				packs.put(language, switch (language) {
-					case SPANISH -> new WordPack(language, WordRules.SPANISH, dictionary);
-					case FRENCH -> new WordPack(language, WordRules.FRENCH, dictionary);
-					default -> new KoreanPack(dictionary);
-				});
+		Map<String, String> kana;
+
+		try (Reader readings = reader(ASSETS.resolve("names/ja_jp_kana.json"))) {
+			kana = NameDictionary.load(readings, null, System.err::println).entries();
+		}
+
+		for (Language language : Language.values()) {
+			if (language != Language.MANDARIN) {
+				try (Reader names = reader(ASSETS.resolve("names/" + language.id() + ".json"))) {
+					packs.put(language, LanguagePack.forNames(language, NameDictionary.load(names, null, System.err::println), kana));
+				}
 			}
 		}
 

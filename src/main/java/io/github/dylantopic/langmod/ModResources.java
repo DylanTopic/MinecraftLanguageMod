@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
 import net.fabricmc.loader.api.FabricLoader;
 
@@ -41,7 +42,17 @@ public final class ModResources {
 		return LangModConfig.directory().resolve("names_" + language.id() + ".json");
 	}
 
-	/** Loads the bundled names of a language (Spanish, French, Korean) merged with the user's override file. */
+	/** Japanese name -> its reading in hiragana (from tools/generate_japanese.py). */
+	public static Map<String, String> loadJapaneseReadings() {
+		try (BufferedReader readings = open("assets/langmod/names/ja_jp_kana.json")) {
+			return NameDictionary.load(readings, null, LangMod.LOGGER::warn).entries();
+		} catch (IOException | RuntimeException e) {
+			LangMod.LOGGER.error("Could not load the Japanese readings; names are shown and checked without them", e);
+			return Map.of();
+		}
+	}
+
+	/** Loads the bundled names of a language other than Mandarin merged with the user's override file. */
 	public static NameDictionary loadNames(Language language) {
 		Path overrides = namesOverridesFile(language);
 		createTemplate(overrides, """

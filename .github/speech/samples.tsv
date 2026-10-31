@@ -60,3 +60,96 @@ ko_gold_block	block.minecraft.gold_block	금 블록	ko-KR-SunHiNeural	pass	ko_kr
 ko_wrong_word	item.minecraft.apple	바나나	ko-KR-InJoonNeural	fail	ko_kr
 ko_similar_word	item.minecraft.apple	사고	ko-KR-SunHiNeural	fail	ko_kr
 ko_wrong_colour	block.minecraft.green_wool	빨간색 양털	ko-KR-InJoonNeural	fail	ko_kr
+ru_apple	item.minecraft.apple	Яблоко	ru-RU-DmitryNeural	pass	ru_ru
+ru_dirt	block.minecraft.dirt	Земля	ru-RU-SvetlanaNeural	pass	ru_ru
+ru_stick	item.minecraft.stick	Палка	ru-RU-DmitryNeural	pass	ru_ru
+ru_bread	item.minecraft.bread	Хлеб	ru-RU-SvetlanaNeural	pass	ru_ru
+ru_torch	block.minecraft.torch	Факел	ru-RU-DmitryNeural	pass	ru_ru
+ru_pumpkin	block.minecraft.pumpkin	Тыква	ru-RU-SvetlanaNeural	pass	ru_ru
+ru_bow	item.minecraft.bow	Лук	ru-RU-DmitryNeural	pass	ru_ru
+ru_glass	block.minecraft.glass	Стекло	ru-RU-SvetlanaNeural	pass	ru_ru
+ru_green_wool	block.minecraft.green_wool	Зелёная шерсть	ru-RU-DmitryNeural	pass	ru_ru
+ru_diamond_pickaxe	item.minecraft.diamond_pickaxe	Алмазная кирка	ru-RU-SvetlanaNeural	pass	ru_ru
+ru_gold_block	block.minecraft.gold_block	Золотой блок	ru-RU-DmitryNeural	pass	ru_ru
+ru_iron_ingot	item.minecraft.iron_ingot	Железный слиток	ru-RU-SvetlanaNeural	pass	ru_ru
+ru_wrong_word	item.minecraft.apple	Груша	ru-RU-DmitryNeural	fail	ru_ru
+ru_similar_word	item.minecraft.apple	Яблоки	ru-RU-SvetlanaNeural	fail	ru_ru
+ru_wrong_colour	block.minecraft.green_wool	Красная шерсть	ru-RU-DmitryNeural	fail	ru_ru
+nl_apple	item.minecraft.apple	Appel	nl-NL-MaartenNeural	pass	nl_nl
+nl_dirt	block.minecraft.dirt	Aarde	nl-NL-FennaNeural	pass	nl_nl
+nl_stick	item.minecraft.stick	Stok	nl-NL-MaartenNeural	pass	nl_nl
+nl_bread	item.minecraft.bread	Brood	nl-NL-FennaNeural	pass	nl_nl
+nl_torch	block.minecraft.torch	Fakkel	nl-NL-MaartenNeural	pass	nl_nl
+nl_pumpkin	block.minecraft.pumpkin	Pompoen	nl-NL-FennaNeural	pass	nl_nl
+nl_bow	item.minecraft.bow	Boog	nl-NL-MaartenNeural	pass	nl_nl
+nl_glass	block.minecraft.glass	Glas	nl-NL-FennaNeural	pass	nl_nl
+nl_green_wool	block.minecraft.green_wool	Groene wol	nl-NL-MaartenNeural	pass	nl_nl
+nl_diamond_pickaxe	item.minecraft.diamond_pickaxe	Diamanten houweel	nl-NL-FennaNeural	pass	nl_nl
+nl_gold_block	block.minecraft.gold_block	Goudblok	nl-NL-MaartenNeural	pass	nl_nl
+nl_iron_ingot	item.minecraft.iron_ingot	IJzerstaaf	nl-NL-FennaNeural	pass	nl_nl
+nl_article	item.minecraft.apple	De appel	nl-NL-MaartenNeural	pass	nl_nl
+nl_wrong_word	item.minecraft.apple	Peer	nl-NL-FennaNeural	fail	nl_nl
+nl_similar_word	item.minecraft.apple	Appels	nl-NL-MaartenNeural	fail	nl_nl
+nl_wrong_colour	block.minecraft.green_wool	Rode wol	nl-NL-FennaNeural	fail	nl_nl
+fil_apple	item.minecraft.apple	Mansanas	fil-PH-AngeloNeural	pass	fil_ph
+fil_dirt	block.minecraft.dirt	Lupa	fil-PH-BlessicaNeural	pass	fil_ph
+fil_stick	item.minecraft.stick	Tungkod	fil-PH-AngeloNeural	pass	fil_ph
+fil_bread	item.minecraft.bread	Tinapay	fil-PH-BlessicaNeural	pass	fil_ph
+fil_torch	block.minecraft.torch	Sulo	fil-PH-AngeloNeural	pass	fil_ph
+fil_pumpkin	block.minecraft.pumpkin	Kalabasa	fil-PH-BlessicaNeural	pass	fil_ph
+fil_bow	item.minecraft.bow	Pana	fil-PH-AngeloNeural	pass	fil_ph
+fil_glass	block.minecraft.glass	Salamin	fil-PH-BlessicaNeural	pass	fil_ph
+fil_green_wool	block.minecraft.green_wool	Berdeng Lana	fil-PH-AngeloNeural	pass	fil_ph
+fil_diamond_pickaxe	item.minecraft.diamond_pickaxe	Diyamanteng Piko	fil-PH-BlessicaNeural	pass	fil_ph
+fil_gold_block	block.minecraft.gold_block	Bloke ng Ginto	fil-PH-AngeloNeural	pass	fil_ph
+fil_iron_ingot	item.minecraft.iron_ingot	Linggote ng Bakal	fil-PH-BlessicaNeural	pass	fil_ph
+fil_article	item.minecraft.apple	Ang mansanas	fil-PH-AngeloNeural	pass	fil_ph
+fil_wrong_word	item.minecraft.apple	Saging	fil-PH-BlessicaNeural	fail	fil_ph
+fil_similar_word	block.minecraft.dirt	Luya	fil-PH-AngeloNeural	fail	fil_ph
+fil_wrong_colour	block.minecraft.green_wool	Pulang Lana	fil-PH-BlessicaNeural	fail	fil_ph
+ja_apple	item.minecraft.apple	リンゴ	ja-JP-KeitaNeural	pass	ja_jp
+ja_dirt	block.minecraft.dirt	土	ja-JP-NanamiNeural	pass	ja_jp
+ja_stick	item.minecraft.stick	棒	ja-JP-KeitaNeural	pass	ja_jp
+ja_bread	item.minecraft.bread	パン	ja-JP-NanamiNeural	pass	ja_jp
+ja_torch	block.minecraft.torch	松明	ja-JP-KeitaNeural	pass	ja_jp
+ja_pumpkin	block.minecraft.pumpkin	カボチャ	ja-JP-NanamiNeural	pass	ja_jp
+ja_bow	item.minecraft.bow	弓	ja-JP-KeitaNeural	pass	ja_jp
+ja_glass	block.minecraft.glass	ガラス	ja-JP-NanamiNeural	pass	ja_jp
+ja_green_wool	block.minecraft.green_wool	緑色の羊毛	ja-JP-KeitaNeural	pass	ja_jp
+ja_diamond_pickaxe	item.minecraft.diamond_pickaxe	ダイヤモンドのツルハシ	ja-JP-NanamiNeural	pass	ja_jp
+ja_gold_block	block.minecraft.gold_block	金ブロック	ja-JP-KeitaNeural	pass	ja_jp
+ja_iron_ingot	item.minecraft.iron_ingot	鉄インゴット	ja-JP-NanamiNeural	pass	ja_jp
+ja_wrong_word	item.minecraft.apple	バナナ	ja-JP-KeitaNeural	fail	ja_jp
+ja_similar_word	item.minecraft.apple	リング	ja-JP-NanamiNeural	fail	ja_jp
+ja_wrong_colour	block.minecraft.green_wool	赤色の羊毛	ja-JP-KeitaNeural	fail	ja_jp
+bs_apple	item.minecraft.apple	Jabuka	bs-BA-GoranNeural	pass	bs_ba
+bs_dirt	block.minecraft.dirt	Zemlja	bs-BA-VesnaNeural	pass	bs_ba
+bs_stick	item.minecraft.stick	Štap	bs-BA-GoranNeural	pass	bs_ba
+bs_bread	item.minecraft.bread	Hljeb	bs-BA-VesnaNeural	pass	bs_ba
+bs_torch	block.minecraft.torch	Baklja	bs-BA-GoranNeural	pass	bs_ba
+bs_pumpkin	block.minecraft.pumpkin	Bundeva	bs-BA-VesnaNeural	pass	bs_ba
+bs_bow	item.minecraft.bow	Luk	bs-BA-GoranNeural	pass	bs_ba
+bs_glass	block.minecraft.glass	Staklo	bs-BA-VesnaNeural	pass	bs_ba
+bs_green_wool	block.minecraft.green_wool	Zelena Vuna	bs-BA-GoranNeural	pass	bs_ba
+bs_diamond_pickaxe	item.minecraft.diamond_pickaxe	Dijamantski kramp	bs-BA-VesnaNeural	pass	bs_ba
+bs_gold_block	block.minecraft.gold_block	Blok zlata	bs-BA-GoranNeural	pass	bs_ba
+bs_iron_ingot	item.minecraft.iron_ingot	Gvozdena poluga	bs-BA-VesnaNeural	pass	bs_ba
+bs_wrong_word	item.minecraft.apple	Kruška	bs-BA-GoranNeural	fail	bs_ba
+bs_similar_word	item.minecraft.apple	Jabuke	bs-BA-VesnaNeural	fail	bs_ba
+bs_wrong_colour	block.minecraft.green_wool	Crvena vuna	bs-BA-GoranNeural	fail	bs_ba
+pt_apple	item.minecraft.apple	Maçã	pt-BR-AntonioNeural	pass	pt_br
+pt_dirt	block.minecraft.dirt	Terra	pt-BR-FranciscaNeural	pass	pt_br
+pt_stick	item.minecraft.stick	Graveto	pt-BR-AntonioNeural	pass	pt_br
+pt_bread	item.minecraft.bread	Pão	pt-BR-FranciscaNeural	pass	pt_br
+pt_torch	block.minecraft.torch	Tocha	pt-BR-AntonioNeural	pass	pt_br
+pt_pumpkin	block.minecraft.pumpkin	Abóbora	pt-BR-FranciscaNeural	pass	pt_br
+pt_bow	item.minecraft.bow	Arco	pt-BR-AntonioNeural	pass	pt_br
+pt_glass	block.minecraft.glass	Vidro	pt-BR-FranciscaNeural	pass	pt_br
+pt_green_wool	block.minecraft.green_wool	Lã Verde	pt-BR-AntonioNeural	pass	pt_br
+pt_diamond_pickaxe	item.minecraft.diamond_pickaxe	Picareta de Diamante	pt-BR-FranciscaNeural	pass	pt_br
+pt_gold_block	block.minecraft.gold_block	Bloco de Ouro	pt-BR-AntonioNeural	pass	pt_br
+pt_iron_ingot	item.minecraft.iron_ingot	Lingote de Ferro	pt-BR-FranciscaNeural	pass	pt_br
+pt_article	item.minecraft.apple	A maçã	pt-BR-AntonioNeural	pass	pt_br
+pt_wrong_word	item.minecraft.apple	Banana	pt-BR-FranciscaNeural	fail	pt_br
+pt_similar_word	item.minecraft.apple	Massa	pt-BR-AntonioNeural	fail	pt_br
+pt_wrong_colour	block.minecraft.green_wool	Lã Vermelha	pt-BR-FranciscaNeural	fail	pt_br
