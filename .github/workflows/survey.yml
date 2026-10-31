@@ -35,7 +35,9 @@ jobs:
   survey:
     needs: samples
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 40
+    env:
+      MODEL: medium
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-java@v5
@@ -50,12 +52,12 @@ jobs:
         uses: actions/cache@v6
         with:
           path: models
-          key: whisper-ggml-small-v1
+          key: whisper-ggml-${{ env.MODEL }}-v1
       - name: download whisper model and libraries
         run: |
           mkdir -p models libs
-          if [ ! -f models/ggml-small.bin ]; then
-            curl -sSfL -o models/ggml-small.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin
+          if [ ! -f models/ggml-$MODEL.bin ]; then
+            curl -sSfL -o models/ggml-$MODEL.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-$MODEL.bin
           fi
           M=https://repo1.maven.org/maven2
           curl -sSfL -o libs/whisper-jni.jar $M/io/github/givimad/whisper-jni/1.7.1/whisper-jni-1.7.1.jar
@@ -68,4 +70,4 @@ jobs:
       - name: transcribe
         run: |
           java -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 --enable-native-access=ALL-UNNAMED \
-            -cp "out:libs/whisper-jni.jar:libs/gson.jar" io.github.dylantopic.langmod.survey.SpeechSurvey models/ggml-small.bin samples 2
+            -cp "out:libs/whisper-jni.jar:libs/gson.jar" io.github.dylantopic.langmod.survey.SpeechSurvey models/ggml-$MODEL.bin samples 2

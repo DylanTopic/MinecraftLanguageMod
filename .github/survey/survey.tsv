@@ -1,5 +1,5 @@
 # Survey of how well Whisper hears item names in languages LangMod might add (.github/workflows/survey.yml).
-# Earlier rounds covered Russian, Dutch, Latin, Tagalog, Japanese, Bosnian and Portuguese (all added since).
+# Earlier rounds (small model) covered Russian, Dutch, Latin, Tagalog, Japanese, Bosnian, Portuguese, Vietnamese and German. This one: Vietnamese with the medium model.
 # file	expected name if the voice says something else (- = the same)	text the voice says	voice	(unused)	Whisper language code
 vi_apple	-	Táo	vi-VN-NamMinhNeural	-	vi
 vi_dirt	-	Đất	vi-VN-HoaiMyNeural	-	vi
@@ -12,14 +12,3 @@ vi_iron_ingot	-	Phôi sắt	vi-VN-HoaiMyNeural	-	vi
 vi_wrong1	Táo	Chuối	vi-VN-HoaiMyNeural	-	vi
 vi_wrong2	Táo	Tào	vi-VN-NamMinhNeural	-	vi
 vi_wrong3	Len xanh lá cây	Len đỏ	vi-VN-HoaiMyNeural	-	vi
-de_apple	-	Apfel	de-DE-ConradNeural	-	de
-de_dirt	-	Erde	de-DE-KatjaNeural	-	de
-de_bread	-	Brot	de-DE-ConradNeural	-	de
-de_torch	-	Fackel	de-DE-KatjaNeural	-	de
-de_pumpkin	-	Kürbis	de-DE-ConradNeural	-	de
-de_glass	-	Glas	de-DE-KatjaNeural	-	de
-de_diamond_pickaxe	-	Diamantspitzhacke	de-DE-ConradNeural	-	de
-de_iron_ingot	-	Eisenbarren	de-DE-KatjaNeural	-	de
-de_wrong1	Apfel	Birne	de-DE-KatjaNeural	-	de
-de_wrong2	Apfel	Äpfel	de-DE-ConradNeural	-	de
-de_wrong3	Grüne Wolle	Rote Wolle	de-DE-KatjaNeural	-	de
