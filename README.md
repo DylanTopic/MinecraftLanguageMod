@@ -443,6 +443,35 @@ heard as 흠, 호박 as 호바, 활 as 할, Pan as "Ban" or "Ben", Arc as "Art",
 "une pomme", where Whisper wrote "In" for the article. The one wrong answer accepted was "mañana",
 which Whisper heard as the expected "manzana".
 
+**The languages added later:** 15 or 16 samples per language, read by a male and a female voice
+from the country (Latin by two Italian voices, as there is no Latin one: the church
+pronunciation), with 3 wrong answers each: a wrong word, a similar word (Яблоки for Яблоко, Appels,
+Malus, Luya for Lupa, リング for リンゴ, Jabuke, Massa for Maçã, Äpfel for Apfel; in Vietnamese the
+wrong tone, Tào for Táo) and a wrong colour. Every wrong answer was rejected, in every language and
+with every prompt. Correct names accepted, with the 10 s window (2 to 3 s per answer):
+
+| Language | No prompt | "Minecraft items:" | **Expected word (biasing, default)** |
+|---|---|---|---|
+| Russian | 10 of 12 | 9 of 12 | **12 of 12** |
+| Dutch | 7 of 13 | 7 of 13 | **10 of 13** |
+| Latin | 6 of 12 | 9 of 12 | **10 of 12** |
+| Tagalog | 9 of 13 | 10 of 13 | **10 of 13** |
+| Japanese | 7 of 12 | 8 of 12 | **12 of 12** |
+| Bosnian | 5 of 12 | 6 of 12 | **8 of 12** |
+| Portuguese (Brazil) | 6 of 13 | 6 of 13 | **11 of 13** |
+| Vietnamese | 4 of 13 | 5 of 13 | **8 of 13** |
+| German | 8 of 13 | 8 of 13 | **12 of 13** |
+
+Without biasing, Whisper often wrote something that sounds similar: "ḍmose" for Humus and
+"Australis" for Cucurbita, 意味 (imi) for 弓 (yumi), "Massa" for Maçã and "Bom" for Pão, "FACO" for
+Fakkel, "Kobis" for Kürbis, Đảo for Táo. With biasing, the misses left were mostly a word from
+another language ("Apple" for Appel, "Look" for Luk, "Block" for Bloke), a dropped or changed letter
+("Zemija" for Zemlja, "Diamanski" for Dijamantski, "Humuse", "Linggot" for Linggote, "Boden" for
+Bogen), and in Vietnamese short names written with another tone or vowel ("Tàu" for Táo, "Gây"
+for Gậy, "Đu" for Đuốc). Vietnamese is the hardest: tones are checked, and Whisper is unsure of them
+in one-syllable words. The `medium` model did no better there in a separate test (3 instead of 4
+of 8 names with biasing) and took about four times as long.
+
 The samples are synthesised again on every run, so the counts can differ by one between runs. The
 test can be rerun with other settings from the Actions tab (workflow "speech", see the variants in
 `src/test/java/.../speech/SpeechCheck.java`).
