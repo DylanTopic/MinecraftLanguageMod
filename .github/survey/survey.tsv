@@ -1,0 +1,58 @@
+# Survey of how well Whisper hears item names in languages LangMod might add (.github/workflows/survey.yml).
+# file	(unused)	text the voice says	voice	(unused)	Whisper language code
+ru_apple	-	Яблоко	ru-RU-DmitryNeural	-	ru
+ru_dirt	-	Земля	ru-RU-SvetlanaNeural	-	ru
+ru_bread	-	Хлеб	ru-RU-DmitryNeural	-	ru
+ru_torch	-	Факел	ru-RU-SvetlanaNeural	-	ru
+ru_pumpkin	-	Тыква	ru-RU-DmitryNeural	-	ru
+ru_glass	-	Стекло	ru-RU-SvetlanaNeural	-	ru
+ru_diamond_pickaxe	-	Алмазная кирка	ru-RU-DmitryNeural	-	ru
+ru_iron_ingot	-	Железный слиток	ru-RU-SvetlanaNeural	-	ru
+nl_apple	-	Appel	nl-NL-MaartenNeural	-	nl
+nl_dirt	-	Aarde	nl-NL-FennaNeural	-	nl
+nl_bread	-	Brood	nl-NL-MaartenNeural	-	nl
+nl_torch	-	Fakkel	nl-NL-FennaNeural	-	nl
+nl_pumpkin	-	Pompoen	nl-NL-MaartenNeural	-	nl
+nl_glass	-	Glas	nl-NL-FennaNeural	-	nl
+nl_diamond_pickaxe	-	Diamanten houweel	nl-NL-MaartenNeural	-	nl
+nl_iron_ingot	-	IJzerstaaf	nl-NL-FennaNeural	-	nl
+la_apple	-	Malum	it-IT-DiegoNeural	-	la
+la_dirt	-	Humus	it-IT-ElsaNeural	-	la
+la_bread	-	Panis	it-IT-DiegoNeural	-	la
+la_torch	-	Fax	it-IT-ElsaNeural	-	la
+la_pumpkin	-	Cucurbita	it-IT-DiegoNeural	-	la
+la_glass	-	Vitrum	it-IT-ElsaNeural	-	la
+la_diamond_pickaxe	-	Dolabra adamantina	it-IT-DiegoNeural	-	la
+la_iron_ingot	-	Later ferreus	it-IT-ElsaNeural	-	la
+tl_apple	-	Mansanas	fil-PH-AngeloNeural	-	tl
+tl_dirt	-	Lupa	fil-PH-BlessicaNeural	-	tl
+tl_bread	-	Tinapay	fil-PH-AngeloNeural	-	tl
+tl_torch	-	Sulo	fil-PH-BlessicaNeural	-	tl
+tl_pumpkin	-	Kalabasa	fil-PH-AngeloNeural	-	tl
+tl_glass	-	Salamin	fil-PH-BlessicaNeural	-	tl
+tl_diamond_pickaxe	-	Diyamanteng Piko	fil-PH-AngeloNeural	-	tl
+tl_iron_ingot	-	Linggote ng Bakal	fil-PH-BlessicaNeural	-	tl
+ja_apple	-	リンゴ	ja-JP-KeitaNeural	-	ja
+ja_dirt	-	土	ja-JP-NanamiNeural	-	ja
+ja_bread	-	パン	ja-JP-KeitaNeural	-	ja
+ja_torch	-	松明	ja-JP-NanamiNeural	-	ja
+ja_pumpkin	-	カボチャ	ja-JP-KeitaNeural	-	ja
+ja_glass	-	ガラス	ja-JP-NanamiNeural	-	ja
+ja_diamond_pickaxe	-	ダイヤモンドのツルハシ	ja-JP-KeitaNeural	-	ja
+ja_iron_ingot	-	鉄インゴット	ja-JP-NanamiNeural	-	ja
+bs_apple	-	Jabuka	bs-BA-GoranNeural	-	bs
+bs_dirt	-	Zemlja	bs-BA-VesnaNeural	-	bs
+bs_bread	-	Hljeb	bs-BA-GoranNeural	-	bs
+bs_torch	-	Baklja	bs-BA-VesnaNeural	-	bs
+bs_pumpkin	-	Bundeva	bs-BA-GoranNeural	-	bs
+bs_glass	-	Staklo	bs-BA-VesnaNeural	-	bs
+bs_diamond_pickaxe	-	Dijamantski kramp	bs-BA-GoranNeural	-	bs
+bs_iron_ingot	-	Gvozdena poluga	bs-BA-VesnaNeural	-	bs
+pt_apple	-	Maçã	pt-BR-AntonioNeural	-	pt
+pt_dirt	-	Terra	pt-BR-FranciscaNeural	-	pt
+pt_bread	-	Pão	pt-BR-AntonioNeural	-	pt
+pt_torch	-	Tocha	pt-BR-FranciscaNeural	-	pt
+pt_pumpkin	-	Abóbora	pt-BR-AntonioNeural	-	pt
+pt_glass	-	Vidro	pt-BR-FranciscaNeural	-	pt
+pt_diamond_pickaxe	-	Picareta de Diamante	pt-BR-AntonioNeural	-	pt
+pt_iron_ingot	-	Lingote de Ferro	pt-BR-FranciscaNeural	-	pt
