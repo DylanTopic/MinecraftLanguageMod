@@ -54,7 +54,7 @@ jobs:
           # SpeechCheck.VARIANTS) can be run from the Actions tab.
           - os: ubuntu-24.04
             variants: ctx512,mc512,biased512
-            languages: zh_cn,es_mx,fr_ca,ko_kr
+            languages: zh_cn,es_mx,fr_ca,ko_kr,de_de
             samples: 500
           - os: ubuntu-24.04
             variants: ctx512,mc512,biased512
@@ -62,7 +62,7 @@ jobs:
             samples: 500
           - os: ubuntu-24.04
             variants: ctx512,mc512,biased512
-            languages: ja_jp,bs_ba,pt_br
+            languages: ja_jp,bs_ba,pt_br,vi_vn
             samples: 500
           - os: windows-2025
             variants: mc512

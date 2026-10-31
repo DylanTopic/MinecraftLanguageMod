@@ -20,7 +20,9 @@ public enum Language {
 	FILIPINO("fil_ph", "tl", "Tagalog (Filipino)", "Tagalog", 3, "skip", "Mga item sa Minecraft:", true),
 	JAPANESE("ja_jp", "ja", "Japanese", "日本語", 12, "skip", "マインクラフトのアイテム：", true),
 	BOSNIAN("bs_ba", "bs", "Bosnian", "Bosanski", 3, "skip", "Predmeti iz Minecrafta:", true),
-	PORTUGUESE("pt_br", "pt", "Portuguese (Brazil)", "Português (Brasil)", 3, "skip", "Itens do Minecraft:", true);
+	PORTUGUESE("pt_br", "pt", "Portuguese (Brazil)", "Português (Brasil)", 3, "skip", "Itens do Minecraft:", true),
+	VIETNAMESE("vi_vn", "vi", "Vietnamese", "Tiếng Việt", 4, "skip", "Vật phẩm Minecraft:", true),
+	GERMAN("de_de", "de", "German", "Deutsch", 2, "skip", "Minecraft-Gegenstände:", true);
 
 	private final String id;
 	private final String whisperCode;
@@ -105,9 +107,9 @@ public enum Language {
 		return this == MANDARIN || this == JAPANESE;
 	}
 
-	/** What {@link #length} counts, for messages: "characters" or "words". */
+	/** What {@link #length} counts, for messages: "characters", "syllables" (Vietnamese writes a space after each) or "words". */
 	public String lengthUnit() {
-		return countsCharacters() ? "characters" : "words";
+		return countsCharacters() ? "characters" : this == VIETNAMESE ? "syllables" : "words";
 	}
 
 	/** Length of a name for the long-name rule: characters for Mandarin and Japanese, words otherwise. */

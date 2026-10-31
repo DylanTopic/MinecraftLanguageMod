@@ -300,6 +300,8 @@ public final class ChallengeHud {
 			case JAPANESE -> "正解！";
 			case BOSNIAN -> "Tačno!";
 			case PORTUGUESE -> "Correto!";
+			case VIETNAMESE -> "Chính xác!";
+			case GERMAN -> "Richtig!";
 		};
 	}
 

@@ -154,7 +154,9 @@ public final class WordPack implements LanguagePack {
 		String e = fold(expected);
 		String h = fold(heard);
 
-		if (e.equals(h) || WordRules.stripAccents(e).equals(WordRules.stripAccents(h)) || rules.soundKey(e).equals(rules.soundKey(h))) {
+		boolean sameLetters = !rules.accentsMatter() && WordRules.stripAccents(e).equals(WordRules.stripAccents(h));
+
+		if (e.equals(h) || sameLetters || rules.soundKey(e).equals(rules.soundKey(h))) {
 			return Status.MATCH;
 		}
 

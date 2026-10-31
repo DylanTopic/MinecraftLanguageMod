@@ -50,6 +50,7 @@ public interface LanguagePack {
 			case MANDARIN -> throw new IllegalArgumentException("Mandarin has its own pack");
 			case KOREAN -> new KoreanPack(names);
 			case JAPANESE -> new JapanesePack(names, kanaReadings);
+			case VIETNAMESE -> new VietnamesePack(names);
 			default -> new WordPack(language, WordRules.of(language), names);
 		};
 	}

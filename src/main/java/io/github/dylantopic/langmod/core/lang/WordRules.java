@@ -107,6 +107,24 @@ public enum WordRules {
 			return s.replaceAll("(.)\\1+", "$1");
 		}
 	},
+	GERMAN(List.of("der", "die", "das", "den", "dem", "des", "ein", "eine", "einen", "einem", "einer", "eines"),
+			List.of("untertitel", "amara", "zdf", "danke fürs zuschauen", "dank für's zuschauen", "dank fürs zuschauen")) {
+		@Override
+		public String soundKey(String word) {
+			// ß = ss, äu = eu, ä = e; v/f, ph/f, th/t, dt/t, tz/z, ck/k; an h after a vowel only makes it
+			// long; voiced consonants lose their voice at the end of a word (Bund = bunt). Umlauts stay:
+			// Äpfel is not Apfel (see accentsMatter).
+			String s = word.replace("ß", "ss").replace("äu", "oi").replace("eu", "oi").replace("ä", "e").replace("ö", "oe").replace("ü", "Y");
+			s = s.replace("ph", "f").replace("th", "t").replace("dt", "t").replace("tz", "z").replace("ck", "k").replace('v', 'f');
+			s = s.replaceAll("([aeiouY])h", "$1").replace("ie", "i").replaceAll("d$", "t").replaceAll("b$", "p").replaceAll("g$", "k");
+			return s.replaceAll("(.)\\1+", "$1");
+		}
+
+		@Override
+		public boolean accentsMatter() {
+			return true;
+		}
+	},
 	PORTUGUESE(List.of("o", "a", "os", "as", "um", "uma", "uns", "umas"),
 			List.of("legendas pela comunidade", "amara", "obrigado por assistir", "obrigada por assistir", "inscreva-se")) {
 		@Override
@@ -144,8 +162,17 @@ public enum WordRules {
 			case FILIPINO -> FILIPINO;
 			case BOSNIAN -> BOSNIAN;
 			case PORTUGUESE -> PORTUGUESE;
+			case GERMAN -> GERMAN;
 			default -> throw new IllegalArgumentException(language + " is not compared word by word");
 		};
+	}
+
+	/**
+	 * Whether accents make a different word (German umlauts: Äpfel is the plural of Apfel). In the
+	 * other languages a word without its accents still counts, as Whisper sometimes leaves them out.
+	 */
+	public boolean accentsMatter() {
+		return false;
 	}
 
 	/** The name in Latin letters, for languages written in another script; empty otherwise. */

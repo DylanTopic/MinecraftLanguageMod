@@ -247,4 +247,36 @@ class LanguagePacksTest {
 		assertTrue(pack.isNoise(pack.normalize("ご視聴ありがとうございました"), pack.name("item.minecraft.apple").orElseThrow()));
 		assertTrue(pack.name("block.minecraft.tnt").isEmpty(), "TNT is just Latin letters");
 	}
+
+	@Test
+	void vietnameseAnswers() throws IOException {
+		LanguagePack pack = pack(Language.VIETNAMESE);
+		assertEquals("Táo", pack.name("item.minecraft.apple").orElseThrow().text());
+		assertTrue(check(pack, "item.minecraft.apple", "Táo.").exact());
+		assertTrue(check(pack, "item.minecraft.apple", "Quả táo").pass(), "classifier in front");
+		assertTrue(check(pack, "item.minecraft.bread", "bánh mỳ").pass(), "i written y");
+		assertTrue(check(pack, "block.minecraft.glass", "thuỷ tinh").pass(), "tone mark on another vowel");
+
+		CheckResult wrongTone = check(pack, "item.minecraft.apple", "Tào");
+		assertFalse(wrongTone.pass());
+		assertEquals(List.of(Status.TONE), wrongTone.expectedStatus());
+		NameEntry apple = pack.name("item.minecraft.apple").orElseThrow();
+		assertTrue(pack.check(apple, pack.normalize("Tào"), MatchMode.TONELESS, false).pass(), "toneless mode");
+
+		assertFalse(check(pack, "item.minecraft.apple", "Chuối").pass());
+		assertFalse(check(pack, "block.minecraft.green_wool", "Len đỏ").pass());
+		assertTrue(pack.isNoise(pack.normalize("Hãy subscribe cho kênh Ghiền Mì Gõ"), apple));
+	}
+
+	@Test
+	void germanAnswers() throws IOException {
+		LanguagePack pack = pack(Language.GERMAN);
+		assertTrue(check(pack, "item.minecraft.apple", "Apfel!").exact());
+		assertTrue(check(pack, "item.minecraft.apple", "Der Apfel").pass(), "article in front");
+		assertTrue(check(pack, "item.minecraft.bread", "Brod").pass(), "a final d sounds like t");
+		assertTrue(check(pack, "item.minecraft.diamond_pickaxe", "Diamantspitzhacke").pass());
+		assertFalse(check(pack, "item.minecraft.apple", "Äpfel").pass(), "the plural, with an umlaut");
+		assertFalse(check(pack, "item.minecraft.apple", "Birne").pass());
+		assertFalse(check(pack, "block.minecraft.green_wool", "Rote Wolle").pass());
+	}
 }

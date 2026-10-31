@@ -168,3 +168,35 @@ pt_article	item.minecraft.apple	A maçã	pt-BR-AntonioNeural	pass	pt_br
 pt_wrong_word	item.minecraft.apple	Banana	pt-BR-FranciscaNeural	fail	pt_br
 pt_similar_word	item.minecraft.apple	Massa	pt-BR-AntonioNeural	fail	pt_br
 pt_wrong_colour	block.minecraft.green_wool	Lã Vermelha	pt-BR-FranciscaNeural	fail	pt_br
+vi_apple	item.minecraft.apple	Táo	vi-VN-NamMinhNeural	pass	vi_vn
+vi_dirt	block.minecraft.dirt	Đất	vi-VN-HoaiMyNeural	pass	vi_vn
+vi_stick	item.minecraft.stick	Gậy	vi-VN-NamMinhNeural	pass	vi_vn
+vi_bread	item.minecraft.bread	Bánh mì	vi-VN-HoaiMyNeural	pass	vi_vn
+vi_torch	block.minecraft.torch	Đuốc	vi-VN-NamMinhNeural	pass	vi_vn
+vi_pumpkin	block.minecraft.pumpkin	Bí ngô	vi-VN-HoaiMyNeural	pass	vi_vn
+vi_bow	item.minecraft.bow	Cung	vi-VN-NamMinhNeural	pass	vi_vn
+vi_glass	block.minecraft.glass	Thủy tinh	vi-VN-HoaiMyNeural	pass	vi_vn
+vi_green_wool	block.minecraft.green_wool	Len xanh lá cây	vi-VN-NamMinhNeural	pass	vi_vn
+vi_diamond_pickaxe	item.minecraft.diamond_pickaxe	Cuốc chim kim cương	vi-VN-HoaiMyNeural	pass	vi_vn
+vi_gold_block	block.minecraft.gold_block	Khối vàng	vi-VN-NamMinhNeural	pass	vi_vn
+vi_iron_ingot	item.minecraft.iron_ingot	Phôi sắt	vi-VN-HoaiMyNeural	pass	vi_vn
+vi_article	item.minecraft.apple	Quả táo	vi-VN-NamMinhNeural	pass	vi_vn
+vi_wrong_word	item.minecraft.apple	Chuối	vi-VN-HoaiMyNeural	fail	vi_vn
+vi_wrong_tone	item.minecraft.apple	Tào	vi-VN-NamMinhNeural	fail	vi_vn
+vi_wrong_colour	block.minecraft.green_wool	Len đỏ	vi-VN-HoaiMyNeural	fail	vi_vn
+de_apple	item.minecraft.apple	Apfel	de-DE-ConradNeural	pass	de_de
+de_dirt	block.minecraft.dirt	Erde	de-DE-KatjaNeural	pass	de_de
+de_stick	item.minecraft.stick	Stock	de-DE-ConradNeural	pass	de_de
+de_bread	item.minecraft.bread	Brot	de-DE-KatjaNeural	pass	de_de
+de_torch	block.minecraft.torch	Fackel	de-DE-ConradNeural	pass	de_de
+de_pumpkin	block.minecraft.pumpkin	Kürbis	de-DE-KatjaNeural	pass	de_de
+de_bow	item.minecraft.bow	Bogen	de-DE-ConradNeural	pass	de_de
+de_glass	block.minecraft.glass	Glas	de-DE-KatjaNeural	pass	de_de
+de_green_wool	block.minecraft.green_wool	Grüne Wolle	de-DE-ConradNeural	pass	de_de
+de_diamond_pickaxe	item.minecraft.diamond_pickaxe	Diamantspitzhacke	de-DE-KatjaNeural	pass	de_de
+de_gold_block	block.minecraft.gold_block	Goldblock	de-DE-ConradNeural	pass	de_de
+de_iron_ingot	item.minecraft.iron_ingot	Eisenbarren	de-DE-KatjaNeural	pass	de_de
+de_article	item.minecraft.apple	Der Apfel	de-DE-ConradNeural	pass	de_de
+de_wrong_word	item.minecraft.apple	Birne	de-DE-KatjaNeural	fail	de_de
+de_similar_word	item.minecraft.apple	Äpfel	de-DE-ConradNeural	fail	de_de
+de_wrong_colour	block.minecraft.green_wool	Rote Wolle	de-DE-KatjaNeural	fail	de_de

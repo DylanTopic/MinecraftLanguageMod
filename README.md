@@ -2,7 +2,8 @@
 
 A Fabric mod for Minecraft 26.1.2 that teaches a language through exposure: **Mandarin Chinese**
 (Simplified), **Spanish** (Mexico), **French** (Canada), **Korean**, **Russian**, **Dutch**,
-**Latin**, **Tagalog**, **Japanese**, **Bosnian** or **Portuguese** (Brazil). The first time you pick up an
+**Latin**, **Tagalog**, **Japanese**, **Bosnian**, **Portuguese** (Brazil), **Vietnamese** or
+**German**. The first time you pick up an
 item type, you have to **say its name out loud** in the language you are learning before you get
 it. Speech recognition runs entirely on your computer with
 [whisper.cpp](https://github.com/ggml-org/whisper.cpp). Nothing is sent anywhere.
@@ -65,6 +66,8 @@ of the settings screen. You learn one language at a time:
 | Japanese | `ja_jp` | more than 12 characters: not challenged | reading and romaji (松明: たいまつ taimatsu) |
 | Bosnian | `bs_ba` | more than 3 words: not challenged | - |
 | Portuguese (Brazil) | `pt_br` | more than 3 words: not challenged | - |
+| Vietnamese | `vi_vn` | more than 4 syllables: not challenged | - (the accents are the tones) |
+| German | `de_de` | more than 2 words: not challenged | - |
 
 - Tagalog uses Minecraft's "Filipino" translation, the standard form of Tagalog with the words
   people use every day (Kalabasa, Karot). Minecraft's "Tagalog" translation uses rare, purist
@@ -203,7 +206,7 @@ screen. The file can also be edited by hand (then run `/langmod reload`).
 
 | Setting (`langmod.json` key) | Default | Meaning |
 |---|---|---|
-| Learning (`language`) | `zh_cn` | `zh_cn`, `es_mx`, `fr_ca`, `ko_kr`, `ru_ru`, `nl_nl`, `la_la`, `fil_ph`, `ja_jp`, `bs_ba` or `pt_br`, see [Choosing a language](#choosing-a-language). |
+| Learning (`language`) | `zh_cn` | `zh_cn`, `es_mx`, `fr_ca`, `ko_kr`, `ru_ru`, `nl_nl`, `la_la`, `fil_ph`, `ja_jp`, `bs_ba`, `pt_br`, `vi_vn` or `de_de`, see [Choosing a language](#choosing-a-language). |
 | Challenges (`enabled`) | on | Master switch. Turning it off gives held items back. |
 | English name (`showEnglish`) | on | Show the English name in the popup. |
 | Attempts (`maxAttempts`) | 3 | Wrong answers before the item vanishes. |
@@ -265,7 +268,7 @@ slightly-off pronunciations to the word it expects from context, and sometimes w
 same-sounding word with other tones even when you said it right. Tone checking is therefore
 helpful but imperfect. If it gets in the way, use `toneless` matching.
 
-### Spanish, French, Russian, Dutch, Latin, Tagalog, Bosnian and Portuguese
+### Spanish, French, Russian, Dutch, Latin, Tagalog, Bosnian, Portuguese and German
 
 Names are compared word by word, and these differences are ignored:
 
@@ -287,7 +290,9 @@ Names are compared word by word, and these differences are ignored:
     Tagalog way (c = k, f = p, v = b);
   - in Bosnian: č/ć, dž/đ, and a t dropped between n and s ("dijamanski kramp");
   - in Brazilian Portuguese: ç/ss/s/z, a final e/o said i/u, but nasal vowels count (Massa is not
-    Maçã).
+    Maçã);
+  - in German: ß/ss, ä/e, eu/äu, v/f, a final b/d/g said p/t/k ("Brod" for Brot) and an h that only
+    makes a vowel long; umlauts count, though (Äpfel, the plural, is not Apfel).
 
 A missing, extra or different word is wrong: "manzanas" for Manzana, "laine vert" for Laine verte
 (the t of verte is pronounced), "pan" for Pain (a different nasal vowel), or "яблоки" for Яблоко.
@@ -295,6 +300,13 @@ The popup underlines the words of the name you did not say correctly, and shows 
 and what Whisper heard in Latin letters too. Matching modes: `strict` and `toneless` are the same
 here; with `lenient`, names of 4 or more words may have one wrong word. Long names are skipped by
 default (see the table in [Choosing a language](#choosing-a-language)).
+
+### Vietnamese
+
+Names are compared syllable by syllable, and the tone of each syllable is checked, as in Mandarin:
+"Tào" for Táo has the right letters but the wrong tone, so it is underlined in orange and does not
+count (in `toneless` mode it does). Where the tone mark sits ("thuỷ" or "thủy") and i or y ("bánh
+mỳ" or "bánh mì") do not matter, and a classifier in front is fine ("quả táo", "cái bánh mì").
 
 ### Japanese
 
@@ -452,8 +464,8 @@ of 26.1.2 exist in every one of these languages.
 
 Your own fixes go in `config/langmod/names_<language>.json` (e.g. `names_es_mx.json`, created on
 first start, same format); run `/langmod reload` after editing. In the languages added later
-(Russian, Dutch, Latin, Tagalog, Japanese, Bosnian, Portuguese), names the translation left in English
-are left out. The Korean and Russian romanizations are worked out by the mod itself, so they need no
+(Russian, Dutch, Latin, Tagalog, Japanese, Bosnian, Portuguese, Vietnamese, German), names the
+translation left in English are left out. The Korean and Russian romanizations are worked out by the mod itself, so they need no
 data.
 
 Japanese also needs the reading of every name: `tools/generate_japanese.py` works it out with
