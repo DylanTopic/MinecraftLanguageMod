@@ -1,6 +1,7 @@
 # Checks that the mod can say item names with the voices installed in Windows (VoiceCheck): the
-# PowerShell helper starts, lists the voices and turns text into WAV files. Then it tries to add a
-# Japanese and a Chinese voice to the runner, as a player would in Windows Settings, and checks again.
+# PowerShell helper starts, lists the voices and turns text into WAV files. The runner only has
+# English voices, and voices for other languages cannot be added to it (Add-WindowsCapability timed
+# out after 15 minutes), so the other languages' voices are listed but not used.
 name: voices
 
 on:
@@ -20,7 +21,7 @@ concurrency:
 jobs:
   windows:
     runs-on: windows-2025
-    timeout-minutes: 40
+    timeout-minutes: 15
     defaults:
       run:
         shell: bash
@@ -34,20 +35,8 @@ jobs:
         run: javac -encoding UTF-8 --release 25 -sourcepath src/main/java -d out src/test/java/io/github/dylantopic/langmod/voices/VoiceCheck.java
       - name: say names with the voices the runner has
         run: java -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -cp "out;src/main/resources" io.github.dylantopic.langmod.voices.VoiceCheck voices-out
-      - name: voices Windows can add
+      - name: the voices Windows offers (the README's table relies on these)
         continue-on-error: true
         timeout-minutes: 5
         shell: powershell
         run: Get-WindowsCapability -Online | Where-Object Name -like 'Language.TextToSpeech*' | Format-Table Name, State -AutoSize
-      - name: add a Japanese and a Chinese voice
-        id: add
-        continue-on-error: true
-        timeout-minutes: 15
-        shell: powershell
-        run: |
-          foreach ($language in 'ja-JP', 'zh-CN') {
-            Add-WindowsCapability -Online -Name "Language.TextToSpeech~~~$language~0.0.1.0" | Format-List
-          }
-      - name: say names again
-        if: steps.add.outcome == 'success'
-        run: java -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -cp "out;src/main/resources" io.github.dylantopic.langmod.voices.VoiceCheck voices-out

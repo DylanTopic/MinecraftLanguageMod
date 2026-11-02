@@ -655,7 +655,8 @@ Automated tests:
 The game test writes screenshots to `build\run\clientGameTest\screenshots`. Both run on every push
 in GitHub Actions (`.github/workflows/build.yml`), which also uploads the built jar. The game test
 uses silent scripted voices; `.github/workflows/voices.yml` checks the real Windows voices on a
-Windows runner (VoiceCheck: lists them and has each language's voice say its word for apple).
+Windows runner (VoiceCheck: lists them, has each language's voice say its word for apple and checks
+the WAV files; the runner only has English voices, and others cannot be added to it).
 
 ## Troubleshooting
 

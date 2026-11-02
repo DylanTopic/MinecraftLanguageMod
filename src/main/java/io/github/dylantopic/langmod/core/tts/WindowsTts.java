@@ -29,7 +29,8 @@ import java.util.concurrent.TimeUnit;
  */
 public final class WindowsTts implements TextToSpeech {
 	private static final String SCRIPT = "windows-voices.ps1";
-	private static final long START_TIMEOUT_SECONDS = 30;
+	/** Starting took 14 s on a GitHub Windows runner (antivirus scanning PowerShell); a desktop is much faster. */
+	private static final long START_TIMEOUT_SECONDS = 60;
 	private static final long REQUEST_TIMEOUT_SECONDS = 20;
 	private static final long IDLE_SECONDS = 300;
 
