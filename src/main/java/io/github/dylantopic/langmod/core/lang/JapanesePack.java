@@ -126,6 +126,17 @@ public final class JapanesePack implements LanguagePack {
 		return fold(readings.getOrDefault(entry.text(), entry.text()));
 	}
 
+	/** A name with kanji is said from its reading, so the voice says what the popup shows (松明 as たいまつ). */
+	@Override
+	public String spokenText(NameEntry entry) {
+		String reading = readings.get(entry.text());
+		return reading != null && hasKanji(entry.text()) ? reading.replace(" ", "") : entry.text();
+	}
+
+	private static boolean hasKanji(String text) {
+		return text.codePoints().anyMatch(cp -> Character.UnicodeScript.of(cp) == Character.UnicodeScript.HAN);
+	}
+
 	/** "たいまつ  taimatsu" for a name with kanji, "ringo" for one in kana. */
 	private String pronunciation(String text) {
 		String reading = readings.get(text);
@@ -135,8 +146,7 @@ public final class JapanesePack implements LanguagePack {
 		}
 
 		String romaji = JapaneseRomanizer.romanize(reading);
-		boolean kanji = text.codePoints().anyMatch(cp -> Character.UnicodeScript.of(cp) == Character.UnicodeScript.HAN);
-		return kanji ? reading.replace(" ", "") + "  " + romaji : romaji;
+		return hasKanji(text) ? reading.replace(" ", "") + "  " + romaji : romaji;
 	}
 
 	/** Hiragana, lowercase, without spaces: the form names and answers are compared in. */

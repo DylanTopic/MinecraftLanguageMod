@@ -253,6 +253,10 @@ class LanguagePacksTest {
 		assertEquals("banana", check(pack, "item.minecraft.apple", "バナナ").heardPronunciation());
 		assertTrue(pack.isNoise(pack.normalize("ご視聴ありがとうございました"), pack.name("item.minecraft.apple").orElseThrow()));
 		assertTrue(pack.name("block.minecraft.tnt").isEmpty(), "TNT is just Latin letters");
+		assertEquals("たいまつ", pack.spokenText(torch), "a voice reads names with kanji from their reading");
+		assertEquals("みどりいろのようもう", pack.spokenText(pack.name("block.minecraft.green_wool").orElseThrow()));
+		assertEquals("リンゴ", pack.spokenText(pack.name("item.minecraft.apple").orElseThrow()), "kana names as written");
+		assertEquals("Manzana", pack(Language.SPANISH).spokenText(pack(Language.SPANISH).name("item.minecraft.apple").orElseThrow()));
 	}
 
 	@Test

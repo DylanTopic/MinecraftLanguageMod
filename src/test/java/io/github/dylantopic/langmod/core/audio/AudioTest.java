@@ -118,6 +118,16 @@ class AudioTest {
 		assertEquals((byte) 0x7F, wav[47]);
 	}
 
+	@Test
+	void readsWav() {
+		Wav.Audio audio = Wav.decode(Wav.encode(new float[8_000], 16_000));
+		assertEquals(16_000, audio.sampleRate());
+		assertEquals(1, audio.channels());
+		assertEquals(16, audio.bitsPerSample());
+		assertEquals(16_000, audio.data().length);
+		assertEquals(500, audio.millis());
+	}
+
 	/** One 20 ms frame: low noise plus an optional 220 Hz tone. */
 	private static float[] frame(Random random, float toneAmplitude, int startMs) {
 		float[] frame = new float[Vad.FRAME_SAMPLES];

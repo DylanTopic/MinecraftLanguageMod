@@ -40,6 +40,11 @@ public interface LanguagePack {
 		return entry.text();
 	}
 
+	/** What a voice reads out to say the name: the name itself, or for Japanese names with kanji their reading. */
+	default String spokenText(NameEntry entry) {
+		return entry.text();
+	}
+
 	/**
 	 * The pack of any language but Mandarin, which also needs pinyin tables.
 	 *
