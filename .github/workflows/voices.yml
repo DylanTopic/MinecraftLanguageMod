@@ -21,6 +21,9 @@ jobs:
   windows:
     runs-on: windows-2025
     timeout-minutes: 40
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-java@v5
@@ -28,7 +31,6 @@ jobs:
           java-version: '25'
           distribution: 'microsoft'
       - name: compile
-        shell: bash
         run: javac -encoding UTF-8 --release 25 -sourcepath src/main/java -d out src/test/java/io/github/dylantopic/langmod/voices/VoiceCheck.java
       - name: say names with the voices the runner has
         run: java -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -cp "out;src/main/resources" io.github.dylantopic.langmod.voices.VoiceCheck voices-out
