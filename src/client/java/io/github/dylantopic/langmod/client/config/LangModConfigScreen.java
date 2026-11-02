@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import com.mojang.serialization.Codec;
@@ -23,8 +24,10 @@ import io.github.dylantopic.langmod.client.ChallengeController;
 import io.github.dylantopic.langmod.client.LangModClient;
 import io.github.dylantopic.langmod.client.audio.MicCapture;
 import io.github.dylantopic.langmod.client.speech.SpeechService;
+import io.github.dylantopic.langmod.client.voice.Pronouncer;
 import io.github.dylantopic.langmod.core.lang.Language;
 import io.github.dylantopic.langmod.core.speech.WhisperModels;
+import io.github.dylantopic.langmod.core.tts.VoiceChooser;
 
 /**
  * Settings screen (Mod Menu's "Configure" button, {@code /langmod config}, or a key). Every change
@@ -39,6 +42,8 @@ public class LangModConfigScreen extends OptionsSubScreen {
 
 	private final Map<String, OptionInstance<?>> options = new LinkedHashMap<>();
 	private final Screen parent;
+	/** What the voice options were built with; the screen is rebuilt when the voices have been found. */
+	private Pronouncer.Status voicesStatus;
 
 	/** @param parent screen to return to, or null to go back to the game */
 	public LangModConfigScreen(Screen parent) {
@@ -77,6 +82,7 @@ public class LangModConfigScreen extends OptionsSubScreen {
 		choice("longNameMode", List.of("lenient", "skip"), config.skipLongNames(language) ? "skip" : "lenient", Codec.STRING,
 				v -> Component.translatable(PREFIX + "longNameMode." + v), (c, v) -> c.longNameModes.put(language.id(), v));
 		toggle("promptBiasing", config.promptBiasing(language), (c, v) -> c.promptBiasingByLanguage.put(language.id(), v));
+		addVoiceOptions(config, language);
 		choice("modelSize", MODELS, config.modelSize, Codec.STRING, Component::literal, LangModConfigScreen::modelTooltip,
 				(c, v) -> c.modelSize = v);
 		choice("speechEngine", List.of("jni", "server"), config.speechEngine, Codec.STRING,
@@ -108,6 +114,15 @@ public class LangModConfigScreen extends OptionsSubScreen {
 	}
 
 	@Override
+	public void tick() {
+		super.tick();
+
+		if (Pronouncer.get().status() != voicesStatus) {
+			this.minecraft.setScreen(new LangModConfigScreen(parent)); // show the voices just found
+		}
+	}
+
+	@Override
 	public void removed() {
 		super.removed();
 		// Reloads the Whisper model only if a speech setting changed, and retries a microphone that failed.
@@ -120,6 +135,38 @@ public class LangModConfigScreen extends OptionsSubScreen {
 		return options.get(name);
 	}
 
+	/** Saying the name after a mistake: on/off, the voice for this language and its speed. Changing either says a sample. */
+	private void addVoiceOptions(LangModConfig config, Language language) {
+		Pronouncer pronouncer = Pronouncer.get();
+		pronouncer.start();
+		voicesStatus = pronouncer.status();
+		toggle("sayNameWhenWrong", config.sayNameWhenWrong, (c, v) -> c.sayNameWhenWrong = v);
+		List<String> voices = new ArrayList<>();
+		voices.add("");
+		VoiceChooser.candidates(language, pronouncer.voices()).forEach(voice -> voices.add(voice.name()));
+		choice("voice", voices, config.voiceName(language), Codec.STRING, value -> voiceLabel(language, value),
+				value -> Component.translatable(PREFIX + "voice.tooltip", Pronouncer.voiceLanguage(language)),
+				(c, v) -> c.voiceNames.put(language.id(), v), value -> pronouncer.preview(language));
+		choice("voiceSpeed", List.of(0.6, 0.75, 0.9, 1.0, 1.25, 1.5), config.voiceSpeed, Codec.DOUBLE, v -> Component.literal(v + "x"),
+				value -> Component.translatable(PREFIX + "voiceSpeed.tooltip"), (c, v) -> c.voiceSpeed = v, value -> pronouncer.preview(language));
+	}
+
+	/** A voice's name; for the automatic choice, the voice it picks (or why there is none). */
+	private static Component voiceLabel(Language language, String name) {
+		if (!name.isEmpty()) {
+			return Component.literal(name);
+		}
+
+		Pronouncer pronouncer = Pronouncer.get();
+		return switch (pronouncer.status()) {
+			case IDLE, STARTING -> Component.translatable(PREFIX + "voice.loading");
+			case UNAVAILABLE -> Component.translatable(PREFIX + "voice.unavailable");
+			case READY -> VoiceChooser.choose(language, pronouncer.voices(), "")
+					.map(voice -> Component.translatable(PREFIX + "voice.auto", voice.name()))
+					.orElseGet(() -> Component.translatable(PREFIX + "voice.none"));
+		};
+	}
+
 	private void toggle(String name, boolean current, BiConsumer<LangModConfig, Boolean> apply) {
 		choice(name, List.of(true, false), current, Codec.BOOL, v -> Component.translatable(v ? "options.on" : "options.off"), apply);
 	}
@@ -129,12 +176,18 @@ public class LangModConfigScreen extends OptionsSubScreen {
 		choice(name, values, current, codec, label, v -> Component.translatable(PREFIX + name + ".tooltip"), apply);
 	}
 
-	/**
-	 * Adds a button that cycles through {@code values} (plus the current value if the file sets
-	 * something else) and writes the choice to the config file.
-	 */
 	private <T> void choice(String name, List<T> values, T current, Codec<T> codec, Function<T, Component> label,
 			Function<T, Component> tooltip, BiConsumer<LangModConfig, T> apply) {
+		choice(name, values, current, codec, label, tooltip, apply, value -> {
+		});
+	}
+
+	/**
+	 * Adds a button that cycles through {@code values} (plus the current value if the file sets
+	 * something else), writes the choice to the config file and then calls {@code changed}.
+	 */
+	private <T> void choice(String name, List<T> values, T current, Codec<T> codec, Function<T, Component> label,
+			Function<T, Component> tooltip, BiConsumer<LangModConfig, T> apply, Consumer<T> changed) {
 		List<T> all = new ArrayList<>(values);
 
 		if (!all.contains(current)) {
@@ -147,7 +200,10 @@ public class LangModConfigScreen extends OptionsSubScreen {
 				(caption, value) -> label.apply(value),
 				new OptionInstance.Enum<>(all, codec),
 				current,
-				value -> LangModConfig.update(config -> apply.accept(config, value))));
+				value -> {
+					LangModConfig.update(config -> apply.accept(config, value));
+					changed.accept(value);
+				}));
 	}
 
 	private static Component audioContextName(int frames) {

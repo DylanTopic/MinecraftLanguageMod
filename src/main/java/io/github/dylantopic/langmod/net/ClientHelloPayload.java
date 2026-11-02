@@ -14,7 +14,7 @@ import io.github.dylantopic.langmod.LangMod;
  * @param language id of the language the player is learning ({@code zh_cn}, {@code es_mx}, ...)
  */
 public record ClientHelloPayload(int protocolVersion, boolean speechReady, String speechInfo, String language) implements CustomPacketPayload {
-	public static final int PROTOCOL_VERSION = 2;
+	public static final int PROTOCOL_VERSION = 3;
 	public static final Type<ClientHelloPayload> TYPE = new Type<>(LangMod.id("client_hello"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ClientHelloPayload> CODEC =
 			CustomPacketPayload.codec(ClientHelloPayload::write, ClientHelloPayload::new);

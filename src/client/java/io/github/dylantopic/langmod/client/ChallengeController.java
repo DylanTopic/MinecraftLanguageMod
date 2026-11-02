@@ -8,15 +8,20 @@ import io.github.dylantopic.langmod.LangMod;
 import io.github.dylantopic.langmod.LangModConfig;
 import io.github.dylantopic.langmod.client.audio.MicCapture;
 import io.github.dylantopic.langmod.client.speech.SpeechService;
+import io.github.dylantopic.langmod.client.voice.Pronouncer;
 import io.github.dylantopic.langmod.core.lang.Language;
+import io.github.dylantopic.langmod.core.lang.NameEntry;
 import io.github.dylantopic.langmod.net.AttemptResultPayload;
+import io.github.dylantopic.langmod.net.ChallengeEndPayload;
 import io.github.dylantopic.langmod.net.ClientPhasePayload;
 import io.github.dylantopic.langmod.net.TranscriptionPayload;
 
 /**
  * Runs the microphone during a challenge: open it when the challenge starts, report speaking /
  * checking to the server (which pauses the countdown), transcribe each utterance in the background
- * and send the text to the server, and close the microphone when the challenge ends.
+ * and send the text to the server, and close the microphone when the challenge ends. After a wrong
+ * answer, and when an item is lost, the name is said out loud ({@link Pronouncer}); the microphone
+ * is paused and the countdown waits until the voice has stopped.
  * Only touched on the render thread (microphone callbacks hop over to it).
  */
 public final class ChallengeController {
@@ -27,8 +32,14 @@ public final class ChallengeController {
 	private MicCapture mic;
 	private int challengeId = -1;
 	private Language language;
-	private String expectedText;
+	private NameEntry entry;
 	private boolean checking;
+	/** Whether the server was last told that the name is being said. */
+	private boolean hearingSent;
+	/** The last name got wrong (for the "hear it again" key), and the challenge it was in. */
+	private Language mistakeLanguage;
+	private NameEntry mistake;
+	private int mistakeChallengeId = -1;
 	private int resumeIn;
 	private boolean micBroken;
 	private String micError = "";
@@ -71,13 +82,23 @@ public final class ChallengeController {
 		return checking;
 	}
 
+	/** Whether the name is being said (the microphone is paused and the countdown waits meanwhile). */
+	public boolean hearing() {
+		return Pronouncer.get().busy();
+	}
+
 	public void onChallengeStart(ClientChallenge.Active active) {
 		closeMic();
 		challengeId = active.id();
 		language = active.language();
-		expectedText = active.entry().text();
+		entry = active.entry();
 		checking = false;
+		hearingSent = false;
 		resumeIn = 0;
+
+		if (LangModConfig.get().sayNameWhenWrong) {
+			Pronouncer.get().prepare(language, entry);
+		}
 
 		if (!useMicrophone) {
 			return;
@@ -96,6 +117,19 @@ public final class ChallengeController {
 		checking = false;
 	}
 
+	/** A challenge ended. An item lost to the clock is said now (a last wrong answer already was). */
+	public void onChallengeEnd(ChallengeEndPayload.Outcome outcome, ClientChallenge.Active ended) {
+		onChallengeEnd();
+
+		if (outcome == ChallengeEndPayload.Outcome.FAILED) {
+			rememberMistake(ended.language(), ended.entry(), ended.id());
+
+			if (LangModConfig.get().sayNameWhenWrong && !Pronouncer.get().busy()) {
+				Pronouncer.get().say(ended.language(), ended.entry());
+			}
+		}
+	}
+
 	public void onAttemptResult(AttemptResultPayload result) {
 		if (result.challengeId() != challengeId) {
 			return;
@@ -106,9 +140,46 @@ public final class ChallengeController {
 		if (result.verdict() != AttemptResultPayload.Verdict.CORRECT) {
 			resumeIn = RESUME_DELAY_TICKS;
 		}
+
+		if (result.verdict() == AttemptResultPayload.Verdict.WRONG) {
+			rememberMistake(language, entry, challengeId);
+
+			if (LangModConfig.get().sayNameWhenWrong) {
+				Pronouncer.get().say(language, entry);
+			}
+		}
+	}
+
+	/**
+	 * The "hear it again" key: says the name last got wrong, in the current challenge once it has
+	 * been got wrong there (never before, that would give the answer away), otherwise the last item lost.
+	 */
+	public void hearAgain() {
+		if (mistake == null || checking || Pronouncer.get().busy() || (challengeId >= 0 && challengeId != mistakeChallengeId)) {
+			return;
+		}
+
+		Pronouncer.get().say(mistakeLanguage, mistake);
+	}
+
+	private void rememberMistake(Language mistakeLanguage, NameEntry mistake, int challenge) {
+		this.mistakeLanguage = mistakeLanguage;
+		this.mistake = mistake;
+		this.mistakeChallengeId = challenge;
 	}
 
 	public void tick(Minecraft minecraft) {
+		boolean hearing = hearing();
+
+		// The countdown waits while the name is said and goes on when the voice (and its echo) has stopped.
+		if (challengeId >= 0 && hearing != hearingSent) {
+			hearingSent = hearing;
+
+			if (hearing || !checking) {
+				sendPhase(challengeId, hearing ? ClientPhasePayload.Phase.HEARING : ClientPhasePayload.Phase.LISTENING);
+			}
+		}
+
 		if (mic == null) {
 			return;
 		}
@@ -119,8 +190,8 @@ public final class ChallengeController {
 			resumeIn--;
 		}
 
-		// Listen unless Whisper is busy, a result is being shown, or the game is paused.
-		mic.setPaused(checking || resumeIn > 0 || pauseMenu);
+		// Listen unless Whisper is busy, a result is being shown, the name is being said, or the game is paused.
+		mic.setPaused(checking || resumeIn > 0 || hearing || pauseMenu);
 	}
 
 	/** Sends a transcription for the current challenge as if it had come from the microphone (game tests). */
@@ -170,7 +241,7 @@ public final class ChallengeController {
 		ClientChallenge.get().onChecking(samples.length / 16);
 		long start = System.nanoTime();
 
-		SpeechService.get().transcribe(samples, language, expectedText).whenComplete((transcript, error) -> Minecraft.getInstance().execute(() -> {
+		SpeechService.get().transcribe(samples, language, entry.text()).whenComplete((transcript, error) -> Minecraft.getInstance().execute(() -> {
 			if (id != challengeId) {
 				return; // the challenge ended meanwhile
 			}

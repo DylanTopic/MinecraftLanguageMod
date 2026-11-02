@@ -41,6 +41,7 @@ import io.github.dylantopic.langmod.client.config.ItemsScreen;
 import io.github.dylantopic.langmod.client.config.LangModConfigScreen;
 import io.github.dylantopic.langmod.client.config.LanguageScreen;
 import io.github.dylantopic.langmod.client.speech.SpeechService;
+import io.github.dylantopic.langmod.client.voice.Pronouncer;
 import io.github.dylantopic.langmod.core.Matcher;
 import io.github.dylantopic.langmod.core.lang.Language;
 import io.github.dylantopic.langmod.data.PlayerLangData;
@@ -70,6 +71,8 @@ public class LangModClientGameTest implements FabricClientGameTest {
 		SpeechService.get().useEngineForTesting(speech);
 		ChallengeController.get().setUseMicrophoneForTesting(false);
 		waitUntil(context, "the test speech engine", () -> SpeechService.get().ready());
+		Pronouncer.get().useEngineForTesting(new ScriptedVoices());
+		waitUntil(context, "the test voices", () -> Pronouncer.get().status() == Pronouncer.Status.READY);
 
 		TestWorldSave save;
 		UUID uuid;
@@ -111,8 +114,16 @@ public class LangModClientGameTest implements FabricClientGameTest {
 			AttemptResultPayload result = answer(context, speech, "你吐"); // nǐ tǔ instead of ní tǔ
 			check(result.verdict() == AttemptResultPayload.Verdict.WRONG, "wrong tone is wrong in strict mode");
 			check(result.expectedStatus().equals(List.of(Matcher.Status.TONE, Matcher.Status.MATCH)), "first syllable marked as wrong tone: " + result.expectedStatus());
-			context.waitTicks(5);
+			// The name is said out loud after a wrong answer, and the countdown waits until the voice has stopped.
+			waitUntil(context, "the name to be said", () -> Pronouncer.get().saidCount() == 1);
+			check("泥土".equals(Pronouncer.get().lastSaid()), "the name is said after a wrong answer (said " + Pronouncer.get().lastSaid() + ")");
+			context.waitTicks(3);
 			context.takeScreenshot("langmod-06-wrong-tone");
+			int remaining = context.computeOnClient(minecraft -> ClientChallenge.get().remainingTicks());
+			check(context.computeOnClient(minecraft -> ChallengeController.get().hearing()), "the name is still being said");
+			waitUntil(context, "the voice to stop", () -> !ChallengeController.get().hearing());
+			int after = context.computeOnClient(minecraft -> ClientChallenge.get().remainingTicks());
+			check(remaining - after <= 4, "the countdown waited while the name was said (" + remaining + " -> " + after + " ticks)");
 			result = answer(context, speech, "");
 			check(result.verdict() == AttemptResultPayload.Verdict.NO_SPEECH && result.attemptsUsed() == 1, "silence is not counted");
 			result = answer(context, speech, "香蕉");
@@ -121,6 +132,9 @@ public class LangModClientGameTest implements FabricClientGameTest {
 			context.waitFor(minecraft -> ClientChallenge.get().active() == null, 100);
 			context.takeScreenshot("langmod-07-vanished");
 			check(ClientChallenge.get().endOutcome() == ChallengeEndPayload.Outcome.FAILED, "three wrong answers fail");
+			waitUntil(context, "the name after the last wrong answer", () -> Pronouncer.get().saidCount() == 3);
+			context.waitTicks(5);
+			check(Pronouncer.get().saidCount() == 3, "said once per wrong answer, not again when the item is lost");
 			check(count(singleplayer, uuid, Items.DIRT) == 0, "the dirt vanished");
 			check(!data(singleplayer, uuid).isLearned(Language.MANDARIN, "minecraft:dirt"), "dirt stays unlearned");
 			check(mandarin(singleplayer, uuid).failures().getOrDefault("minecraft:dirt", 0) == 1, "the failure is recorded");
@@ -131,11 +145,21 @@ public class LangModClientGameTest implements FabricClientGameTest {
 			context.waitFor(minecraft -> ClientChallenge.get().active() == null, 20 * 12);
 			check(ClientChallenge.get().endOutcome() == ChallengeEndPayload.Outcome.FAILED, "time running out fails");
 			check(count(singleplayer, uuid, Items.STICK) == 0, "the sticks vanished");
+			waitUntil(context, "the lost item's name", () -> Pronouncer.get().saidCount() == 4);
+			check("木棍".equals(Pronouncer.get().lastSaid()), "an item lost to the clock is said (said " + Pronouncer.get().lastSaid() + ")");
+			waitUntil(context, "the voice to stop", () -> !ChallengeController.get().hearing());
+			context.runOnClient(minecraft -> ChallengeController.get().hearAgain());
+			waitUntil(context, "the name to be said again", () -> Pronouncer.get().saidCount() == 5);
+			check("木棍".equals(Pronouncer.get().lastSaid()), "the hear-again key says the lost item's name");
 
 			// 5. Quitting mid-challenge gives the item back.
 			drop(singleplayer, uuid, new ItemStack(Items.TORCH, 7));
 			waitForChallenge(context, "火把");
 			check(count(singleplayer, uuid, Items.TORCH) == 0, "the torches are held back");
+			waitUntil(context, "the voice to stop", () -> !ChallengeController.get().hearing());
+			context.runOnClient(minecraft -> ChallengeController.get().hearAgain());
+			context.waitTicks(3);
+			check(Pronouncer.get().saidCount() == 5, "the hear-again key does not give away a name not yet got wrong");
 		}
 
 		try (TestSingleplayerContext singleplayer = save.open()) {

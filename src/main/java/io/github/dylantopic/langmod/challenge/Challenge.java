@@ -6,7 +6,8 @@ final class Challenge {
 	enum Phase {
 		LISTENING,
 		RECORDING,
-		CHECKING
+		CHECKING,
+		HEARING
 	}
 
 	final int id;

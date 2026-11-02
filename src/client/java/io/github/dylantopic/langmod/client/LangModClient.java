@@ -28,7 +28,9 @@ import io.github.dylantopic.langmod.client.config.LangModConfigScreen;
 import io.github.dylantopic.langmod.client.config.LanguageScreen;
 import io.github.dylantopic.langmod.client.hud.ChallengeHud;
 import io.github.dylantopic.langmod.client.speech.SpeechService;
+import io.github.dylantopic.langmod.client.voice.Pronouncer;
 import io.github.dylantopic.langmod.core.lang.Language;
+import io.github.dylantopic.langmod.core.tts.Voice;
 import io.github.dylantopic.langmod.net.AttemptResultPayload;
 import io.github.dylantopic.langmod.net.ChallengeEndPayload;
 import io.github.dylantopic.langmod.net.ChallengeStartPayload;
@@ -45,6 +47,7 @@ public class LangModClient implements ClientModInitializer {
 	private static final KeyMapping TOGGLE_DEBUG_KEY = new KeyMapping("key.langmod.toggle_debug", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_F9, KEY_CATEGORY);
 	private static final KeyMapping OPEN_CONFIG_KEY = new KeyMapping("key.langmod.open_config", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, KEY_CATEGORY);
 	private static final KeyMapping CHOOSE_LANGUAGE_KEY = new KeyMapping("key.langmod.choose_language", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, KEY_CATEGORY);
+	private static final KeyMapping HEAR_AGAIN_KEY = new KeyMapping("key.langmod.hear_again", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_H, KEY_CATEGORY);
 	private static SpeechService.Status lastNotifiedStatus;
 
 	@Override
@@ -71,10 +74,14 @@ public class LangModClient implements ClientModInitializer {
 				ClientMessages.error(speech.statusMessage());
 			}
 		});
-		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> challenge.reset());
+		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+			challenge.reset();
+			Pronouncer.get().stop();
+		});
 		KeyMappingHelper.registerKeyMapping(TOGGLE_DEBUG_KEY);
 		KeyMappingHelper.registerKeyMapping(OPEN_CONFIG_KEY);
 		KeyMappingHelper.registerKeyMapping(CHOOSE_LANGUAGE_KEY);
+		KeyMappingHelper.registerKeyMapping(HEAR_AGAIN_KEY);
 		GameMenuButtons.register();
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			challenge.tick();
@@ -92,12 +99,26 @@ public class LangModClient implements ClientModInitializer {
 			while (CHOOSE_LANGUAGE_KEY.consumeClick()) {
 				runAction(ClientActionPayload.Action.OPEN_LANGUAGE_MENU);
 			}
+
+			while (HEAR_AGAIN_KEY.consumeClick()) {
+				ChallengeController.get().hearAgain();
+			}
 		});
 
 		// Load the Whisper model in the background as soon as the game has started.
 		speech.addListener(() -> Minecraft.getInstance().execute(LangModClient::onSpeechStatusChanged));
-		ClientLifecycleEvents.CLIENT_STARTED.register(client -> speech.start());
-		ClientLifecycleEvents.CLIENT_STOPPING.register(client -> speech.shutdown());
+		ClientLifecycleEvents.CLIENT_STARTED.register(client -> {
+			speech.start();
+
+			// Finds the voices for saying names, so they are known before the first mistake.
+			if (LangModConfig.get().sayNameWhenWrong) {
+				Pronouncer.get().start();
+			}
+		});
+		ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
+			speech.shutdown();
+			Pronouncer.get().shutdown();
+		});
 
 		HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, LangMod.id("challenge"), ChallengeHud::extract);
 	}
@@ -167,10 +188,39 @@ public class LangModClient implements ClientModInitializer {
 				// changed (a chat message follows when it is ready) and retries a microphone that failed.
 				SpeechService.get().reload();
 				ChallengeController.get().clearMicError();
+
+				if (Pronouncer.get().status() != Pronouncer.Status.IDLE) {
+					Pronouncer.get().reload(); // also sees voices added in Windows meanwhile
+				}
 			}
 			case OPEN_CONFIG -> Minecraft.getInstance().setScreen(new LangModConfigScreen(null));
 			case OPEN_LANGUAGE_MENU -> Minecraft.getInstance().setScreen(new LanguageScreen(null));
 			case OPEN_ITEMS -> Minecraft.getInstance().setScreen(new ItemsScreen(null));
+			case LIST_VOICES -> {
+				ClientMessages.info("Looking for voices...");
+				Pronouncer.get().reload().whenComplete((voices, error) -> Minecraft.getInstance().execute(LangModClient::listVoices));
+			}
 		}
+	}
+
+	/** /langmod voices: the voices installed and which one says each language's names. */
+	private static void listVoices() {
+		Pronouncer pronouncer = Pronouncer.get();
+
+		if (pronouncer.status() == Pronouncer.Status.UNAVAILABLE) {
+			ClientMessages.error("Names can't be said out loud: " + pronouncer.problem());
+			return;
+		}
+
+		List<Voice> voices = pronouncer.voices();
+		ClientMessages.info(voices.isEmpty() ? "No voices are installed in Windows."
+				: "Voices installed in Windows: " + String.join(", ", voices.stream().map(Voice::describe).toList()) + ".");
+
+		for (Language language : Language.values()) {
+			String voice = pronouncer.voiceFor(language).map(Voice::describe).orElse("none - add a " + Pronouncer.voiceLanguage(language) + " voice");
+			ClientMessages.info(" - " + language.englishName() + ": " + voice);
+		}
+
+		ClientMessages.info("Add voices in Windows: Settings > Time & language > Speech > Add voices. Choose one in the LangMod settings.");
 	}
 }

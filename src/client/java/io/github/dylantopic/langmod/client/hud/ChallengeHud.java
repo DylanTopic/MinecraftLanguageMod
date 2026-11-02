@@ -149,7 +149,7 @@ public final class ChallengeHud {
 		// Microphone indicator, status text and countdown.
 		int rowY = y + PAD + headerHeight + 6;
 		MicCapture mic = controller.mic();
-		boolean listening = mic != null && !controller.checking();
+		boolean listening = mic != null && !controller.checking() && !controller.hearing();
 		MicIndicator.drawDot(graphics, x + PAD, rowY, listening, mic != null && mic.inSpeech());
 		graphics.text(font, status, x + PAD + 12, rowY, TEXT, true);
 		graphics.text(font, timer, x + width - PAD - font.width(timer), rowY, challenge.timerRunning() ? TEXT : DIM, true);
@@ -221,6 +221,10 @@ public final class ChallengeHud {
 	private static String statusLine(ChallengeController controller) {
 		if (!controller.micAvailable()) {
 			return "Microphone unavailable";
+		}
+
+		if (controller.hearing()) {
+			return "Listen...";
 		}
 
 		if (controller.checking()) {

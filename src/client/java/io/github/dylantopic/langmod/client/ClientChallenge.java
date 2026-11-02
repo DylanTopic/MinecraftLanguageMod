@@ -117,7 +117,7 @@ public final class ClientChallenge {
 			endDetail = payload.detail();
 			endTicks = END_DISPLAY_TICKS;
 			active = null;
-			ChallengeController.get().onChallengeEnd();
+			ChallengeController.get().onChallengeEnd(payload.outcome(), ended);
 		}
 	}
 

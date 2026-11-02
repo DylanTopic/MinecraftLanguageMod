@@ -5,8 +5,9 @@ A Fabric mod for Minecraft 26.1.2 that teaches a language through exposure: **Ma
 **Latin**, **Tagalog**, **Japanese**, **Bosnian**, **Portuguese** (Brazil), **Vietnamese** or
 **German**. The first time you pick up an
 item type, you have to **say its name out loud** in the language you are learning before you get
-it. Speech recognition runs entirely on your computer with
-[whisper.cpp](https://github.com/ggml-org/whisper.cpp). Nothing is sent anywhere.
+it. Get it wrong and a voice says the name for you, so you can hear it and try again. Speech
+recognition runs entirely on your computer with [whisper.cpp](https://github.com/ggml-org/whisper.cpp),
+and the voice is one installed in Windows. Nothing is sent anywhere.
 
 Item names are Minecraft's own translations (the ones you see when you switch the game to that
 language), so nothing is translated by hand.
@@ -24,9 +25,11 @@ language), so nothing is translated by hand.
    green flash and a few particles. That item type is now *learned* and is picked up normally from
    then on.
 4. **Wrong:** the popup shows what Whisper heard next to the expected answer. The words or
-   syllables that don't match are underlined in red (in Mandarin, wrong tones in orange). Try again.
-5. After 3 wrong answers, or when the 20 s run out, the item **disappears** with a puff of smoke.
-   It stays unlearned, so the next one you find is a new chance.
+   syllables that don't match are underlined in red (in Mandarin, wrong tones in orange). A voice
+   then says the name out loud ([Hearing the name](#hearing-the-name)), and the countdown waits
+   until it has finished. Try again.
+5. After 3 wrong answers, or when the 20 s run out, the item **disappears** with a puff of smoke,
+   and its name is said once more. It stays unlearned, so the next one you find is a new chance.
 
 Other rules:
 
@@ -97,6 +100,48 @@ learned are marked "learned".
 Turned-off items are kept per language in `config/langmod/langmod.json` (`disabledItems`), so they
 apply in every world.
 
+## Hearing the name
+
+After a wrong answer, and when an item is lost, a voice says the name out loud, so you can hear how
+it sounds and adjust before trying again. The microphone is paused while it speaks (it would
+otherwise hear the voice) and the countdown waits. Press **H** to hear the name again; it works only
+once you have got that item wrong, so it never gives an answer away. "Say the name when wrong" in
+the settings turns it off; the volume is Minecraft's Music & Sounds > Voice/Speech.
+
+The voices are the ones installed in Windows: the mod downloads nothing and sends nothing online.
+An English Windows usually has only English voices, so add the voice of the language you learn:
+
+1. Windows Settings > Time & language > Speech > Manage voices > **Add voices** (Windows 10:
+   Settings > Time & Language > Speech > Add voices).
+2. Install the voice from the table below.
+3. In the game, run `/langmod voices` (or restart Minecraft). It lists the voices found and the one
+   each language uses.
+
+| Learning | Voice to add in Windows |
+|---|---|
+| Mandarin Chinese | Chinese (Simplified, China) |
+| Spanish (Mexico) | Spanish (Mexico); Spanish (Spain) also works |
+| French (Canada) | French (Canada); French (France) also works |
+| Korean | Korean |
+| Russian | Russian |
+| Dutch | Dutch (Netherlands) |
+| Latin | Italian: there is no Latin voice, and an Italian one reads Latin the way it is said in church |
+| Tagalog | none: Windows has no Filipino voice, so Tagalog names are not said |
+| Japanese | Japanese |
+| Bosnian | Croatian: there is no Bosnian voice, and Croatian has the same sounds and spelling |
+| Portuguese (Brazil) | Portuguese (Brazil) |
+| Vietnamese | Vietnamese |
+| German | German (Germany) |
+
+When a language has several voices, pick one with "Voice" in the settings; changing it or "Voice
+speed" plays a sample (the word for apple). Japanese names written with kanji are read from their
+kana reading, the one shown in the popup. A voice may now and then misread a Chinese character that
+has several readings; the pinyin in the popup is what counts.
+
+The mod reaches the voices through Windows PowerShell, which is part of Windows: it writes
+`windows-voices.ps1` into `config\langmod` and runs it while needed (it stops after a few idle
+minutes). On Linux and macOS there are no voices yet: names are only shown.
+
 ## Requirements
 
 - Minecraft Java Edition **26.1.2** with Fabric Loader 0.20.1+ and Fabric API
@@ -106,6 +151,8 @@ apply in every world.
   Ryzen; some budget Pentium/Celeron chips lack it) and the Microsoft Visual C++ 2015-2022 runtime, which almost every gaming PC already has
   (otherwise: <https://aka.ms/vs/17/release/vc_redist.x64.exe>)
 - About 0.5 GB of disk space for the Whisper model (downloaded separately, see below)
+- For hearing names said out loud: Windows 10 or 11 with a voice for the language (see
+  [Hearing the name](#hearing-the-name))
 - Optional: [Mod Menu](https://modrinth.com/mod/modmenu) for a "Configure" button
 
 ## Setup (Windows)
@@ -185,6 +232,7 @@ default launcher: `%APPDATA%\.minecraft\config\langmod\models`).
 | `/langmod mics` | Lists the microphones. |
 | `/langmod language` | Opens the menu for choosing the language to learn (also **Practice Language** in the game menu). |
 | `/langmod items` | Opens the items list, where items can be turned off (also **Items** in the game menu). |
+| `/langmod voices` | Looks for the voices installed in Windows again and lists the one that says each language's names. |
 | `/langmod list [page]` | Learned items in the current language, with their name, pronunciation and English name. |
 | `/langmod review` | The items you failed most often in the current language, with failure and wrong-answer counts. |
 | `/langmod reset` | Forgets the learned items of the current language, so they are challenged again. |
@@ -200,7 +248,8 @@ romanization, the words or syllables that were compared, the expected name, the 
 ## Settings
 
 Open the settings with Mod Menu's "Configure" button, `/langmod config`, or a key (unbound by
-default; set it under Options > Controls > Key Binds > LangMod). Every change is saved
+default; set it under Options > Controls > Key Binds > LangMod, where "Hear the name again" (H) is
+too). Every change is saved
 immediately to `config/langmod/langmod.json`. Speech settings take effect when you close the
 screen. The file can also be edited by hand (then run `/langmod reload`).
 
@@ -215,6 +264,9 @@ screen. The file can also be edited by hand (then run `/langmod reload`).
 | Long names from (`nameLengthLimits`) | per language, see above | For the current language: names longer than this (characters in Mandarin, words otherwise) are "long". |
 | Long names (`longNameModes`) | per language, see above | For the current language: `lenient` (one wrong syllable or word allowed) or `skip` (never challenged). |
 | Prompt biasing (`promptBiasingByLanguage`) | on, except in Mandarin | For the current language: give Whisper the expected word as a hint (see below). |
+| Say the name when wrong (`sayNameWhenWrong`) | on | Say the name out loud after a wrong answer and when an item is lost, see [Hearing the name](#hearing-the-name). |
+| Voice (`voiceNames`) | automatic | For the current language: the Windows voice that says names (part of its name, e.g. `Kangkang`). |
+| Voice speed (`voiceSpeed`) | 0.9 | 1.0 is the voice's normal speed. |
 | Whisper model (`modelSize`) | small | `tiny`, `base`, `small`, `medium`, `large-v3-turbo`: loads `ggml-<size>.bin`. |
 | Speech engine (`speechEngine`) | jni | `jni` (built in, CPU) or `server` (separate whisper.cpp program, GPU). |
 | Use GPU (`useGpu`) | on | Only used by the `server` engine. |
@@ -589,6 +641,9 @@ The mod was built in five stages. To check them by hand, start `.\gradlew.bat ru
    to the vanilla buttons. Items lists everything in the current language; search for "carrot",
    click it so its square turns red, close the menus and pick up a carrot: it goes straight into
    your inventory.
+8. **Hearing the name** (added afterwards, needs a Windows voice for the language): `/langmod voices`
+   lists it. Pick up something new and say a wrong word: the popup shows "Listen...", the name is
+   said and the countdown stands still meanwhile. Press H to hear it again.
 
 Automated tests:
 
@@ -598,7 +653,9 @@ Automated tests:
 ```
 
 The game test writes screenshots to `build\run\clientGameTest\screenshots`. Both run on every push
-in GitHub Actions (`.github/workflows/build.yml`), which also uploads the built jar.
+in GitHub Actions (`.github/workflows/build.yml`), which also uploads the built jar. The game test
+uses silent scripted voices; `.github/workflows/voices.yml` checks the real Windows voices on a
+Windows runner (VoiceCheck: lists them and has each language's voice say its word for apple).
 
 ## Troubleshooting
 
@@ -620,6 +677,9 @@ in GitHub Actions (`.github/workflows/build.yml`), which also uploads the built 
   accurate but slower. The debug overlay (F9) shows what Whisper wrote.
 - **A wrong name or reading in the popup**: add the item to `config/langmod/pinyin_overrides.json`
   (Mandarin) or `config/langmod/names_<language>.json` (Spanish, French, Korean).
+- **Names are not said out loud**: run `/langmod voices`. If your language shows "none", add its
+  voice in Windows (see [Hearing the name](#hearing-the-name)) and run `/langmod voices` again. Check
+  Minecraft's Voice/Speech volume, and that "Say the name when wrong" is on.
 - **"You switched to ..., so your items were given back"**: changing the language during a
   challenge cancels it without counting a failure; pick the item up again.
 - Logs: `run\logs\latest.log` (development client) or `.minecraft\logs\latest.log`.
@@ -633,10 +693,11 @@ src/main/java/.../langmod/
   command/                              /langmod
   core/                                 plain Java, unit tested: pinyin, matching, audio, text, speech engines
   core/lang/                            the languages: names, answer checking, Korean romanization
+  core/tts/                             the Windows voices (through PowerShell) and which voice says each language
   data/                                 per-player saved data (Fabric data attachment)
   mixin/                                ItemEntity pickup hook, player death hook
   net/                                  packets between server and client
-src/client/java/.../langmod/client/     microphone, speech service, popup and overlays, settings screen
+src/client/java/.../langmod/client/     microphone, speech service, popup and overlays, settings screen, saying names
 src/gametest/                           client game test (runClientGameTest)
 src/test/                               unit tests and the SpeechCheck tool used by CI
 tools/                                  name, pinyin and Japanese reading generators, fixes and review lists

@@ -52,6 +52,7 @@ public final class LangModCommands {
 						.then(Commands.literal("config").executes(context -> clientAction(context, ClientActionPayload.Action.OPEN_CONFIG)))
 						.then(Commands.literal("language").executes(context -> clientAction(context, ClientActionPayload.Action.OPEN_LANGUAGE_MENU)))
 						.then(Commands.literal("items").executes(context -> clientAction(context, ClientActionPayload.Action.OPEN_ITEMS)))
+						.then(Commands.literal("voices").executes(context -> clientAction(context, ClientActionPayload.Action.LIST_VOICES)))
 						.then(Commands.literal("list")
 								.executes(context -> list(context, 1))
 								.then(Commands.argument("page", IntegerArgumentType.integer(1))

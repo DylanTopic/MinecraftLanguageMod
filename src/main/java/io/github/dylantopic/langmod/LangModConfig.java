@@ -106,6 +106,12 @@ public final class LangModConfig {
 
 	// --- Display (client) -------------------------------------------------------------------
 	public boolean showEnglish = true;
+	/** Say the name out loud (with a voice installed in Windows) after a wrong answer and when an item is lost. */
+	public boolean sayNameWhenWrong = true;
+	/** Speed of the voice that says names: 1.0 = normal. */
+	public double voiceSpeed = 0.9;
+	/** Per language: the voice that says names, as (part of) its name; empty = chosen automatically. See /langmod voices. */
+	public Map<String, String> voiceNames = defaultVoiceNames();
 	/** Colours for tones 1-4 and 5 (neutral), as #RRGGBB. */
 	public Map<String, String> toneColors = defaultToneColors();
 	public float hanziScale = 3.0f;
@@ -228,6 +234,11 @@ public final class LangModConfig {
 		return prompt.isBlank() ? null : prompt;
 	}
 
+	/** The voice chosen for a language in the settings, or empty for automatic. */
+	public String voiceName(Language language) {
+		return voiceNames.getOrDefault(language.id(), "");
+	}
+
 	/** Tone colour as 0xAARRGGBB; tone 5 = neutral. */
 	public int toneColor(int tone) {
 		String value = toneColors.get(Integer.toString(tone));
@@ -254,8 +265,13 @@ public final class LangModConfig {
 		Map<String, String> prompts = defaultWhisperPrompts();
 		Map<String, Boolean> biasing = defaultPromptBiasing();
 		Map<String, Set<String>> disabled = defaultDisabledItems();
+		Map<String, String> voices = defaultVoiceNames();
 
 		for (Language l : Language.values()) {
+			if (voiceNames != null && voiceNames.get(l.id()) != null) {
+				voices.put(l.id(), voiceNames.get(l.id()).trim());
+			}
+
 			if (nameLengthLimits != null && nameLengthLimits.get(l.id()) != null) {
 				limits.put(l.id(), clamp(nameLengthLimits.get(l.id()), 1, 32, "nameLengthLimits." + l.id()));
 			}
@@ -286,6 +302,12 @@ public final class LangModConfig {
 		whisperPrompts = prompts;
 		promptBiasingByLanguage = biasing;
 		disabledItems = disabled;
+		voiceNames = voices;
+
+		if (!(voiceSpeed >= 0.5 && voiceSpeed <= 3)) {
+			LangMod.LOGGER.warn("Config: voiceSpeed {} out of range, using 0.9", voiceSpeed);
+			voiceSpeed = 0.9;
+		}
 		whisperThreads = clamp(whisperThreads, 0, 64, "whisperThreads");
 		audioContext = clamp(audioContext, -1, 1500, "audioContext");
 		transcriptionTimeoutSeconds = clamp(transcriptionTimeoutSeconds, 1, 120, "transcriptionTimeoutSeconds");
@@ -412,6 +434,16 @@ public final class LangModConfig {
 		}
 
 		return disabled;
+	}
+
+	private static Map<String, String> defaultVoiceNames() {
+		Map<String, String> voices = new LinkedHashMap<>();
+
+		for (Language language : Language.values()) {
+			voices.put(language.id(), "");
+		}
+
+		return voices;
 	}
 
 	private static Map<String, Boolean> defaultPromptBiasing() {
