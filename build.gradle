@@ -88,14 +88,17 @@ test {
 }
 
 jar {
-	inputs.property "archivesName", project.base.archivesName
+	// A plain string, like `version` above: the configuration cache cannot resolve the task's
+	// properties inside the rename closures when the task runs.
+	def archivesName = project.base.archivesName.get()
+	inputs.property "archivesName", archivesName
 
 	// The licence and the third-party notices travel inside the mod jar.
 	from("LICENSE") {
-		rename { "${it}_${inputs.properties.archivesName}" }
+		rename { "${it}_${archivesName}" }
 	}
 	from("THIRD_PARTY_NOTICES.md") {
-		rename { "THIRD_PARTY_NOTICES_${inputs.properties.archivesName}.md" }
+		rename { "THIRD_PARTY_NOTICES_${archivesName}.md" }
 	}
 }
 
