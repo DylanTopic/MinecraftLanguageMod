@@ -12,6 +12,9 @@ and the voice is one installed in Windows. Nothing is sent anywhere.
 Item names are Minecraft's own translations (the ones you see when you switch the game to that
 language), so nothing is translated by hand.
 
+**Just want to play it?** Follow [INSTALL.md](INSTALL.md): a step-by-step guide that needs no
+programming tools. The rest of this file describes the mod in detail and how to build and change it.
+
 ## How it works
 
 1. You pick up an item you have never picked up before (say, an apple). The mod holds it back and
