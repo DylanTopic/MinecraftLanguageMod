@@ -14,6 +14,10 @@ on:
       - '.github/workflows/voices.yml'
   workflow_dispatch:
 
+# Read-only token: no step needs to change the repository.
+permissions:
+  contents: read
+
 concurrency:
   group: voices-${{ github.ref }}
   cancel-in-progress: true

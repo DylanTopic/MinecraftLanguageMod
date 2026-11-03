@@ -12,8 +12,10 @@ and the voice is one installed in Windows. Nothing is sent anywhere.
 Item names are Minecraft's own translations (the ones you see when you switch the game to that
 language), so nothing is translated by hand.
 
-**Just want to play it?** Follow [INSTALL.md](INSTALL.md): a step-by-step guide that needs no
-programming tools. The rest of this file describes the mod in detail and how to build and change it.
+**Just want to play it?** Download the mod from the
+[latest release](https://github.com/DylanTopic/MinecraftLanguageMod/releases/latest) and follow
+[INSTALL.md](INSTALL.md), a step-by-step guide that needs no programming tools. The rest of this file
+describes the mod in detail and how to build and change it.
 
 ## How it works
 
@@ -222,7 +224,8 @@ see; pick one in the settings ("Microphone").
 
 ### Using it in your normal Minecraft
 
-Build the jar with `.\gradlew.bat build`, then copy `build\libs\langmod-0.1.0.jar` and
+Take the jar from the [latest release](https://github.com/DylanTopic/MinecraftLanguageMod/releases/latest),
+or build it with `.\gradlew.bat build` (it ends up in `build\libs\langmod-0.1.0.jar`). Copy it and
 [Fabric API](https://modrinth.com/mod/fabric-api) into the `mods` folder of a Fabric 26.1.2
 installation, and put the model in that installation's `config\langmod\models` folder (for the
 default launcher: `%APPDATA%\.minecraft\config\langmod\models`).
@@ -714,4 +717,17 @@ Loader 0.20.1, Loom 1.19-SNAPSHOT (`net.fabricmc.fabric-loom`, the non-remapping
 unobfuscated Minecraft, so the code uses Mojang's names), Fabric API 0.155.3+26.1.2, Gradle 9.8.2,
 Java 25. Mod Menu 18.0.2, whisper-jni 1.7.1.
 
-Third-party components and their licences are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+## Releasing
+
+Raise `version` in `gradle.properties` and push. Then, in the repository's **Actions** tab, choose
+**release** and **Run workflow**: it builds the mod and publishes a GitHub Release `v<version>` with
+the jar, which is where [INSTALL.md](INSTALL.md) sends players. It refuses a version that was
+already released.
+
+## License
+
+LangMod's code is under the [MIT License](LICENSE). Third-party components and data keep their own
+licences, listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md); the item names are Minecraft's
+own translations.
+
+NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.

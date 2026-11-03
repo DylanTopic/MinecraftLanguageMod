@@ -8,9 +8,11 @@
 		"DylanTopic"
 	],
 	"contact": {
-		"sources": "https://github.com/DylanTopic/MinecraftLanguageMod"
+		"homepage": "https://github.com/DylanTopic/MinecraftLanguageMod",
+		"sources": "https://github.com/DylanTopic/MinecraftLanguageMod",
+		"issues": "https://github.com/DylanTopic/MinecraftLanguageMod/issues"
 	},
-	"license": "All-Rights-Reserved",
+	"license": "MIT",
 	"icon": "assets/langmod/icon.png",
 	"environment": "*",
 	"entrypoints": {

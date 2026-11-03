@@ -10,6 +10,10 @@ on:
       - '.github/workflows/survey.yml'
   workflow_dispatch:
 
+# Read-only token: no step needs to change the repository.
+permissions:
+  contents: read
+
 concurrency:
   group: survey-${{ github.ref }}
   cancel-in-progress: true

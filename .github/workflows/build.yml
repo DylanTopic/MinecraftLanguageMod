@@ -10,6 +10,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Read-only token: no step needs to change the repository.
+permissions:
+  contents: read
+
 concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true

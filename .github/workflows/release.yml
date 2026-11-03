@@ -1,0 +1,77 @@
+# Publishes a release: builds the mod and creates a GitHub Release with the jar, tagged with the
+# version in gradle.properties (v0.1.0 for version=0.1.0). Run it from the Actions tab ("release",
+# then "Run workflow"). For the next release, raise `version` in gradle.properties first; a version
+# that was already released is refused.
+name: release
+
+on:
+  workflow_dispatch:
+
+# Creating the tag and the release needs write access to the repository's contents.
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6
+      - name: version from gradle.properties
+        id: version
+        run: |
+          VERSION=$(grep -E '^version=' gradle.properties | cut -d= -f2 | tr -d '[:space:]')
+          [ -n "$VERSION" ] || { echo "No version in gradle.properties"; exit 1; }
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" > /dev/null; then
+            echo "v$VERSION was already released: raise 'version' in gradle.properties first."
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - name: setup jdk
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
+      - name: setup gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          add-job-summary: never
+      - name: build
+        run: chmod +x ./gradlew && ./gradlew build --stacktrace
+      - name: check the mod jar
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          # The jar players install: carries whisper-jni (with its native libraries), the licence and the version.
+          JAR="build/libs/langmod-$VERSION.jar"
+          unzip -l "$JAR" | grep -E "META-INF/jars/whisper-jni-[0-9.]+\.jar"
+          unzip -l "$JAR" | grep -q "LICENSE_langmod" || { echo "The licence is missing from the jar"; exit 1; }
+          unzip -p "$JAR" fabric.mod.json | grep -q "\"version\": \"$VERSION\"" || { echo "fabric.mod.json does not say $VERSION"; exit 1; }
+      - name: publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          REPO="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          cat > notes.md <<EOF
+          LangMod $VERSION for **Minecraft 26.1.2** with Fabric.
+
+          The first time you pick up an item, say its name out loud in the language you are learning
+          (Mandarin Chinese, Spanish, French, Korean, Russian, Dutch, Latin, Tagalog, Japanese, Bosnian,
+          Portuguese, Vietnamese or German). Speech recognition runs on your computer with whisper.cpp;
+          nothing is sent anywhere.
+
+          **How to install:** follow [INSTALL.md]($REPO/blob/HEAD/INSTALL.md). In short, you need:
+
+          - Fabric Loader for Minecraft 26.1.2, and Fabric API
+          - \`langmod-$VERSION.jar\` (below, under Assets) in your \`mods\` folder
+          - the Whisper model \`ggml-small.bin\` in \`config/langmod/models\`
+          - a microphone; to hear names said out loud, Windows 10 or 11 with a voice for your language
+          EOF
+          gh release create "v$VERSION" "build/libs/langmod-$VERSION.jar" --target "$GITHUB_SHA" \
+            --title "LangMod $VERSION" --notes-file notes.md

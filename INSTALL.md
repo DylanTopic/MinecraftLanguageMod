@@ -23,17 +23,11 @@ see [Without CurseForge](#without-curseforge) at the end.
 
 ## 2. Download the LangMod file
 
-The mod is one file, `langmod-0.1.0.jar`. The easiest way to get it:
+The mod is one file, `langmod-0.1.0.jar` (a later version has a higher number).
 
-1. Log in to GitHub (downloading builds needs an account).
-2. Open the list of builds:
-   <https://github.com/DylanTopic/MinecraftLanguageMod/actions/workflows/build.yml>
-3. Click the newest run that has a green check mark.
-4. Scroll down to **Artifacts** and click **Artifacts** to download a zip file.
-5. Unzip it. You get two files: use **`langmod-0.1.0.jar`**, not the one ending in `-sources`.
-
-GitHub deletes these downloads after 90 days. If the list has none, ask Dylan to send you the jar,
-or build it yourself ([Building it yourself](#building-it-yourself) at the end).
+1. Open the latest release: <https://github.com/DylanTopic/MinecraftLanguageMod/releases/latest>
+2. Under **Assets**, click **`langmod-0.1.0.jar`** to download it. (The other entries there are the
+   source code; you don't need them.)
 
 ## 3. Put it in your profile
 
@@ -131,8 +125,9 @@ English voices, so add the one for your language:
 
 ## Updating
 
-Download the newest `langmod-0.1.0.jar` the same way as in step 2 and replace the old file in the
-mods folder. Your progress is kept.
+Download the newest jar from the [latest release](https://github.com/DylanTopic/MinecraftLanguageMod/releases/latest),
+delete the old `langmod-...jar` from the mods folder (two versions at once won't start) and put the
+new one there. Your progress is kept.
 
 ## Without CurseForge
 
@@ -149,7 +144,7 @@ With the normal Minecraft Launcher:
 
 ## Building it yourself
 
-Only needed if you can't download the jar in step 2.
+Only for trying changes that aren't in a release yet.
 
 1. Install Java 25: open PowerShell and run `winget install EclipseAdoptium.Temurin.25.JDK`, then
    open a new PowerShell window.

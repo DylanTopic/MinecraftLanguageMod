@@ -1,5 +1,8 @@
 # Third-party notices
 
+LangMod's own code is under the MIT License ([LICENSE](LICENSE)). The parts below come from other
+projects and keep their own licences.
+
 ## Bundled in the mod jar
 
 | Component | Use | Licence |

@@ -21,6 +21,10 @@ on:
         description: 'SpeechCheck variants to run on Linux (comma-separated)'
         default: 'mc512,biased512'
 
+# Read-only token: no step needs to change the repository.
+permissions:
+  contents: read
+
 concurrency:
   group: speech-${{ github.ref }}
   cancel-in-progress: true

@@ -87,6 +87,18 @@ test {
 	useJUnitPlatform()
 }
 
+jar {
+	inputs.property "archivesName", project.base.archivesName
+
+	// The licence and the third-party notices travel inside the mod jar.
+	from("LICENSE") {
+		rename { "${it}_${inputs.properties.archivesName}" }
+	}
+	from("THIRD_PARTY_NOTICES.md") {
+		rename { "THIRD_PARTY_NOTICES_${inputs.properties.archivesName}.md" }
+	}
+}
+
 // configure the maven publication
 publishing {
 	publications {
