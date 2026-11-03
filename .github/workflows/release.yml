@@ -51,7 +51,9 @@ jobs:
           JAR="build/libs/langmod-$VERSION.jar"
           unzip -l "$JAR" | grep -E "META-INF/jars/whisper-jni-[0-9.]+\.jar"
           unzip -l "$JAR" | grep -q "LICENSE_langmod" || { echo "The licence is missing from the jar"; exit 1; }
-          unzip -p "$JAR" fabric.mod.json | grep -q "\"version\": \"$VERSION\"" || { echo "fabric.mod.json does not say $VERSION"; exit 1; }
+          # Loom rewrites fabric.mod.json compactly ("version":"0.1.0"), so the spacing is not fixed.
+          unzip -p "$JAR" fabric.mod.json | grep -Eq "\"version\" *: *\"$VERSION\"" \
+            || { echo "fabric.mod.json does not say $VERSION:"; unzip -p "$JAR" fabric.mod.json | head -c 300; exit 1; }
       - name: publish the release
         env:
           GH_TOKEN: ${{ github.token }}
