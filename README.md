@@ -508,8 +508,8 @@ which Whisper heard as the expected "manzana".
 **The languages added later:** 15 or 16 samples per language, read by a male and a female voice
 from the country (Latin by two Italian voices, as there is no Latin one: the church
 pronunciation), with 3 wrong answers each: a wrong word, a similar word (Яблоки for Яблоко, Appels,
-Malus, Luya for Lupa, リング for リンゴ, Jabuke, Massa for Maçã, Äpfel for Apfel; in Vietnamese the
-wrong tone, Tào for Táo) and a wrong colour. Every wrong answer was rejected, in every language and
+Malus, Luya for Lupa, リング for リンゴ, Jabuke, Massa for Maçã, Äpfel for Apfel, Apples for Apple; in
+Vietnamese the wrong tone, Tào for Táo) and a wrong colour. Every wrong answer was rejected, in every language and
 with every prompt. Correct names accepted, with the 10 s window (2 to 3 s per answer):
 
 | Language | No prompt | "Minecraft items:" | **Expected word (biasing, default)** |
@@ -523,10 +523,11 @@ with every prompt. Correct names accepted, with the 10 s window (2 to 3 s per an
 | Portuguese (Brazil) | 6 of 13 | 6 of 13 | **11 of 13** |
 | Vietnamese | 4 of 13 | 5 of 13 | **8 of 13** |
 | German | 8 of 13 | 8 of 13 | **12 of 13** |
+| English | 12 of 13 | 12 of 13 | **13 of 13** |
 
 Without biasing, Whisper often wrote something that sounds similar: "ḍmose" for Humus and
 "Australis" for Cucurbita, 意味 (imi) for 弓 (yumi), "Massa" for Maçã and "Bom" for Pão, "FACO" for
-Fakkel, "Kobis" for Kürbis, Đảo for Táo. With biasing, the misses left were mostly a word from
+Fakkel, "Kobis" for Kürbis, Đảo for Táo, "Class" for Glass. With biasing, the misses left were mostly a word from
 another language ("Apple" for Appel, "Look" for Luk, "Block" for Bloke), a dropped or changed letter
 ("Zemija" for Zemlja, "Diamanski" for Dijamantski, "Humuse", "Linggot" for Linggote, "Boden" for
 Bogen), and in Vietnamese short names written with another tone or vowel ("Tàu" for Táo, "Gây"
