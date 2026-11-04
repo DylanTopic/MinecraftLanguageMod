@@ -31,6 +31,7 @@ class VoiceChooserTest {
 		assertEquals(SABINA, VoiceChooser.choose(Language.SPANISH, List.of(DAVID, HELENA, SABINA), "").orElseThrow());
 		assertEquals(HELENA, VoiceChooser.choose(Language.SPANISH, List.of(DAVID, HELENA), "").orElseThrow(), "Spain's voice when Mexico has none");
 		assertEquals(HARUKA, VoiceChooser.choose(Language.JAPANESE, List.of(DAVID, HUIHUI, HARUKA), "").orElseThrow());
+		assertEquals(DAVID, VoiceChooser.choose(Language.ENGLISH, List.of(HUIHUI, DAVID), "").orElseThrow(), "English Windows' own voice");
 	}
 
 	@Test

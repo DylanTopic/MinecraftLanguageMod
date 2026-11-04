@@ -200,3 +200,19 @@ de_article	item.minecraft.apple	Der Apfel	de-DE-ConradNeural	pass	de_de
 de_wrong_word	item.minecraft.apple	Birne	de-DE-KatjaNeural	fail	de_de
 de_similar_word	item.minecraft.apple	Äpfel	de-DE-ConradNeural	fail	de_de
 de_wrong_colour	block.minecraft.green_wool	Rote Wolle	de-DE-KatjaNeural	fail	de_de
+en_apple	item.minecraft.apple	Apple	en-US-GuyNeural	pass	en_us
+en_dirt	block.minecraft.dirt	Dirt	en-US-JennyNeural	pass	en_us
+en_stick	item.minecraft.stick	Stick	en-US-GuyNeural	pass	en_us
+en_bread	item.minecraft.bread	Bread	en-US-JennyNeural	pass	en_us
+en_torch	block.minecraft.torch	Torch	en-US-GuyNeural	pass	en_us
+en_pumpkin	block.minecraft.pumpkin	Pumpkin	en-US-JennyNeural	pass	en_us
+en_bow	item.minecraft.bow	Bow	en-US-GuyNeural	pass	en_us
+en_glass	block.minecraft.glass	Glass	en-US-JennyNeural	pass	en_us
+en_green_wool	block.minecraft.green_wool	Green Wool	en-US-GuyNeural	pass	en_us
+en_diamond_pickaxe	item.minecraft.diamond_pickaxe	Diamond Pickaxe	en-US-JennyNeural	pass	en_us
+en_gold_block	block.minecraft.gold_block	Block of Gold	en-US-GuyNeural	pass	en_us
+en_iron_ingot	item.minecraft.iron_ingot	Iron Ingot	en-US-JennyNeural	pass	en_us
+en_article	item.minecraft.apple	The apple	en-US-GuyNeural	pass	en_us
+en_wrong_word	item.minecraft.apple	Pear	en-US-JennyNeural	fail	en_us
+en_similar_word	item.minecraft.apple	Apples	en-US-GuyNeural	fail	en_us
+en_wrong_colour	block.minecraft.green_wool	Red Wool	en-US-JennyNeural	fail	en_us

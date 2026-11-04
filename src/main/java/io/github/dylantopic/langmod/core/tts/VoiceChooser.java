@@ -33,6 +33,7 @@ public final class VoiceChooser {
 			case PORTUGUESE -> List.of("pt-BR", "pt");
 			case VIETNAMESE -> List.of("vi");
 			case GERMAN -> List.of("de-DE", "de");
+			case ENGLISH -> List.of("en-US", "en");
 		};
 	}
 

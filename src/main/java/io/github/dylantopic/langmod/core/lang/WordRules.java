@@ -125,6 +125,13 @@ public enum WordRules {
 			return true;
 		}
 	},
+	ENGLISH(List.of("the", "a", "an"), List.of("thank you for watching", "thanks for watching", "subscribe", "amara")) {
+		@Override
+		public String soundKey(String word) {
+			// Whisper sometimes writes the British spelling of a word Minecraft spells the American way.
+			return stripAccents(word).replace("grey", "gray").replace("colour", "color").replace("armour", "armor");
+		}
+	},
 	PORTUGUESE(List.of("o", "a", "os", "as", "um", "uma", "uns", "umas"),
 			List.of("legendas pela comunidade", "amara", "obrigado por assistir", "obrigada por assistir", "inscreva-se")) {
 		@Override
@@ -163,6 +170,7 @@ public enum WordRules {
 			case BOSNIAN -> BOSNIAN;
 			case PORTUGUESE -> PORTUGUESE;
 			case GERMAN -> GERMAN;
+			case ENGLISH -> ENGLISH;
 			default -> throw new IllegalArgumentException(language + " is not compared word by word");
 		};
 	}

@@ -3,7 +3,7 @@
 	"id": "langmod",
 	"version": "${version}",
 	"name": "LangMod",
-	"description": "Learn a language through exposure: say an item's name out loud in Mandarin Chinese, Spanish, French, Korean, Russian, Dutch, Latin, Tagalog, Japanese, Bosnian, Portuguese, Vietnamese or German the first time you pick it up. Speech recognition runs locally with whisper.cpp.",
+	"description": "Learn a language through exposure: say an item's name out loud in Mandarin Chinese, Spanish, French, Korean, Russian, Dutch, Latin, Tagalog, Japanese, Bosnian, Portuguese, Vietnamese, German or English the first time you pick it up. Speech recognition runs locally with whisper.cpp.",
 	"authors": [
 		"DylanTopic"
 	],

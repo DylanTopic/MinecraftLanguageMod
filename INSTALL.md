@@ -61,7 +61,7 @@ needs a 466 MB model file that isn't included in the mod.
    it heard.
 5. Choose the language you want to learn: press **Esc**, then **Practice Language**. Mandarin
    Chinese is selected at first. You can also pick Spanish, French, Korean, Russian, Dutch, Latin,
-   Tagalog, Japanese, Bosnian, Portuguese, Vietnamese or German.
+   Tagalog, Japanese, Bosnian, Portuguese, Vietnamese, German or English.
 
 ### How to play
 
@@ -99,6 +99,7 @@ English voices, so add the one for your language:
    | Portuguese | Portuguese (Brazil) |
    | Vietnamese | Vietnamese |
    | German | German (Germany) |
+   | English | none needed: Windows comes with English voices |
 
 3. In the game, type `/langmod voices`. It lists the voices it found and which one each language
    uses. The volume is Minecraft's **Music & Sounds → Voice/Speech** slider.

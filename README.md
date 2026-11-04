@@ -2,8 +2,8 @@
 
 A Fabric mod for Minecraft 26.1.2 that teaches a language through exposure: **Mandarin Chinese**
 (Simplified), **Spanish** (Mexico), **French** (Canada), **Korean**, **Russian**, **Dutch**,
-**Latin**, **Tagalog**, **Japanese**, **Bosnian**, **Portuguese** (Brazil), **Vietnamese** or
-**German**. The first time you pick up an
+**Latin**, **Tagalog**, **Japanese**, **Bosnian**, **Portuguese** (Brazil), **Vietnamese**,
+**German** or **English**. The first time you pick up an
 item type, you have to **say its name out loud** in the language you are learning before you get
 it. Get it wrong and a voice says the name for you, so you can hear it and try again. Speech
 recognition runs entirely on your computer with [whisper.cpp](https://github.com/ggml-org/whisper.cpp),
@@ -76,6 +76,7 @@ of the settings screen. You learn one language at a time:
 | Portuguese (Brazil) | `pt_br` | more than 3 words: not challenged | - |
 | Vietnamese | `vi_vn` | more than 4 syllables: not challenged | - (the accents are the tones) |
 | German | `de_de` | more than 2 words: not challenged | - |
+| English | `en_us` | more than 3 words: not challenged | - |
 
 - Tagalog uses Minecraft's "Filipino" translation, the standard form of Tagalog with the words
   people use every day (Kalabasa, Karot). Minecraft's "Tagalog" translation uses rare, purist
@@ -137,6 +138,7 @@ An English Windows usually has only English voices, so add the voice of the lang
 | Portuguese (Brazil) | Portuguese (Brazil) |
 | Vietnamese | Vietnamese |
 | German | German (Germany) |
+| English | none: Windows comes with English voices |
 
 When a language has several voices, pick one with "Voice" in the settings; changing it or "Voice
 speed" plays a sample (the word for apple). Japanese names written with kanji are read from their
@@ -261,9 +263,9 @@ screen. The file can also be edited by hand (then run `/langmod reload`).
 
 | Setting (`langmod.json` key) | Default | Meaning |
 |---|---|---|
-| Learning (`language`) | `zh_cn` | `zh_cn`, `es_mx`, `fr_ca`, `ko_kr`, `ru_ru`, `nl_nl`, `la_la`, `fil_ph`, `ja_jp`, `bs_ba`, `pt_br`, `vi_vn` or `de_de`, see [Choosing a language](#choosing-a-language). |
+| Learning (`language`) | `zh_cn` | `zh_cn`, `es_mx`, `fr_ca`, `ko_kr`, `ru_ru`, `nl_nl`, `la_la`, `fil_ph`, `ja_jp`, `bs_ba`, `pt_br`, `vi_vn`, `de_de` or `en_us`, see [Choosing a language](#choosing-a-language). |
 | Challenges (`enabled`) | on | Master switch. Turning it off gives held items back. |
-| English name (`showEnglish`) | on | Show the English name in the popup. |
+| English name (`showEnglish`) | on | Show the item's name in your game language (usually English) in the popup; left out when it would only repeat the name. |
 | Attempts (`maxAttempts`) | 3 | Wrong answers before the item vanishes. |
 | Time limit (`timerSeconds`) | 20 | Seconds to answer (paused while speaking and checking). |
 | Matching (`matchMode`) | strict | `strict`, `toneless` or `lenient`, see below. |
@@ -326,7 +328,7 @@ slightly-off pronunciations to the word it expects from context, and sometimes w
 same-sounding word with other tones even when you said it right. Tone checking is therefore
 helpful but imperfect. If it gets in the way, use `toneless` matching.
 
-### Spanish, French, Russian, Dutch, Latin, Tagalog, Bosnian, Portuguese and German
+### Spanish, French, Russian, Dutch, Latin, Tagalog, Bosnian, Portuguese, German and English
 
 Names are compared word by word, and these differences are ignored:
 
@@ -353,7 +355,9 @@ Names are compared word by word, and these differences are ignored:
   - in Brazilian Portuguese: ç/ss/s/z, a final e/o said i/u, but nasal vowels count (Massa is not
     Maçã);
   - in German: ß/ss, ä/e, eu/äu, v/f, a final b/d/g said p/t/k ("Brod" for Brot) and an h that only
-    makes a vowel long; umlauts count, though (Äpfel, the plural, is not Apfel).
+    makes a vowel long; umlauts count, though (Äpfel, the plural, is not Apfel);
+  - in English: the British spellings of names Minecraft spells the American way ("light grey wool"
+    for Light Gray Wool, colour, armour).
 
 A missing, extra or different word is wrong: "manzanas" for Manzana, "laine vert" for Laine verte
 (the t of verte is pronounced), "pan" for Pain (a different nasal vowel), or "яблоки" for Яблоко.

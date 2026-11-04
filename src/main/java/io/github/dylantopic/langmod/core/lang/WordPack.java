@@ -10,7 +10,7 @@ import io.github.dylantopic.langmod.core.Matcher.Status;
 
 /**
  * Languages written with spaces between words (Spanish, French, Russian, Dutch, Latin, Tagalog,
- * Bosnian, Portuguese, German): names are compared word by word, ignoring case, punctuation,
+ * Bosnian, Portuguese, German, English): names are compared word by word, ignoring case, punctuation,
  * apostrophes, accents and an article in front ("la manzana" for Manzana, "l'arc" for Arc). A word
  * that is spelled differently but sounds the same still matches (see {@link WordRules#soundKey}),
  * and so do words Whisper split or joined differently. Russian names are shown with a

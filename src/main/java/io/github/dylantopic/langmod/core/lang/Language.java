@@ -22,7 +22,8 @@ public enum Language {
 	BOSNIAN("bs_ba", "bs", "Bosnian", "Bosanski", 3, "skip", "Predmeti iz Minecrafta:", true),
 	PORTUGUESE("pt_br", "pt", "Portuguese (Brazil)", "Português (Brasil)", 3, "skip", "Itens do Minecraft:", true),
 	VIETNAMESE("vi_vn", "vi", "Vietnamese", "Tiếng Việt", 4, "skip", "Vật phẩm Minecraft:", true),
-	GERMAN("de_de", "de", "German", "Deutsch", 2, "skip", "Minecraft-Gegenstände:", true);
+	GERMAN("de_de", "de", "German", "Deutsch", 2, "skip", "Minecraft-Gegenstände:", true),
+	ENGLISH("en_us", "en", "English", "English", 3, "skip", "Minecraft items:", true);
 
 	private final String id;
 	private final String whisperCode;

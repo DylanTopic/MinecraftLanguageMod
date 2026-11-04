@@ -234,6 +234,22 @@ class LanguagePacksTest {
 	}
 
 	@Test
+	void englishAnswers() throws IOException {
+		LanguagePack pack = pack(Language.ENGLISH);
+		assertEquals("Block of Gold", pack.name("block.minecraft.gold_block").orElseThrow().text());
+		assertTrue(check(pack, "item.minecraft.apple", "Apple.").exact());
+		assertTrue(check(pack, "item.minecraft.apple", "An apple!").pass(), "article in front");
+		assertTrue(check(pack, "block.minecraft.light_gray_wool", "Light grey wool").pass(), "British spelling");
+		assertTrue(check(pack, "block.minecraft.jack_o_lantern", "Jack-o'-lantern").pass(), "written with hyphens");
+		assertTrue(check(pack, "item.minecraft.diamond_pickaxe", "diamond pick axe").pass(), "split in two");
+		assertTrue(check(pack, "block.minecraft.tnt", "TNT").pass());
+		assertFalse(check(pack, "item.minecraft.apple", "Apples").pass(), "the plural");
+		assertFalse(check(pack, "item.minecraft.apple", "Pear").pass());
+		assertFalse(check(pack, "block.minecraft.green_wool", "Red wool").pass());
+		assertTrue(pack.isNoise(pack.normalize("Thank you for watching!"), pack.name("item.minecraft.apple").orElseThrow()));
+	}
+
+	@Test
 	void japaneseAnswers() throws IOException {
 		LanguagePack pack = pack(Language.JAPANESE);
 		NameEntry torch = pack.name("block.minecraft.torch").orElseThrow();

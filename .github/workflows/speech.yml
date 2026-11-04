@@ -62,7 +62,7 @@ jobs:
             samples: 500
           - os: ubuntu-24.04
             variants: ctx512,mc512,biased512
-            languages: ru_ru,nl_nl,la_la,fil_ph
+            languages: ru_ru,nl_nl,la_la,fil_ph,en_us
             samples: 500
           - os: ubuntu-24.04
             variants: ctx512,mc512,biased512

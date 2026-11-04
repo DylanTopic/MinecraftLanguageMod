@@ -257,6 +257,16 @@ public class LangModClientGameTest implements FabricClientGameTest {
 			context.waitFor(minecraft -> ClientChallenge.get().active() == null, 100);
 			check(ClientChallenge.get().endOutcome() == ChallengeEndPayload.Outcome.SUCCESS, "たいまつ is accepted for 松明");
 			check(data(singleplayer, uuid).isLearned(Language.JAPANESE, "minecraft:torch"), "torch learned in Japanese");
+
+			// English, with an article in front.
+			selectLanguage(context, singleplayer, uuid, Language.ENGLISH);
+			drop(singleplayer, uuid, new ItemStack(Items.BREAD));
+			waitForChallenge(context, "Bread");
+			context.takeScreenshot("langmod-17-english-popup");
+			answer(context, speech, "The bread.");
+			context.waitFor(minecraft -> ClientChallenge.get().active() == null, 100);
+			check(ClientChallenge.get().endOutcome() == ChallengeEndPayload.Outcome.SUCCESS, "'the bread' is accepted for Bread");
+			check(data(singleplayer, uuid).isLearned(Language.ENGLISH, "minecraft:bread"), "bread learned in English");
 			selectLanguage(context, singleplayer, uuid, Language.FRENCH);
 
 			// The language menu: one button per language plus Done, all on screen.

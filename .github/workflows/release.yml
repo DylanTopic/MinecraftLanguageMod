@@ -65,7 +65,7 @@ jobs:
 
           The first time you pick up an item, say its name out loud in the language you are learning
           (Mandarin Chinese, Spanish, French, Korean, Russian, Dutch, Latin, Tagalog, Japanese, Bosnian,
-          Portuguese, Vietnamese or German). Speech recognition runs on your computer with whisper.cpp;
+          Portuguese, Vietnamese, German or English). Speech recognition runs on your computer with whisper.cpp;
           nothing is sent anywhere.
 
           **How to install:** follow [INSTALL.md]($REPO/blob/HEAD/INSTALL.md). In short, you need:

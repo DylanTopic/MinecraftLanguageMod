@@ -123,6 +123,7 @@ public final class VoiceCheck {
 		apples.put(Language.PORTUGUESE, "Maçã");
 		apples.put(Language.VIETNAMESE, "Táo");
 		apples.put(Language.GERMAN, "Apfel");
+		apples.put(Language.ENGLISH, "Apple");
 		return apples;
 	}
 }

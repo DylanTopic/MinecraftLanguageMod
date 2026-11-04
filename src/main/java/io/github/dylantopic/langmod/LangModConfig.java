@@ -37,7 +37,7 @@ public final class LangModConfig {
 	// --- General --------------------------------------------------------------------------
 	/** Master switch. When off, pickups behave exactly like vanilla. */
 	public boolean enabled = true;
-	/** The language being learned: zh_cn, es_mx, fr_ca or ko_kr. Each has its own progress. */
+	/** The language being learned, a {@link Language} id (zh_cn, es_mx, ..., en_us). Each has its own progress. */
 	public String language = Language.MANDARIN.id();
 
 	// --- Challenge rules (server) ---------------------------------------------------------

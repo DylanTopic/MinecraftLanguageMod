@@ -82,6 +82,10 @@ public final class ChallengeHud {
 		float romanizationScale = romanization == null ? pinyinScale : fitScale(font, romanization, pinyinScale, graphics.guiWidth());
 		String english = config.showEnglish ? Component.translatable(active.translationKey()).getString() : null;
 
+		if (english != null && english.equalsIgnoreCase(entry.text())) {
+			english = null; // learning the game's own language: the line would only repeat the name
+		}
+
 		int nameWidth = Math.round(font.width(entry.text()) * nameScale);
 		int pronunciationWidth = language.tonal() ? Math.round(pinyinWidth(font, active.pinyin().syllables()) * pinyinScale)
 				: romanization == null ? 0 : Math.round(font.width(romanization) * romanizationScale);
@@ -306,6 +310,7 @@ public final class ChallengeHud {
 			case PORTUGUESE -> "Correto!";
 			case VIETNAMESE -> "Chính xác!";
 			case GERMAN -> "Richtig!";
+			case ENGLISH -> "Correct!";
 		};
 	}
 
