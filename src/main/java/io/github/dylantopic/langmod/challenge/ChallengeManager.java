@@ -37,6 +37,7 @@ import io.github.dylantopic.langmod.net.LangModNetworking;
 import io.github.dylantopic.langmod.net.LearnedItemsPayload;
 import io.github.dylantopic.langmod.net.LearnedItemsRequestPayload;
 import io.github.dylantopic.langmod.net.TranscriptionPayload;
+import io.github.dylantopic.langmod.villager.VillagerConversations;
 
 /**
  * Server-side game logic: intercepts first pickups, holds the items, runs one challenge at a time
@@ -271,7 +272,9 @@ public final class ChallengeManager {
 	// ------------------------------------------------------------------------------------------
 
 	private void tryStartNext(ServerPlayer player, PlayerState state) {
-		if (state.active != null || state.cooldown > 0 || state.queue.isEmpty() || !state.speechReady) {
+		// Items picked up while talking to a villager wait until the conversation is over.
+		if (state.active != null || state.cooldown > 0 || state.queue.isEmpty() || !state.speechReady
+				|| VillagerConversations.get().isTalking(player.getUUID())) {
 			return;
 		}
 

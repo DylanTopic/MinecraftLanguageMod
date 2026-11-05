@@ -14,11 +14,13 @@ import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
+import net.minecraft.client.gui.screens.inventory.MerchantScreen;
 import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -43,12 +45,15 @@ import io.github.dylantopic.langmod.client.config.ItemsScreen;
 import io.github.dylantopic.langmod.client.config.LangModConfigScreen;
 import io.github.dylantopic.langmod.client.config.LanguageScreen;
 import io.github.dylantopic.langmod.client.speech.SpeechService;
+import io.github.dylantopic.langmod.client.villager.VillagerChoiceScreen;
+import io.github.dylantopic.langmod.client.villager.VillagerConversationScreen;
 import io.github.dylantopic.langmod.client.voice.Pronouncer;
 import io.github.dylantopic.langmod.core.Matcher;
 import io.github.dylantopic.langmod.core.lang.Language;
 import io.github.dylantopic.langmod.data.PlayerLangData;
 import io.github.dylantopic.langmod.net.AttemptResultPayload;
 import io.github.dylantopic.langmod.net.ChallengeEndPayload;
+import io.github.dylantopic.langmod.villager.VillagerConversations;
 
 /**
  * End-to-end test run with {@code ./gradlew runClientGameTest} (and in CI under xvfb). A scripted
@@ -344,6 +349,69 @@ public class LangModClientGameTest implements FabricClientGameTest {
 			context.setScreen(() -> null);
 			selectLanguage(context, singleplayer, uuid, Language.MANDARIN);
 
+			// 11. Villagers: right-clicking one asks whether to trade or to talk, when learning Korean or English.
+			selectLanguage(context, singleplayer, uuid, Language.ENGLISH);
+			int villager = summonVillager(singleplayer, uuid);
+			rightClickVillager(context);
+			context.waitFor(minecraft -> minecraft.screen instanceof VillagerChoiceScreen, 100);
+			context.takeScreenshot("langmod-18-villager-choice");
+			context.clickScreenButton(VillagerChoiceScreen.TRADE);
+			context.waitFor(minecraft -> minecraft.screen instanceof MerchantScreen, 100);
+			context.takeScreenshot("langmod-19-villager-trading");
+			closeVillagerScreen(context, singleplayer, uuid, villager);
+
+			// Conversate: what the player types or says, and the villager's answers.
+			startConversation(context, singleplayer, uuid);
+			context.getInput().typeChars("Hello. My name is Dylan. What is your name?");
+			context.getInput().pressKey(GLFW.GLFW_KEY_ENTER);
+			context.waitFor(minecraft -> minecraft.screen instanceof VillagerConversationScreen screen && screen.lines() == 2, 100);
+			String hello = context.computeOnClient(minecraft -> ((VillagerConversationScreen) minecraft.screen).lastVillagerLine());
+			check("Hello, Dylan. I am a villager. Nice to meet you.".equals(hello), "the villager answers a typed greeting (got " + hello + ")");
+			check("Nice to meet you too.".equals(context.computeOnClient(minecraft -> ((VillagerConversationScreen) minecraft.screen).suggestion().text())),
+					"what to say back is suggested");
+			check("I am a farmer. I grow wheat.".equals(talk(context, "What is your job?")), "a farmer says it is a farmer");
+			singleplayer.getServer().runOnServer(server -> server.getPlayerList().getPlayer(uuid).getInventory().add(new ItemStack(Items.EMERALD)));
+			int bread = count(singleplayer, uuid, Items.BREAD);
+			check("Yes, I have bread. It costs one emerald.".equals(talk(context, "Do you have any bread?")), "bread for an emerald");
+			check("Thank you! Here is your bread.".equals(talk(context, "Here is one emerald.")), "paying for the bread");
+			waitUntil(context, "the bread for the emerald",
+					() -> count(singleplayer, uuid, Items.BREAD) == bread + 1 && count(singleplayer, uuid, Items.EMERALD) == 0);
+			String time = speak(context, speech, "What time is it?");
+			check(time.startsWith("It is") || time.contains("sun"), "a spoken question about the time is answered (got " + time + ")");
+			check(talk(context, "Purple monkey dishwasher.").contains("do not understand"), "nonsense is not understood");
+			context.takeScreenshot("langmod-20-villager-english");
+			check(singleplayer.getServer().computeOnServer(server -> villager(server, uuid, villager).isTrading()), "the villager stands still to talk");
+			closeVillagerScreen(context, singleplayer, uuid, villager);
+			check(!singleplayer.getServer().computeOnServer(server -> VillagerConversations.get().isTalking(uuid)), "closing the screen ends the conversation");
+
+			// In Korean, with the romanization and translation under the villager's lines.
+			selectLanguage(context, singleplayer, uuid, Language.KOREAN);
+			startConversation(context, singleplayer, uuid);
+			check("저는 농부예요. 밀을 키워요.".equals(talk(context, "직업이 뭐예요?")), "the farmer's job in Korean");
+			check("정말 멋있어요.".equals(context.computeOnClient(minecraft -> ((VillagerConversationScreen) minecraft.screen).suggestion().text())),
+					"a Korean answer is suggested");
+			check("네, 빵 있어요. 에메랄드 한 개예요.".equals(speak(context, speech, "빵 있어요?")), "bread asked for out loud in Korean");
+			check("음, 에메랄드가 없네요.".equals(talk(context, "여기 에메랄드 한 개 있어요.")), "no emerald left to pay with");
+			context.takeScreenshot("langmod-21-villager-korean");
+			context.clickScreenButton(VillagerConversationScreen.PHRASES);
+			context.waitTicks(2);
+			context.takeScreenshot("langmod-22-villager-phrases");
+			closeVillagerScreen(context, singleplayer, uuid, villager);
+
+			// Sneaking trades straight away, and so does every other language.
+			context.getInput().holdShift();
+			context.waitTicks(3);
+			rightClickVillager(context);
+			context.waitFor(minecraft -> minecraft.screen instanceof MerchantScreen, 100);
+			context.getInput().releaseShift();
+			closeVillagerScreen(context, singleplayer, uuid, villager);
+			selectLanguage(context, singleplayer, uuid, Language.SPANISH);
+			rightClickVillager(context);
+			context.waitFor(minecraft -> minecraft.screen instanceof MerchantScreen, 100);
+			closeVillagerScreen(context, singleplayer, uuid, villager);
+			serverCommand(singleplayer, uuid, "kill @e[type=minecraft:villager]");
+			selectLanguage(context, singleplayer, uuid, Language.MANDARIN);
+
 			check(command(singleplayer, uuid, "langmod reload") == 1, "/langmod reload");
 			waitUntilReady(context, singleplayer, uuid);
 		}
@@ -412,6 +480,75 @@ public class LangModClientGameTest implements FabricClientGameTest {
 			} catch (CommandSyntaxException e) {
 				throw new AssertionError("/" + command + " failed: " + e.getMessage(), e);
 			}
+		});
+	}
+
+	/** A farmer two blocks south of the player, standing still and facing them. */
+	private static int summonVillager(TestSingleplayerContext singleplayer, UUID uuid) {
+		serverCommand(singleplayer, uuid, "summon minecraft:villager ~ ~ ~2 "
+				+ "{VillagerData:{profession:\"minecraft:farmer\",level:2,type:\"minecraft:plains\"},NoAI:1b,Rotation:[180f,0f]}");
+		List<Integer> villagers = singleplayer.getServer().computeOnServer(server -> {
+			ServerPlayer player = server.getPlayerList().getPlayer(uuid);
+			return player.level().getEntitiesOfClass(Villager.class, player.getBoundingBox().inflate(4)).stream().map(Villager::getId).toList();
+		});
+		check(villagers.size() == 1, "one villager next to the player: " + villagers);
+		return villagers.getFirst();
+	}
+
+	private static Villager villager(MinecraftServer server, UUID uuid, int id) {
+		return (Villager) server.getPlayerList().getPlayer(uuid).level().getEntity(id);
+	}
+
+	/** Looks at the villager (south, at eye height) and right-clicks it. */
+	private static void rightClickVillager(ClientGameTestContext context) {
+		context.getInput().lookAt(0.0f, 0.0f);
+		context.waitTicks(2);
+		context.getInput().pressMouse(GLFW.GLFW_MOUSE_BUTTON_RIGHT);
+	}
+
+	private static void startConversation(ClientGameTestContext context, TestSingleplayerContext singleplayer, UUID uuid) {
+		rightClickVillager(context);
+		context.waitFor(minecraft -> minecraft.screen instanceof VillagerChoiceScreen, 100);
+		context.clickScreenButton(VillagerChoiceScreen.TALK);
+		context.waitFor(minecraft -> minecraft.screen instanceof VillagerConversationScreen, 100);
+		waitUntil(context, "the conversation to start", () -> singleplayer.getServer().computeOnServer(server -> VillagerConversations.get().isTalking(uuid)));
+	}
+
+	/** Closes the trading or conversation screen with Esc, as a player would, and waits until the villager is free again. */
+	private static void closeVillagerScreen(ClientGameTestContext context, TestSingleplayerContext singleplayer, UUID uuid, int villager) {
+		context.getInput().pressKey(GLFW.GLFW_KEY_ESCAPE);
+		context.waitFor(minecraft -> minecraft.screen == null, 100);
+		waitUntil(context, "the villager to be free", () -> singleplayer.getServer().computeOnServer(server -> !villager(server, uuid, villager).isTrading()
+				&& !VillagerConversations.get().isTalking(uuid)));
+	}
+
+	/** Says a line to the villager in the open conversation and returns its answer. */
+	private static String talk(ClientGameTestContext context, String line) {
+		int before = context.computeOnClient(minecraft -> ((VillagerConversationScreen) minecraft.screen).lines());
+		context.runOnClient(minecraft -> ((VillagerConversationScreen) minecraft.screen).sendLine(line));
+		return answerAfter(context, before, line);
+	}
+
+	/** Says a line out loud: a clip the scripted speech engine hears as {@code line}. */
+	private static String speak(ClientGameTestContext context, ScriptedSpeechEngine speech, String line) {
+		int before = context.computeOnClient(minecraft -> ((VillagerConversationScreen) minecraft.screen).lines());
+		speech.enqueue(line);
+		context.runOnClient(minecraft -> ((VillagerConversationScreen) minecraft.screen).submitClipForTesting(new float[16_000]));
+		return answerAfter(context, before, line);
+	}
+
+	private static String answerAfter(ClientGameTestContext context, int before, String line) {
+		context.waitFor(minecraft -> minecraft.screen instanceof VillagerConversationScreen screen && screen.lines() >= before + 2, 100);
+		String answer = context.computeOnClient(minecraft -> ((VillagerConversationScreen) minecraft.screen).lastVillagerLine());
+		LangMod.LOGGER.info("LANGMOD-GAMETEST: said '{}' to the villager -> '{}'", line, answer);
+		return answer;
+	}
+
+	/** Runs a command with full permissions at the player's position. */
+	private static void serverCommand(TestSingleplayerContext singleplayer, UUID uuid, String command) {
+		singleplayer.getServer().runOnServer(server -> {
+			ServerPlayer player = server.getPlayerList().getPlayer(uuid);
+			server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withPosition(player.position()), command);
 		});
 	}
 

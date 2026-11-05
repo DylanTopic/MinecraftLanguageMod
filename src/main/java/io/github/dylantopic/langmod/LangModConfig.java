@@ -113,6 +113,13 @@ public final class LangModConfig {
 	public boolean showPronunciation = true;
 	/** Say the name out loud (with a voice installed in Windows) after a wrong answer and when an item is lost. */
 	public boolean sayNameWhenWrong = true;
+	/**
+	 * Right-clicking a villager asks whether to trade or to talk, when learning a language villagers
+	 * speak (Korean, English). Off, it trades straight away, as it does when sneaking.
+	 */
+	public boolean talkToVillagers = true;
+	/** A villager's answers are said out loud with the language's voice. */
+	public boolean villagerVoice = true;
 	/** Speed of the voice that says names: 1.0 = normal. */
 	public double voiceSpeed = 0.9;
 	/** Per language: the voice that says names, as (part of) its name; empty = chosen automatically. See /langmod voices. */

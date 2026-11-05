@@ -9,12 +9,14 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 
 import io.github.dylantopic.langmod.challenge.ChallengeManager;
 import io.github.dylantopic.langmod.command.LangModCommands;
 import io.github.dylantopic.langmod.core.lang.Language;
 import io.github.dylantopic.langmod.data.PlayerLangData;
 import io.github.dylantopic.langmod.net.LangModNetworking;
+import io.github.dylantopic.langmod.villager.VillagerConversations;
 
 /**
  * Common (server-side) entrypoint. All game logic lives on the logical server so that the
@@ -41,6 +43,12 @@ public class LangMod implements ModInitializer {
 		ServerPlayerEvents.LEAVE.register(challenges::onLeave);
 		ServerTickEvents.END_SERVER_TICK.register(challenges::tick);
 		ServerLifecycleEvents.SERVER_STOPPING.register(challenges::onServerStopping);
+
+		VillagerConversations villagers = VillagerConversations.get();
+		UseEntityCallback.EVENT.register(villagers::onUseEntity);
+		ServerPlayerEvents.LEAVE.register(villagers::onLeave);
+		ServerTickEvents.END_SERVER_TICK.register(villagers::tick);
+		ServerLifecycleEvents.SERVER_STOPPING.register(villagers::onServerStopping);
 	}
 
 	public static Identifier id(String path) {

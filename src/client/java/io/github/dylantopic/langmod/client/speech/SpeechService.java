@@ -101,12 +101,21 @@ public final class SpeechService {
 	 *     (otherwise the language's generic prompt is used); may be null
 	 */
 	public CompletableFuture<Transcript> transcribe(float[] samples, Language language, String expectedName) {
+		LangModConfig config = LangModConfig.get();
+		return transcribeWithPrompt(samples, language, config.promptBiasing(language) && expectedName != null ? expectedName : config.whisperPrompt(language));
+	}
+
+	/**
+	 * Transcribes free speech, such as a line of a conversation, in the background.
+	 *
+	 * @param prompt what Whisper is told came just before (what the other side said), or null for nothing
+	 */
+	public CompletableFuture<Transcript> transcribeWithPrompt(float[] samples, Language language, String prompt) {
 		if (status != Status.READY) {
 			return CompletableFuture.failedFuture(new IllegalStateException(statusMessage));
 		}
 
 		LangModConfig config = LangModConfig.get();
-		String prompt = config.promptBiasing(language) && expectedName != null ? expectedName : config.whisperPrompt(language);
 		SpeechEngine.Request request = new SpeechEngine.Request(language.whisperCode(), prompt,
 				WhisperModels.audioContext(samples.length, config.audioContext));
 		CompletableFuture<Transcript> result = new CompletableFuture<>();

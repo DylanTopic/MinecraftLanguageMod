@@ -84,6 +84,8 @@ public class LangModConfigScreen extends OptionsSubScreen {
 				v -> Component.translatable(PREFIX + "longNameMode." + v), (c, v) -> c.longNameModes.put(language.id(), v));
 		toggle("promptBiasing", config.promptBiasing(language), (c, v) -> c.promptBiasingByLanguage.put(language.id(), v));
 		addVoiceOptions(config, language);
+		toggle("talkToVillagers", config.talkToVillagers, (c, v) -> c.talkToVillagers = v);
+		toggle("villagerVoice", config.villagerVoice, (c, v) -> c.villagerVoice = v);
 		choice("modelSize", MODELS, config.modelSize, Codec.STRING, Component::literal, LangModConfigScreen::modelTooltip,
 				(c, v) -> c.modelSize = v);
 		choice("speechEngine", List.of("jni", "server"), config.speechEngine, Codec.STRING,

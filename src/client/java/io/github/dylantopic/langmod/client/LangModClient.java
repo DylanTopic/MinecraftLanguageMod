@@ -28,6 +28,7 @@ import io.github.dylantopic.langmod.client.config.LangModConfigScreen;
 import io.github.dylantopic.langmod.client.config.LanguageScreen;
 import io.github.dylantopic.langmod.client.hud.ChallengeHud;
 import io.github.dylantopic.langmod.client.speech.SpeechService;
+import io.github.dylantopic.langmod.client.villager.Villagers;
 import io.github.dylantopic.langmod.client.voice.Pronouncer;
 import io.github.dylantopic.langmod.core.lang.Language;
 import io.github.dylantopic.langmod.core.tts.Voice;
@@ -38,9 +39,11 @@ import io.github.dylantopic.langmod.net.ChallengeStatePayload;
 import io.github.dylantopic.langmod.net.ClientActionPayload;
 import io.github.dylantopic.langmod.net.ClientHelloPayload;
 import io.github.dylantopic.langmod.net.LearnedItemsPayload;
+import io.github.dylantopic.langmod.net.VillagerChoicePayload;
+import io.github.dylantopic.langmod.net.VillagerReplyPayload;
 
 /**
- * Client entrypoint: microphone, speech recognition and the challenge popup.
+ * Client entrypoint: microphone, speech recognition, the challenge popup and villager conversations.
  */
 public class LangModClient implements ClientModInitializer {
 	private static final KeyMapping.Category KEY_CATEGORY = KeyMapping.Category.register(LangMod.id("main"));
@@ -61,6 +64,8 @@ public class LangModClient implements ClientModInitializer {
 		ClientPlayNetworking.registerGlobalReceiver(ChallengeEndPayload.TYPE, (payload, context) -> challenge.onEnd(payload));
 		ClientPlayNetworking.registerGlobalReceiver(ClientActionPayload.TYPE, (payload, context) -> runAction(payload.action()));
 		ClientPlayNetworking.registerGlobalReceiver(AttemptResultPayload.TYPE, (payload, context) -> challenge.onAttemptResult(payload));
+		ClientPlayNetworking.registerGlobalReceiver(VillagerChoicePayload.TYPE, (payload, context) -> Villagers.onChoice(payload));
+		ClientPlayNetworking.registerGlobalReceiver(VillagerReplyPayload.TYPE, (payload, context) -> Villagers.onReply(payload));
 		ClientPlayNetworking.registerGlobalReceiver(LearnedItemsPayload.TYPE, (payload, context) -> {
 			if (Minecraft.getInstance().screen instanceof ItemsScreen items) {
 				items.onLearnedItems(payload);

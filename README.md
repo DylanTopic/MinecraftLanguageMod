@@ -151,6 +151,44 @@ The mod reaches the voices through Windows PowerShell, which is part of Windows:
 `windows-voices.ps1` into `config\langmod` and runs it while needed (it stops after a few idle
 minutes). On Linux and macOS there are no voices yet: names are only shown.
 
+## Talking to villagers
+
+When you are learning Korean or English, right-clicking a villager asks what you would like to do:
+**Trade** opens the normal trading screen and **Conversate** a conversation with the villager.
+Sneaking and right-clicking trades straight away, and a name tag, lead or villager spawn egg in
+your hand works as usual. In the other languages villagers trade as before (for now).
+
+In the conversation, press **Speak** and say something (Whisper hears it, as it hears item names),
+or type it and press Enter. The villager answers in the language you are learning and says its
+answer out loud with the language's voice (click a line to hear it again). Under Korean lines come
+the romanization and the English translation, as the Pronunciation and English name settings say.
+Under the conversation it suggests what you could say back, and **Phrases** lists things to start
+with: clicking one says it and puts it in the box.
+
+Villagers don't need perfect sentences; they listen for the words that matter. They understand
+greetings and names, "How are you?", their job, where water, the farm, the bell, a house or a bed
+is, the weather, bread, the time, colors, whether the village is safe, thanks and goodbyes, and they
+answer from what is really there:
+
+| You say | The villager answers |
+|---|---|
+| Hello. My name is Dylan. What is your name? | Hello, Dylan. I am a villager. Nice to meet you. (or its name tag's name) |
+| 안녕하세요. 제 이름은 딜런이에요. 이름이 뭐예요? | 안녕하세요, 딜런님. 저는 마을 주민이에요. 만나서 반가워요. |
+| Good morning. How are you today? | Good morning! I am happy, thank you. How are you? (a little sad when it rains) |
+| What is your job? / 직업이 뭐예요? | its own profession: I am a farmer. I grow wheat. / 저는 사서예요. 책을 좋아해요. |
+| Excuse me, where is the water? | The water is next to the farm. |
+| The weather is nice today. | the real weather: Yes, it is sunny. I like the sun. / Really? It is raining. |
+| Do you have any bread? Then: Here is one emerald. | Yes, I have bread. It costs one emerald. Then it takes one emerald and gives you one bread. |
+| What time is it? | the time of day: It is getting dark. You should sleep soon. |
+| What is your favorite color? Then: My favorite color is blue. | My favorite color is green, like an emerald. What is yours? Then: Blue is a nice color! |
+| Is this village safe? | Yes, the Iron Golem protects us from zombies. (if there is one nearby) |
+| I have to go explore now. Goodbye. | Goodbye! Have a safe trip. |
+
+While you talk the villager stands still and looks at you, as when trading; the conversation ends
+when you close the screen or the villager is more than 8 blocks away, asleep or gone. Items you pick
+up meanwhile wait until you are done. "Talk to villagers" in the settings turns the choice off, and
+"Villagers speak out loud" the voice.
+
 ## Requirements
 
 - Minecraft Java Edition **26.1.2** with Fabric Loader 0.20.1+ and Fabric API
@@ -278,6 +316,8 @@ screen. The file can also be edited by hand (then run `/langmod reload`).
 | Say the name when wrong (`sayNameWhenWrong`) | on | Say the name out loud after a wrong answer and when an item is lost, see [Hearing the name](#hearing-the-name). |
 | Voice (`voiceNames`) | automatic | For the current language: the Windows voice that says names (part of its name, e.g. `Kangkang`). |
 | Voice speed (`voiceSpeed`) | 0.9 | 1.0 is the voice's normal speed. |
+| Talk to villagers (`talkToVillagers`) | on | When learning Korean or English, right-clicking a villager asks whether to trade or to talk, see [Talking to villagers](#talking-to-villagers). Off, it trades straight away. |
+| Villagers speak out loud (`villagerVoice`) | on | Say a villager's answers with the language's voice. |
 | Whisper model (`modelSize`) | small | `tiny`, `base`, `small`, `medium`, `large-v3-turbo`: loads `ggml-<size>.bin`. |
 | Speech engine (`speechEngine`) | jni | `jni` (built in, CPU) or `server` (separate whisper.cpp program, GPU). |
 | Use GPU (`useGpu`) | on | Only used by the `server` engine. |
@@ -658,11 +698,15 @@ The mod was built in five stages. To check them by hand, start `.\gradlew.bat ru
 8. **Hearing the name** (added afterwards, needs a Windows voice for the language): `/langmod voices`
    lists it. Pick up something new and say a wrong word: the popup shows "Listen...", the name is
    said and the countdown stands still meanwhile. Press H to hear it again.
+9. **Villagers** (added afterwards): choose Korean or English, find a villager (or
+   `/summon minecraft:villager`) and right-click it. Trade opens trading; right-click again and
+   choose Conversate, then say or type "What is your job?" (직업이 뭐예요?): the villager names its
+   profession. With an emerald, "Do you have any bread?" and then "Here is one emerald." buys a bread.
 
 Automated tests:
 
 ```powershell
-.\gradlew.bat test               # unit tests: names, matching in every language, pinyin, romanization, text conversion, audio, whisper-server protocol
+.\gradlew.bat test               # unit tests: names, matching in every language, pinyin, romanization, text conversion, audio, whisper-server protocol, villager conversations
 .\gradlew.bat runClientGameTest  # starts the real game with a scripted speech engine, plays through all of the above
 ```
 
@@ -709,10 +753,12 @@ src/main/java/.../langmod/
   core/                                 plain Java, unit tested: pinyin, matching, audio, text, speech engines
   core/lang/                            the languages: names, answer checking, Korean romanization
   core/tts/                             the Windows voices (through PowerShell) and which voice says each language
+  core/talk/                            conversations with villagers: what the player said and the villager's answers
   data/                                 per-player saved data (Fabric data attachment)
-  mixin/                                ItemEntity pickup hook, player death hook
+  mixin/                                ItemEntity pickup hook, player death hook, opening a villager's trading screen
   net/                                  packets between server and client
-src/client/java/.../langmod/client/     microphone, speech service, popup and overlays, settings screen, saying names
+  villager/                             right-clicking villagers and conversations with them (server)
+src/client/java/.../langmod/client/     microphone, speech service, popup and overlays, settings screen, saying names, villager screens
 src/gametest/                           client game test (runClientGameTest)
 src/test/                               unit tests and the SpeechCheck tool used by CI
 tools/                                  name, pinyin and Japanese reading generators, fixes and review lists

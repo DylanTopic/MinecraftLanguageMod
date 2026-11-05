@@ -8,6 +8,7 @@ import io.github.dylantopic.langmod.LangMod;
 import io.github.dylantopic.langmod.LangModConfig;
 import io.github.dylantopic.langmod.client.audio.MicCapture;
 import io.github.dylantopic.langmod.client.speech.SpeechService;
+import io.github.dylantopic.langmod.client.villager.VillagerConversationScreen;
 import io.github.dylantopic.langmod.client.voice.Pronouncer;
 import io.github.dylantopic.langmod.core.lang.Language;
 import io.github.dylantopic.langmod.core.lang.NameEntry;
@@ -184,7 +185,8 @@ public final class ChallengeController {
 			return;
 		}
 
-		boolean pauseMenu = minecraft.screen != null && minecraft.screen.isPauseScreen();
+		// A conversation with a villager has its own microphone.
+		boolean pauseMenu = minecraft.screen != null && (minecraft.screen.isPauseScreen() || minecraft.screen instanceof VillagerConversationScreen);
 
 		if (resumeIn > 0) {
 			resumeIn--;

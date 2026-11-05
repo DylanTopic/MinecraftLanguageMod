@@ -71,6 +71,10 @@ needs a 466 MB model file that isn't included in the mod.
 - **Wrong:** the popup shows what it heard, and the name is said out loud if you have a voice for
   your language (step 6). Press **H** to hear it again. After 3 wrong answers, or when time runs
   out, the item disappears. You can still learn it next time you find one.
+- **Villagers** (when learning Korean or English): right-click one and choose **Conversate** to talk
+  with it. Press **Speak** and say something, like "What is your job?" (직업이 뭐예요?), or type it;
+  **Phrases** has more to try. **Trade** opens the normal trading screen (so does sneaking and
+  right-clicking).
 - **Esc → Items** lists every item in your language. Click an item to turn it off if you never want
   to be asked about it.
 - Settings: `/langmod config`, or Mod Menu's Configure button. Every command is listed in the
