@@ -267,7 +267,7 @@ see; pick one in the settings ("Microphone").
 ### Using it in your normal Minecraft
 
 Take the jar from the [latest release](https://github.com/DylanTopic/MinecraftLanguageMod/releases/latest),
-or build it with `.\gradlew.bat build` (it ends up in `build\libs\langmod-0.1.0.jar`). Copy it and
+or build it with `.\gradlew.bat build` (it ends up in `build\libs\langmod-0.2.0.jar`). Copy it and
 [Fabric API](https://modrinth.com/mod/fabric-api) into the `mods` folder of a Fabric 26.1.2
 installation, and put the model in that installation's `config\langmod\models` folder (for the
 default launcher: `%APPDATA%\.minecraft\config\langmod\models`).
@@ -773,10 +773,11 @@ Java 25. Mod Menu 18.0.2, whisper-jni 1.7.1.
 
 ## Releasing
 
-Raise `version` in `gradle.properties` and push. Then, in the repository's **Actions** tab, choose
-**release** and **Run workflow**: it builds the mod and publishes a GitHub Release `v<version>` with
-the jar, which is where [INSTALL.md](INSTALL.md) sends players. It refuses a version that was
-already released.
+Raise `version` in `gradle.properties`, add a section for it to [CHANGELOG.md](CHANGELOG.md) (it
+becomes the release notes) and push. Then, in the repository's **Actions** tab, choose **release**
+and **Run workflow**: it builds the mod and publishes a GitHub Release `v<version>` with the jar,
+which is where [INSTALL.md](INSTALL.md) sends players. It refuses a version that was already
+released, or one without a changelog section.
 
 ## License
 

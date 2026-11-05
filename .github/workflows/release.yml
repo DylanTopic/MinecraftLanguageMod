@@ -31,6 +31,9 @@ jobs:
             echo "v$VERSION was already released: raise 'version' in gradle.properties first."
             exit 1
           fi
+          # The release notes start with this version's section of CHANGELOG.md.
+          awk -v v="$VERSION" '$1 == "##" { if (found) exit; found = ($2 == v); next } found' CHANGELOG.md > changes.md
+          grep -q '[^[:space:]]' changes.md || { echo "CHANGELOG.md has no section for $VERSION: add one first."; exit 1; }
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
       - name: setup jdk
         uses: actions/setup-java@v5
@@ -60,13 +63,19 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           REPO="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
-          cat > notes.md <<EOF
-          LangMod $VERSION for **Minecraft 26.1.2** with Fabric.
+          {
+            echo "LangMod $VERSION for **Minecraft 26.1.2** with Fabric."
+            echo
+            echo "### What's new"
+            cat changes.md
+          } > notes.md
+          cat >> notes.md <<EOF
+          ### About
 
           The first time you pick up an item, say its name out loud in the language you are learning
           (Mandarin Chinese, Spanish, French, Korean, Russian, Dutch, Latin, Tagalog, Japanese, Bosnian,
           Portuguese, Vietnamese, German or English). Speech recognition runs on your computer with whisper.cpp;
-          nothing is sent anywhere.
+          nothing is sent anywhere. When learning Korean or English, you can also talk with villagers.
 
           **How to install:** follow [INSTALL.md]($REPO/blob/HEAD/INSTALL.md). In short, you need:
 

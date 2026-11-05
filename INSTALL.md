@@ -23,10 +23,10 @@ see [Without CurseForge](#without-curseforge) at the end.
 
 ## 2. Download the LangMod file
 
-The mod is one file, `langmod-0.1.0.jar` (a later version has a higher number).
+The mod is one file, `langmod-0.2.0.jar` (a later version has a higher number).
 
 1. Open the latest release: <https://github.com/DylanTopic/MinecraftLanguageMod/releases/latest>
-2. Under **Assets**, click **`langmod-0.1.0.jar`** to download it. (The other entries there are the
+2. Under **Assets**, click **`langmod-0.2.0.jar`** to download it. (The other entries there are the
    source code; you don't need them.)
 
 ## 3. Put it in your profile
@@ -34,7 +34,7 @@ The mod is one file, `langmod-0.1.0.jar` (a later version has a higher number).
 1. In CurseForge, on the LangMod profile, click the **⋯** button next to **Play** and choose
    **Open Folder**. A folder opens, something like
    `C:\Users\<you>\curseforge\minecraft\Instances\LangMod`.
-2. Open the **mods** folder (Fabric API is already in it) and put `langmod-0.1.0.jar` next to it.
+2. Open the **mods** folder (Fabric API is already in it) and put `langmod-0.2.0.jar` next to it.
 
 Keep that folder open; you need it again in the next step.
 
@@ -142,7 +142,7 @@ With the normal Minecraft Launcher:
    selected, pick Minecraft version **26.1.2** and click **Install**.
 2. Download Fabric API for 26.1.2 from <https://modrinth.com/mod/fabric-api>.
 3. Press Windows+R, type `%APPDATA%\.minecraft` and press Enter. Put Fabric API and
-   `langmod-0.1.0.jar` in the `mods` folder there (create it if it's missing).
+   `langmod-0.2.0.jar` in the `mods` folder there (create it if it's missing).
 4. The model goes in `%APPDATA%\.minecraft\config\langmod\models\ggml-small.bin`.
 5. In the launcher, choose the **fabric-loader-26.1.2** profile and click **Play**. Continue with step 5
    above.
@@ -162,4 +162,4 @@ Only for trying changes that aren't in a release yet.
    ```
 
 4. The first build takes a few minutes. The mod ends up in that folder as
-   `build\libs\langmod-0.1.0.jar`.
+   `build\libs\langmod-0.2.0.jar`.
