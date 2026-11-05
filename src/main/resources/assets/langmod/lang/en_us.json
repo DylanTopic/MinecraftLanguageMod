@@ -18,6 +18,8 @@
 
 	"langmod.language.title": "Choose a language to learn",
 	"langmod.language.hint": "Each language keeps its own progress. Switching gives back the item you are being asked about.",
+	"langmod.language.showPronunciation": "Show pronunciation under names",
+	"langmod.language.showPronunciation.tooltip": "The pinyin, romanization or reading shown under the name and under what was heard: píng guǒ, sagwa, Yabloko, たいまつ taimatsu. Turn it off to read the name on its own.",
 
 	"langmod.config.title": "LangMod Settings",
 	"langmod.config.characters": "%s characters",
@@ -31,6 +33,8 @@
 	"langmod.config.enabled.tooltip": "Master switch. When off, picking things up works like vanilla and held items are given back.",
 	"langmod.config.showEnglish": "English name",
 	"langmod.config.showEnglish.tooltip": "Show the English name under the name you are learning in the challenge popup.",
+	"langmod.config.showPronunciation": "Pronunciation",
+	"langmod.config.showPronunciation.tooltip": "Show how names are pronounced under them: pinyin for Mandarin, the romanization for Korean and Russian (sagwa, Yabloko), the reading and romaji for Japanese. Turn it off to read the name on its own.",
 	"langmod.config.maxAttempts": "Attempts",
 	"langmod.config.maxAttempts.tooltip": "Wrong answers allowed before the item disappears. Silence and recognition errors never count.",
 	"langmod.config.timerSeconds": "Time limit",

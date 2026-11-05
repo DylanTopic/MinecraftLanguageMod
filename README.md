@@ -78,6 +78,8 @@ of the settings screen. You learn one language at a time:
 | German | `de_de` | more than 2 words: not challenged | - |
 | English | `en_us` | more than 3 words: not challenged | - |
 
+- The pronunciation under the name (pinyin, romanization, reading) can be hidden with the **Show
+  pronunciation under names** checkbox in the Practice Language menu, to read the name on its own.
 - Tagalog uses Minecraft's "Filipino" translation, the standard form of Tagalog with the words
   people use every day (Kalabasa, Karot). Minecraft's "Tagalog" translation uses rare, purist
   words instead (Kandos, Asanorya).
@@ -265,6 +267,7 @@ screen. The file can also be edited by hand (then run `/langmod reload`).
 |---|---|---|
 | Learning (`language`) | `zh_cn` | `zh_cn`, `es_mx`, `fr_ca`, `ko_kr`, `ru_ru`, `nl_nl`, `la_la`, `fil_ph`, `ja_jp`, `bs_ba`, `pt_br`, `vi_vn`, `de_de` or `en_us`, see [Choosing a language](#choosing-a-language). |
 | Challenges (`enabled`) | on | Master switch. Turning it off gives held items back. |
+| Pronunciation (`showPronunciation`) | on | The pinyin, romanization or reading under names and under what was heard; also the **Show pronunciation under names** checkbox in the Practice Language menu. |
 | English name (`showEnglish`) | on | Show the item's name in your game language (usually English) in the popup; left out when it would only repeat the name. |
 | Attempts (`maxAttempts`) | 3 | Wrong answers before the item vanishes. |
 | Time limit (`timerSeconds`) | 20 | Seconds to answer (paused while speaking and checking). |

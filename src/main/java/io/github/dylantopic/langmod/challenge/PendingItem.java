@@ -5,6 +5,7 @@ import java.util.List;
 
 import net.minecraft.world.item.ItemStack;
 
+import io.github.dylantopic.langmod.LangModConfig;
 import io.github.dylantopic.langmod.core.lang.Language;
 import io.github.dylantopic.langmod.core.lang.NameEntry;
 
@@ -26,9 +27,10 @@ final class PendingItem {
 		this.longName = longName;
 	}
 
-	/** "苹果  píng guǒ", "Manzana" or "사과  sagwa". */
+	/** "苹果  píng guǒ", "Manzana" or "사과  sagwa"; only the name when the pronunciation is turned off. */
 	String nameWithPronunciation() {
-		return entry.pronunciation().isEmpty() ? entry.text() : entry.text() + "  " + entry.pronunciation();
+		boolean show = LangModConfig.get().showPronunciation && !entry.pronunciation().isEmpty();
+		return show ? entry.text() + "  " + entry.pronunciation() : entry.text();
 	}
 
 	/** A stack for the popup icon (count 1, keeps components such as potion colour). */

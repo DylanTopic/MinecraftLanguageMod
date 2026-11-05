@@ -70,6 +70,7 @@ public class LangModConfigScreen extends OptionsSubScreen {
 				}));
 		toggle("enabled", config.enabled, (c, v) -> c.enabled = v);
 		toggle("showEnglish", config.showEnglish, (c, v) -> c.showEnglish = v);
+		toggle("showPronunciation", config.showPronunciation, (c, v) -> c.showPronunciation = v);
 		choice("maxAttempts", List.of(1, 2, 3, 4, 5, 7, 10), config.maxAttempts, Codec.INT,
 				v -> Component.literal(Integer.toString(v)), (c, v) -> c.maxAttempts = v);
 		choice("timerSeconds", List.of(10, 15, 20, 25, 30, 45, 60, 90, 120), config.timerSeconds, Codec.INT,

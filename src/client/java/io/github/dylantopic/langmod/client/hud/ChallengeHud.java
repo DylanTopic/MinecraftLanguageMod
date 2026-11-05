@@ -77,8 +77,10 @@ public final class ChallengeHud {
 		float nameScale = fitScale(font, entry.text(), config.hanziScale, graphics.guiWidth());
 		float pinyinScale = config.pinyinScale;
 		// Mandarin: pinyin coloured by tone; Korean and Russian: romanization; Japanese: reading and romaji;
-		// languages written in Latin letters: nothing. Long ones are shrunk to fit, like the name.
-		String romanization = language.tonal() || entry.pronunciation().isEmpty() ? null : entry.pronunciation();
+		// languages written in Latin letters: nothing. Long ones are shrunk to fit, like the name. All of it
+		// can be turned off ("Show pronunciation").
+		boolean pinyin = config.showPronunciation && language.tonal();
+		String romanization = !config.showPronunciation || language.tonal() || entry.pronunciation().isEmpty() ? null : entry.pronunciation();
 		float romanizationScale = romanization == null ? pinyinScale : fitScale(font, romanization, pinyinScale, graphics.guiWidth());
 		String english = config.showEnglish ? Component.translatable(active.translationKey()).getString() : null;
 
@@ -87,7 +89,7 @@ public final class ChallengeHud {
 		}
 
 		int nameWidth = Math.round(font.width(entry.text()) * nameScale);
-		int pronunciationWidth = language.tonal() ? Math.round(pinyinWidth(font, active.pinyin().syllables()) * pinyinScale)
+		int pronunciationWidth = pinyin ? Math.round(pinyinWidth(font, active.pinyin().syllables()) * pinyinScale)
 				: romanization == null ? 0 : Math.round(font.width(romanization) * romanizationScale);
 		int englishWidth = english == null ? 0 : font.width(english);
 		int textWidth = Math.max(nameWidth, Math.max(pronunciationWidth, englishWidth));
@@ -101,11 +103,11 @@ public final class ChallengeHud {
 
 		boolean showHeard = result != null && !result.heardTokens().isEmpty() && result.verdict() == AttemptResultPayload.Verdict.WRONG;
 		String note = result == null ? "" : result.note();
-		int heardWidth = showHeard ? heardWidth(font, result, language) : 0;
+		int heardWidth = showHeard ? heardWidth(font, result, language, config.showPronunciation) : 0;
 
 		int width = Math.max(ICON + PAD + textWidth, Math.max(Math.max(footerWidth, heardWidth), Math.max(font.width(note), 170))) + 2 * PAD;
 		int nameHeight = Math.round(font.lineHeight * nameScale);
-		int pronunciationHeight = language.tonal() ? Math.round(font.lineHeight * pinyinScale)
+		int pronunciationHeight = pinyin ? Math.round(font.lineHeight * pinyinScale)
 				: romanization != null ? Math.round(font.lineHeight * romanizationScale) : 0;
 		int textHeight = nameHeight + (pronunciationHeight > 0 ? 3 + pronunciationHeight : 0) + (english == null ? 0 : 3 + font.lineHeight);
 		int headerHeight = Math.max(ICON, textHeight);
@@ -126,19 +128,20 @@ public final class ChallengeHud {
 		graphics.pose().popMatrix();
 
 		// Name, then pinyin coloured by tone or romanization, then English. Whatever the last answer
-		// got wrong is underlined: the pinyin syllables in Mandarin, the words or syllables of the name otherwise.
+		// got wrong is underlined: the pinyin syllables in Mandarin (its characters when the pinyin is
+		// hidden), the words or syllables of the name otherwise.
 		int textX = x + PAD + ICON + PAD;
 		int textY = y + PAD + (headerHeight - textHeight) / 2;
 		List<Matcher.Status> statuses = result == null ? List.of() : result.expectedStatus();
 		drawScaled(graphics, font, entry.text(), textX, textY, nameScale, TEXT);
 
-		if (!language.tonal()) {
+		if (!pinyin) {
 			underlineUnits(graphics, font, language, entry.text(), statuses, textX, textY, nameScale);
 		}
 
 		textY += nameHeight + 3;
 
-		if (language.tonal()) {
+		if (pinyin) {
 			drawPinyin(graphics, font, active.pinyin().syllables(), statuses, textX, textY, pinyinScale, config);
 			textY += pronunciationHeight + 3;
 		} else if (romanization != null) {
@@ -175,7 +178,7 @@ public final class ChallengeHud {
 		lineY += font.lineHeight + 4;
 
 		if (showHeard) {
-			drawHeard(graphics, font, result, language, x + PAD, lineY);
+			drawHeard(graphics, font, result, language, config.showPronunciation, x + PAD, lineY);
 			lineY += font.lineHeight + 3;
 		}
 
@@ -244,11 +247,15 @@ public final class ChallengeHud {
 		return mic.inSpeech() ? "Listening..." : "Say it out loud!";
 	}
 
-	private static int heardWidth(Font font, AttemptResultPayload result, Language language) {
+	private static int heardWidth(Font font, AttemptResultPayload result, Language language, boolean pronunciation) {
 		int width = font.width("Heard: ");
 
 		for (AttemptResultPayload.Token token : result.heardTokens()) {
 			width += font.width(token.text()) + gap(font, language);
+		}
+
+		if (!pronunciation) {
+			return width;
 		}
 
 		if (language.tonal()) {
@@ -266,15 +273,21 @@ public final class ChallengeHud {
 
 	/**
 	 * "Heard: 平国  píng guó", "Heard: lana roja" or "Heard: 사가  (saga)", with every character,
-	 * word or syllable (and in Mandarin its pinyin) coloured by how it compared.
+	 * word or syllable (and in Mandarin its pinyin) coloured by how it compared; without the pinyin or
+	 * romanization when the pronunciation is turned off.
 	 */
-	private static void drawHeard(GuiGraphicsExtractor graphics, Font font, AttemptResultPayload result, Language language, int x, int y) {
+	private static void drawHeard(GuiGraphicsExtractor graphics, Font font, AttemptResultPayload result, Language language,
+			boolean pronunciation, int x, int y) {
 		graphics.text(font, "Heard: ", x, y, DIM, true);
 		int cursor = x + font.width("Heard: ");
 
 		for (AttemptResultPayload.Token token : result.heardTokens()) {
 			graphics.text(font, token.text(), cursor, y, statusColor(token.status()), true);
 			cursor += font.width(token.text()) + gap(font, language);
+		}
+
+		if (!pronunciation) {
+			return;
 		}
 
 		if (language.tonal()) {
@@ -289,9 +302,12 @@ public final class ChallengeHud {
 		}
 	}
 
-	/** Space between heard units: a word space in Spanish and French, 1 pixel between characters and syllables. */
+	/**
+	 * Space between heard units: 1 pixel between the characters of Mandarin and Japanese and the
+	 * syllables of Korean, a word space between words (and Vietnamese syllables).
+	 */
 	private static int gap(Font font, Language language) {
-		return language == Language.SPANISH || language == Language.FRENCH ? font.width(" ") : 1;
+		return language.countsCharacters() || language == Language.KOREAN ? 1 : font.width(" ");
 	}
 
 	/** "Correct!" in the language being learned. */

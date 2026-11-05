@@ -106,6 +106,11 @@ public final class LangModConfig {
 
 	// --- Display (client) -------------------------------------------------------------------
 	public boolean showEnglish = true;
+	/**
+	 * Show how names are pronounced: pinyin under Mandarin, the romanization under Korean and Russian,
+	 * the reading and romaji under Japanese, also for what was heard. Off, only the name is shown.
+	 */
+	public boolean showPronunciation = true;
 	/** Say the name out loud (with a voice installed in Windows) after a wrong answer and when an item is lost. */
 	public boolean sayNameWhenWrong = true;
 	/** Speed of the voice that says names: 1.0 = normal. */

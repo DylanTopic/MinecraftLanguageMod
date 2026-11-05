@@ -274,9 +274,16 @@ public class LangModClientGameTest implements FabricClientGameTest {
 			context.waitFor(minecraft -> minecraft.screen instanceof LanguageScreen, 100);
 			context.takeScreenshot("langmod-12-language-menu");
 			check(context.computeOnClient(minecraft -> {
-				List<Button> buttons = minecraft.screen.children().stream().filter(Button.class::isInstance).map(Button.class::cast).toList();
-				return buttons.size() == Language.values().length + 1 && fitWithoutOverlap(List.<AbstractWidget>copyOf(buttons), minecraft.screen);
-			}), "the language menu shows every language, on screen and clear of each other and Done");
+				List<AbstractWidget> widgets = minecraft.screen.children().stream().filter(AbstractWidget.class::isInstance)
+						.map(AbstractWidget.class::cast).toList();
+				long buttons = widgets.stream().filter(Button.class::isInstance).count();
+				return buttons == Language.values().length + 1 && widgets.size() == buttons + 1 && fitWithoutOverlap(widgets, minecraft.screen);
+			}), "the language menu shows every language and the pronunciation checkbox, on screen and clear of each other and Done");
+			// Its checkbox turns the pronunciation under names off, and on again.
+			context.clickScreenButton(LanguageScreen.SHOW_PRONUNCIATION);
+			check(!LangModConfig.get().showPronunciation, "the checkbox turns the pronunciation off");
+			context.clickScreenButton(LanguageScreen.SHOW_PRONUNCIATION);
+			check(LangModConfig.get().showPronunciation, "the checkbox turns the pronunciation back on");
 			context.setScreen(() -> null);
 
 			// The "Learning" option of the settings screen switches language and reopens the screen for it.

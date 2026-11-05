@@ -4,6 +4,8 @@ import java.util.List;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Checkbox;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
@@ -16,9 +18,11 @@ import io.github.dylantopic.langmod.core.lang.Language;
 /**
  * The menu for choosing which language to learn (from {@code /langmod language}, a key, or the
  * settings screen). Each language keeps its own progress; switching gives back the item of a
- * challenge in progress.
+ * challenge in progress. A checkbox above Done turns the pronunciation under names on or off.
  */
 public class LanguageScreen extends Screen {
+	/** Translation key of the pronunciation checkbox's label (the game test clicks it by this). */
+	public static final String SHOW_PRONUNCIATION = "langmod.language.showPronunciation";
 	private static final int BUTTON_WIDTH = 240;
 	private static final int GAP = 8;
 	private static final int ROW = 24;
@@ -38,14 +42,15 @@ public class LanguageScreen extends Screen {
 		Language current = LangModConfig.get().languageEnum();
 		hint = this.font.split(Component.translatable("langmod.language.hint"), Math.min(HINT_WIDTH, this.width - 40));
 		Language[] languages = Language.values();
-		// As many columns (filled top to bottom) as it takes to stay clear of the Done button.
+		// As many columns (filled top to bottom) as it takes to stay clear of the checkbox and Done.
 		int below = HINT_Y + hint.size() * lineHeight() + 8;
-		int rowsThatFit = Math.max(1, (this.height - 32 - below - 20) / ROW + 1);
+		int bottom = this.height - 32 - ROW;
+		int rowsThatFit = Math.max(1, (bottom - below - 20) / ROW + 1);
 		int columns = Math.max(1, (languages.length + rowsThatFit - 1) / rowsThatFit);
 		int rows = (languages.length + columns - 1) / columns;
 		int buttonWidth = Math.min(BUTTON_WIDTH, (this.width - 40 - (columns - 1) * GAP) / columns);
 		int left = (this.width - columns * buttonWidth - (columns - 1) * GAP) / 2;
-		int top = Math.max(below, Math.min(this.height / 2 - rows * ROW / 2, this.height - 32 - (rows - 1) * ROW - 20));
+		int top = Math.max(below, Math.min(this.height / 2 - rows * ROW / 2, bottom - (rows - 1) * ROW - 20));
 
 		for (int i = 0; i < languages.length; i++) {
 			Language language = languages[i];
@@ -54,6 +59,14 @@ public class LanguageScreen extends Screen {
 			this.addRenderableWidget(Button.builder(label(language, language == current, buttonWidth), button -> choose(language))
 					.pos(x, y).size(buttonWidth, 20).build());
 		}
+
+		Checkbox pronunciation = Checkbox.builder(Component.translatable(SHOW_PRONUNCIATION), this.font)
+				.selected(LangModConfig.get().showPronunciation)
+				.onValueChange((checkbox, value) -> LangModConfig.update(config -> config.showPronunciation = value))
+				.tooltip(Tooltip.create(Component.translatable(SHOW_PRONUNCIATION + ".tooltip")))
+				.build();
+		pronunciation.setPosition((this.width - pronunciation.getWidth()) / 2, this.height - 28 - ROW);
+		this.addRenderableWidget(pronunciation);
 
 		this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> onClose())
 				.pos(this.width / 2 - 100, this.height - 28).size(200, 20).build());
