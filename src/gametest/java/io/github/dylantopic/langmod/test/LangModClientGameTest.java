@@ -10,9 +10,11 @@ import org.lwjgl.glfw.GLFW;
 import net.minecraft.client.OptionInstance;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
+import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -279,11 +281,12 @@ public class LangModClientGameTest implements FabricClientGameTest {
 				long buttons = widgets.stream().filter(Button.class::isInstance).count();
 				return buttons == Language.values().length + 1 && widgets.size() == buttons + 1 && fitWithoutOverlap(widgets, minecraft.screen);
 			}), "the language menu shows every language and the pronunciation checkbox, on screen and clear of each other and Done");
-			// Its checkbox turns the pronunciation under names off, and on again.
-			context.clickScreenButton(LanguageScreen.SHOW_PRONUNCIATION);
-			check(!LangModConfig.get().showPronunciation, "the checkbox turns the pronunciation off");
-			context.clickScreenButton(LanguageScreen.SHOW_PRONUNCIATION);
-			check(LangModConfig.get().showPronunciation, "the checkbox turns the pronunciation back on");
+			// Its checkbox turns the pronunciation under names off, and on again. (clickScreenButton only
+			// presses buttons, so it is pressed the same way here.)
+			for (boolean expected : new boolean[] {false, true}) {
+				context.runOnClient(minecraft -> pronunciationCheckbox(minecraft.screen).onPress(new MouseButtonInfo(GLFW.GLFW_KEY_UNKNOWN, 0)));
+				check(LangModConfig.get().showPronunciation == expected, "the checkbox turns the pronunciation " + (expected ? "back on" : "off"));
+			}
 			context.setScreen(() -> null);
 
 			// The "Learning" option of the settings screen switches language and reopens the screen for it.
@@ -383,6 +386,11 @@ public class LangModClientGameTest implements FabricClientGameTest {
 		}
 
 		return true;
+	}
+
+	private static Checkbox pronunciationCheckbox(Screen screen) {
+		return screen.children().stream().filter(Checkbox.class::isInstance).map(Checkbox.class::cast).findFirst()
+				.orElseThrow(() -> new AssertionError("no pronunciation checkbox on " + screen));
 	}
 
 	private static boolean hasKey(AbstractWidget widget, String key) {

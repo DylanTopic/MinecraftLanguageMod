@@ -21,7 +21,7 @@ import io.github.dylantopic.langmod.core.lang.Language;
  * challenge in progress. A checkbox above Done turns the pronunciation under names on or off.
  */
 public class LanguageScreen extends Screen {
-	/** Translation key of the pronunciation checkbox's label (the game test clicks it by this). */
+	/** Translation key of the pronunciation checkbox's label. */
 	public static final String SHOW_PRONUNCIATION = "langmod.language.showPronunciation";
 	private static final int BUTTON_WIDTH = 240;
 	private static final int GAP = 8;
